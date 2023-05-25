@@ -1,9 +1,14 @@
 // Internal (cubical) theory
 symbol Lev : TYPE;
-symbol lsuc : Lev → Lev;
+constant symbol lzero : Lev;
+constant symbol lsuc : Lev → Lev;
+symbol lmax : Lev → Lev → Lev;
+rule lmax lzero $n ↪ $n
+with lmax $n lzero ↪ $n
+with lmax (lsuc $n) (lsuc $m) ↪ lsuc (lmax $n $m)
+with lmax $s $s ↪ $s;
 
 // Universes
-
 constant symbol T : Lev → TYPE;
 injective symbol eps [i] : T i → TYPE;
 
@@ -24,31 +29,31 @@ rule recursor _ $H _ zero ↪ $H;
 rule recursor $tau $Hz $Hs (S $n) ↪ $Hs $n (recursor $tau $Hz $Hs $n);
 
 // Pi-types
-constant symbol Pi [i] (A : T i) : (eps A → T i) → T i;
-symbol tPi [i] ≔ λ (A : T i) (B : eps A → T i), eps (Pi A B);
+constant symbol Pi [i j] (A : T i) : (eps A → T j) → T (lmax i j);
+symbol tPi [i j] ≔ λ (A : T i) (B : eps A → T j), eps (Pi A B);
 rule eps (Pi $A $B) ↪ Π (x : eps $A), eps ($B x);
 
-symbol ndPi [i] ≔ λ (A : T i) (B : T i), Pi A (λ _, B);
-symbol tndPi [i] ≔ λ (A : T i) (B : T i), eps (ndPi A B);
+symbol ndPi [i j] ≔ λ (A : T i) (B : T j), Pi A (λ _, B);
+symbol tndPi [i j] ≔ λ (A : T i) (B : T j), eps (ndPi A B);
 
 // Sigma Types
-constant symbol Sig [i] (A : T i) : (eps A → T i) → T i;
-symbol tSig [i] (A : T i) (B : eps A → T i) ≔ eps (Sig A B);
-constant symbol pair [i] [A : T i] [B : eps A → T i] (x : eps A) : eps (B x) → tSig A B;
-symbol p1 [i] [A : T i] [B : eps A → T i] : tSig A B → eps A;
-symbol p2 [i] [A : T i] [B : eps A → T i] (a : tSig A B) : eps (B (p1 a));
+constant symbol Sig [i j] (A : T i) : (eps A → T j) → T (lmax i j);
+symbol tSig [i j] (A : T i) (B : eps A → T j) ≔ eps (Sig A B);
+constant symbol pair [i j] [A : T i] [B : eps A → T j] (x : eps A) : eps (B x) → tSig A B;
+symbol p1 [i j] [A : T i] [B : eps A → T j] : tSig A B → eps A;
+symbol p2 [i j] [A : T i] [B : eps A → T j] (a : tSig A B) : eps (B (p1 a));
 rule p1 (pair $a _) ↪ $a;
 rule p2 (pair _ $b) ↪ $b;
 
-symbol ndSig [i] (A : T i) (B : T i) ≔ Sig A (λ _, B);
-symbol tndSig [i] (A : T i) (B : T i) ≔ tSig A (λ _, B);
+symbol ndSig [i j] (A : T i) (B : T j) ≔ Sig A (λ _, B);
+symbol tndSig [i j] (A : T i) (B : T j) ≔ tSig A (λ _, B);
 
 // Disjoint sum
-constant symbol Sum [i] : T i → T i → T i;
-symbol tSum [i] (A B : T i) ≔ eps (Sum A B);
-constant symbol injl [i] [A B : T i] : eps A → tSum A B;
-constant symbol injr [i] [A B : T i] : eps B → tSum A B;
-symbol case [i j] [A B : T i] (tau : (tSum A B → T j)) :
+constant symbol Sum [i j] : T i → T j → T (lmax i j);
+symbol tSum [i j] (A : T i) (B : T j) ≔ eps (Sum A B);
+constant symbol injl [i j] [A : T i] [B : T j] : eps A → tSum A B;
+constant symbol injr [i j] [A : T i] [B : T j] : eps B → tSum A B;
+symbol case [i j k] [A : T i] [B : T j] (tau : (tSum A B → T k)) :
   (Π a : eps A, eps (tau (injl a))) → (Π b : eps B, eps (tau (injr b))) →
   Π (e : tSum A B), eps (tau e);
 rule case _ $caseA _ (injl $a) ↪ $caseA $a;
@@ -164,13 +169,13 @@ refine H
 end;
 
 symbol convtransp [i] [A : eps (t i)] [B : eps (t i)] : tconv A B → eps A → eps B ≔
-begin
-assume i A B p a;
-refine @convelim (lsuc i) i (t i) A (λ B _, B) a _ p
-end;
+  λ p a, @convelim (lsuc i) i (t i) A (λ B _, B) a _ p;
 
-symbol convcong [l] [A B : T l] (f : tndPi A B) [x y : eps A] (eq : tconv x y) : tconv (f x) (f y) ≔
+symbol convcong [l m] [A : T l] [B : T m] (f : tndPi A B) [x y : eps A] (eq : tconv x y) : tconv (f x) (f y) ≔
   xJ (λ y _, conv (f x) (f (isoDown y))) convrefl (isoUp y) eq;
+
+symbol convcongtype [l m] [A : T l] (f : tndPi A (t m)) [x y : eps A] (eq : tconv x y) : tconv (f x) (f y) ≔
+  convcong f eq;
 
 // Cubical primitives
 // Interval type
@@ -252,7 +257,7 @@ injective symbol isOneZeroUp : tisOne 0f → xtFalse;
 injective symbol isOneZeroDown : xtFalse → tisOne 0f;
 rule isOneZeroDown (isOneZeroUp $a) ↪ $a;
 rule isOneZeroUp (isOneZeroDown $a) ↪ $a;
-symbol elimIsOneZero (A : xT) (p : tisOne 0f) : xeps A ≔ xelimFalse A (isOneZeroUp p);
+symbol elimIsOneZero [A : xT] (p : tisOne 0f) : xeps A ≔ xelimFalse A (isOneZeroUp p);
 
 injective symbol isOneOneUp : tisOne 1f → xtTrue;
 injective symbol isOneOneDown : xtTrue → tisOne 1f;
@@ -311,20 +316,23 @@ symbol tPathP [i] (A : tI → T i) (x : eps (A 0)) (y : eps (A 1)) ≔ eps (Path
 symbol Path [i] [A : T i] (x y : eps A) ≔ PathP (λ _, A) x y;
 symbol tPath [i] [A : T i] (x y : eps A) ≔ eps (Path x y);
 
-symbol lamPfull [l] (A : tI → T l) (x : eps (A 0)) (y : eps (A 1))
-                         (p : Π (i : tI), eps (A i)) : tconv (p 0) x → tconv (p 1) y → tPathP A x y;
-protected symbol primLam [l] (A : tI → T l) (x : eps (A 0)) (y : eps (A 1))
-                       (p : Π (i : tI), eps (A i)) : tPathP A x y;
-rule lamPfull $A $x $y $p _ _ ↪ primLam $A $x $y $p;
+injective symbol lamP [l] (A : tI → T l) (p : Π (i : tI), eps (A i)) : tPathP A (p 0) (p 1);
 
-symbol lamP [l] (A : tI → T l) (p : Π (i : tI), eps (A i)) : tPathP A (p 0) (p 1) ≔
-  lamPfull A (p 0) (p 1) p convrefl convrefl;
+symbol lamPfull [l] (A : tI → T l) (x : eps (A 0)) (y : eps (A 1))
+                         (p : Π (i : tI), eps (A i)) : tconv (p 0) x → tconv (p 1) y → tPathP A x y ≔
+begin
+  assume l A x y p eqx eqy;
+  refine convtransp (convcongtype (λ z, PathP A z y) eqx) _;
+  refine convtransp (convcongtype (λ z, PathP A (p 0) z) eqy) _;
+  refine lamP A p;
+end;
+
 symbol app [l] [A : tI → T l] [u : eps (A 0)] [v : eps (A 1)] : (tPathP A u v) → Π i : tI, eps (A i);
 
-rule app (primLam _ _ _ $p) $i ↪ $p $i;
+rule app (lamP _ $p) $i ↪ $p $i;
 rule @app _ _ $u _ _ 0 ↪ $u;
 rule @app _ _ _ $v _ 1 ↪ $v;
-rule primLam $A $x $y (λ i, @app $_.[] $A.[] $x.[] $y.[] $p.[] i) ↪ $p;
+rule lamP $A (λ i, @app $_.[] $A.[] $x.[] $y.[] $p.[] i) ↪ $p;
 
 symbol lam [l] [A : T l] (p : tI → eps A) ≔ lamP (λ _, A) p;
 
@@ -390,13 +398,7 @@ end;
 
 // Usual transport is then defined like this
 symbol transport [l] [A B : T l] (p : @tPath (lsuc l) (t l) A B) (x : eps A) : eps B ≔
-begin
-  assume l A B eq x;
-  refine transp (λ i, app eq i) 0f x _;
-  assume p i;
-  apply elimIsOneZero;
-  refine p;
-end;
+  transp (λ i, app p i) 0f x (λ p i, elimIsOneZero p);
 
 // J eliminator for path types, whose usual computation rule only holds up to path equality
 symbol J [i j : Lev] [A : T i] [x : eps A] (tau : Π y : eps A, tPath x y → T j) (H : eps (tau x pathrefl))
@@ -433,7 +435,7 @@ shape of the face φ:
   for both cases, along with the proof that they are equal when both formulae
   hold. */
 
-symbol PartialEmpty [l] [A : T l] : tPartial 0f A ≔ λ p, isoDown (elimIsOneZero (c A) p);
+symbol PartialEmpty [l] [A : T l] : tPartial 0f A ≔ λ p, isoDown (elimIsOneZero p);
 
 symbol PartialEq0 [l] (A : tI → T l) (x : eps (A 0)) (i : tI) : tPartial (eq0 i) (A i);
 rule PartialEq0 _ $x 0 _ ↪ $x;
@@ -540,7 +542,7 @@ end;
 symbol comp [l] (A : tI → T l) (f : tF) (u : Π i, tPartial f (A i)) (u0 : eps (A 0))
             (eq : Π p : tisOne f, tconv u0 (u 0 p)) : eps (A 1) ≔
   hcomp (A 1) f (λ i p, forward A i (u i p)) (transport (lam A) u0)
-        (λ p, convcong (λ x, transp (λ i, A i) 0f x (λ p i, elimIsOneZero _ p)) (eq p));
+        (λ p, convcong (λ x, transp (λ i, A i) 0f x (λ p i, elimIsOneZero p)) (eq p));
 
 symbol compConv [l] (A : tI → T l) (f : tF) (u : Π i, tPartial f (A i)) (u0 : eps (A 0))
             (eq : Π p : tisOne f, tconv u0 (u 0 p)) : Π p : tisOne f, tconv (comp A f u u0 eq) (u 1 p) ≔
@@ -571,22 +573,18 @@ rule primTransp (λ i, PathP $A.[i] $u.[i] $v.[i]) $f $u0 ↪
                                         (PartialEq1 $A.[i] $v.[i] j)))
                  (app $u0 j));
 
-rule primTransp (λ i, Sig $A.[i] $B.[i]) $f $u0 ↪
+rule primTransp (λ i, @Sig $_.[] $_.[] $A.[i] $B.[i]) $f $u0 ↪
      pair (primTransp (λ i, $A.[i]) $f (p1 $u0))
           (primTransp (λ i, $B.[i] (primTranspFill (λ j, $A.[j]) $f (p1 $u0) i)) $f (p2 $u0));
 
-rule primTransp (λ i, Pi $A.[i] $B.[i]) $f $u0 $v ↪
+rule primTransp (λ i, @Pi $_.[] $_.[] $A.[i] $B.[i]) $f $u0 $v ↪
      primTransp (λ i, $B.[i] (primTransp (λ j, $A.[Imax i (sym j)]) (Fmax $f (eq1 i)) $v))
                 $f ($u0 (primTransp (λ i, $A.[sym i]) $f $v));
 
-/* Reduction rule doesn't seem to work
-rule primTransp (λ i, Sum $A.[i] _) $f (injl $a) ↪
-     injl (primTransp (λ i, $A.[i]) $f $a); */
-
-symbol transpSumInjlConv [l] (A B : tI → T l) (f : tF) (a : eps (A 0)) :
-  tconv (primTransp (λ i, Sum (A i) (B i)) f (injl a)) (injl (primTransp A f a));
-symbol transpSumInjrConv [l] (A B : tI → T l) (f : tF) (a : eps (B 0)) :
-  tconv (primTransp (λ i, Sum (A i) (B i)) f (injr a)) (injr (primTransp B f a));
+rule primTransp (λ i, @Sum $_.[] _ $A.[i] _) $f (injl $a) ↪
+     injl (primTransp (λ i, $A.[i]) $f $a);
+rule primTransp (λ i, @Sum _ $_.[] _ $B.[i]) $f (injr $b) ↪
+     injr (primTransp (λ i, $B.[i]) $f $b);
 
 rule primTransp (λ _, t _) _ $A ↪ $A;
 
@@ -601,17 +599,16 @@ rule primHcomp (PathP $A $v $w) $f $u $u0 ↪
              (λ i, primSys $f (Fmax (eq0 j) (eq1 j)) (λ p, app ($u i p) j)
              (primSys (eq0 j) (eq1 j) (PartialEq0 $A $v j) (PartialEq1 $A $w j))) (app $u0 j));
 
-symbol hcompSigRHS [l] (A : T l) (B : eps A → T l) (f : tF)
+symbol hcompSigRHS [l m] (A : T l) (B : eps A → T m) (f : tF)
                    (u : tI → tPartial f (Sig A B)) (u0 : tSig A B) : tSig A B ≔
 begin
-  assume l A B f u u0;
+  assume l m A B f u u0;
   refine pair _ _
   { refine primHcomp A f (λ i p, p1 (u i p)) (p1 u0) }
   { refine primComp (λ i, B (primHfill A f (λ i p, p1 (u i p)) (p1 u0) i)) f _ _
     { assume i p;
       have H: tconvtype (B (p1 (u i p))) (B (primHfill A f (λ i1 p', p1 (u i1 p')) (p1 u0) i))
-      { refine xcong [c A] [c (t l)] (λ t, isoUp (B (isoDown t))) [isoUp (p1 (u i p))]
-                     [isoUp (primHfill A f (λ i1 p', p1 (u i1 p')) (p1 u0) i)] _;
+      { refine convcongtype (λ t, B t) _;
         refine xJ (λ g _, xPi (isOne g)
                               (λ p, xPi (xPi I (λ i, Partial g (Sig A B)))
                                         (λ u, conv (p1 (u i p)) (primHfill A g (λ i1 p', p1 (u i1 p')) (p1 u0) i))))
