@@ -332,7 +332,7 @@ symbol app [l] [A : tI → T l] [u : eps (A 0)] [v : eps (A 1)] : (tPathP A u v)
 rule app (lamP _ $p) $i ↪ $p $i;
 rule @app _ _ $u _ _ 0 ↪ $u;
 rule @app _ _ _ $v _ 1 ↪ $v;
-rule lamP $A (λ i, @app $_.[] $A.[] $x.[] $y.[] $p.[] i) ↪ $p;
+rule lamP $A (λ i, @app $_.[] $A.[] $_.[] $_.[] $p.[] i) ↪ $p;
 
 symbol lam [l] [A : T l] (p : tI → eps A) ≔ lamP (λ _, A) p;
 
