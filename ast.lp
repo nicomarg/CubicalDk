@@ -18,7 +18,7 @@ constant symbol DBId : TYPE;
 inductive Term : TYPE ≔
 // dependent λ-calculus
 | tvar : DBId → Term
-| tfun : Term → // Domain
+| tpi : Term → // Domain
          Term → // Codomain
          Term
 | tabs : Term → // Domain

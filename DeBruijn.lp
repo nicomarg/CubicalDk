@@ -56,7 +56,7 @@ with dbshift (dbsucc _) db0 ↪ db0;
 symbol shift : DBId → Term → Term;
 // Computation rules for shifting on terms
 rule shift $i (tvar $id) ↪ tvar (dbshift $i $id)
-with shift $i (tfun $A $B) ↪ tfun (shift $i $A) (shift (dbsucc $i) $B)
+with shift $i (tpi $A $B) ↪ tpi (shift $i $A) (shift (dbsucc $i) $B)
 with shift $i (tabs $A $t) ↪ tabs (shift $i $A) (shift (dbsucc $i) $t)
 with shift $i (tapp $f $u) ↪ tapp (shift $i $f) (shift $i $u)
 with shift _  (tuniv $s) ↪ tuniv $s
@@ -106,7 +106,7 @@ with dbselect (dbsucc _) db0 _ $gt _ ↪ $gt;
 // When substituting by a Term, interfal and face terms can't be affected
 symbol subst : DBId → Term → Term → Term;
 rule subst $i $V (tvar $id) ↪ dbselect $i $id $V (tvar $id) (tvar (dbprev $id))
-with subst $i $V (tfun $A $B) ↪ tfun (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
+with subst $i $V (tpi $A $B) ↪ tpi (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
 with subst $i $V (tabs $A $t) ↪ tabs (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $t)
 with subst $i $V (tapp $f $u) ↪ tapp (subst $i $V $f) (subst $i $V $u)
 with subst _  _  (tuniv $s) ↪ tuniv $s
@@ -183,7 +183,7 @@ with IShiftFN $i $t ↪ IShiftF (IShiftF* $i $t);
 // Wrapper for applying a function on interval variables inside a term
 symbol wrap : (DBId → ITerm → ITerm → ITerm) → (DBId → ITerm → FTerm → FTerm) → DBId → ITerm → Term → Term;
 rule wrap _ _ _ _ (tvar $id) ↪ (tvar $id)
-with wrap $f $g $i $T (tfun $A $B) ↪ tfun (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
+with wrap $f $g $i $T (tpi $A $B) ↪ tpi (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
 with wrap $f $g $i $T (tabs $A $t) ↪ tabs (wrap $f $g $i $T $A) (wrap $f $g $i $T $t)
 with wrap $f $g $i $T (tapp $u $v) ↪ tapp (wrap $f $g $i $T $u) (wrap $f $g $i $T $v)
 with wrap _ _ _ _ (tuniv $id) ↪ tuniv $id
