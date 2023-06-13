@@ -476,3 +476,10 @@ with der_isOne : Context → FTerm → TYPE ≔
 | der_isOne_weakI : Π (Γ : Context) (f : FTerm), der_isOne Γ f → der_isOne (PushI Γ) (IShiftF f)
 | der_isOne_weakF : Π (Γ : Context) (f g : FTerm), der_isOne Γ f → der_isOne (PushF g Γ) f
 | der_isOne_cong : Π (Γ : Context) (f g : FTerm), der_isOne Γ f → der_eq_F Γ f g → der_isOne Γ g;
+
+inductive der_context : Context → TYPE ≔
+| der_context_empty : der_context Empty
+| der_context_Push : Π (Γ : Context) (l : Lev) (A : Term),
+  der Γ A (tuniv l) (lsuc l) → der_context Γ → der_context (Push A l Γ)
+| der_context_PushI : Π (Γ : Context), der_context Γ → der_context (PushI Γ)
+| der_context_PushF : Π (Γ : Context) (f : FTerm), der_context Γ → der_context (PushF f Γ);
