@@ -63,7 +63,7 @@ with shift _  (tuniv $s) ↪ tuniv $s
 with shift _ tnat ↪ tnat
 with shift _ tzero ↪ tzero
 with shift $i (tsuc $n) ↪ tsuc (shift $i $n)
-with shift $i (trec $P $z $H $n) ↪ trec (shift $i $P) (shift $i $z) (shift (dbsucc (dbsucc $i)) $H) (shift $i $n)
+with shift $i (trec $P $z $H $n) ↪ trec (shift (dbsucc $i) $P) (shift $i $z) (shift $i $H) (shift $i $n)
 with shift $i (tsig $A $B) ↪ tsig (shift $i $A) (shift (dbsucc $i) $B)
 with shift $i (tpair $u $v) ↪ tpair (shift $i $u) (shift $i $v)
 with shift $i (tp1 $p) ↪ tp1 (shift $i $p)
@@ -71,12 +71,13 @@ with shift $i (tp2 $p) ↪ tp2 (shift $i $p)
 with shift $i (tsum $A $B) ↪ tsum (shift $i $A) (shift $i $B)
 with shift $i (tinjl $a) ↪ tinjl (shift $i $a)
 with shift $i (tinjr $b) ↪ tinjr (shift $i $b)
-with shift $i (tcase $A $B $P $a $b $x) ↪ tcase (shift $i $A) (shift $i $B) (shift $i $P) (shift (dbsucc $i) $a)
-                                                (shift (dbsucc $i) $b) (shift $i $x)
+with shift $i (tcase $A $B $P $a $b $x) ↪ tcase (shift $i $A) (shift $i $B) (shift (dbsucc $i) $P) (shift $i $a)
+                                                (shift $i $b) (shift $i $x)
 with shift $i (tpath $A $x $y) ↪ tpath (shift $i $A) (shift $i $x) (shift $i $y)
 with shift $i (tlamP $t) ↪ tlamP (shift $i $t)
 with shift $i (tappP $t $j) ↪ tappP (shift $i $t) $j
 with shift $i (tsys $f $g $u $v) ↪ tsys $f $g (shift $i $u) (shift $i $v)
+with shift _ temptysys ↪ temptysys
 with shift $i (ttransp $A $f $a) ↪ ttransp (shift $i $A) $f (shift $i $a)
 with shift $i (thcomp $A $f $u $u0) ↪ thcomp (shift $i $A) $f (shift $i $u) (shift $i $u0)
 with shift $i (tgluety $f $T $w $A) ↪ tgluety $f (shift $i $T) (shift $i $w) (shift $i $A)
@@ -95,56 +96,8 @@ with Shift* (dbsucc $n) $t ↪ Shift (Shift* $n $t)
 with Shift* _ (tuniv $s) ↪ tuniv $s
 with ShiftN $i $t ↪ Shift (Shift* $i $t);
 
-// Select a term depending on whether two indices are equal, the first one is greater, or lower
-symbol dbselect : DBId → DBId → Term → Term → Term → Term;
-rule dbselect db0 db0 $eq _ _ ↪ $eq
-with dbselect (dbsucc $i) (dbsucc $j) $eq $gt $lt ↪ dbselect $i $j $eq $gt $lt
-with dbselect db0 (dbsucc _) _ _ $lt ↪ $lt
-with dbselect (dbsucc _) db0 _ $gt _ ↪ $gt;
-
-// Substitution (and shift down everything above the substituted index)
-// When substituting by a Term, interfal and face terms can't be affected
-symbol subst : DBId → Term → Term → Term;
-rule subst $i $V (tvar $id) ↪ dbselect $i $id $V (tvar $id) (tvar (dbprev $id))
-with subst $i $V (tpi $A $B) ↪ tpi (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
-with subst $i $V (tabs $A $t) ↪ tabs (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $t)
-with subst $i $V (tapp $f $u) ↪ tapp (subst $i $V $f) (subst $i $V $u)
-with subst _  _  (tuniv $s) ↪ tuniv $s
-with subst _ _ tnat ↪ tnat
-with subst _ _ tzero ↪ tzero
-with subst $i $V (tsuc $n) ↪ tsuc (subst $i $V $n)
-with subst $i $V (trec $P $z $H $n) ↪ trec (subst $i $V $P) (subst $i $V $z)
-                                           (subst (dbsucc (dbsucc $i)) (ShiftN db1 $V) $H) (subst $i $V $n)
-with subst $i $V (tsig $A $B) ↪ tsig (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
-with subst $i $V (tpair $u $v) ↪ tpair (subst $i $V $u) (subst $i $V $v)
-with subst $i $V (tp1 $p) ↪ tp1 (subst $i $V $p)
-with subst $i $V (tp2 $p) ↪ tp2 (subst $i $V $p)
-with subst $i $V (tsum $A $B) ↪ tsum (subst $i $V $A) (subst $i $V $B)
-with subst $i $V (tinjl $a) ↪ tinjl (subst $i $V $a)
-with subst $i $V (tinjr $b) ↪ tinjr (subst $i $V $b)
-with subst $i $V (tcase $A $B $P $a $b $x) ↪ tcase (subst $i $V $A) (subst $i $V $B) (subst $i $V $P)
-                                                   (subst (dbsucc $i) (Shift $V) $a)
-                                                   (subst (dbsucc $i) (Shift $V) $b) (subst $i $V $x)
-with subst $i $V (tpath $A $x $y) ↪ tpath (subst $i $V $A) (subst $i $V $x) (subst $i $V $y)
-with subst $i $V (tlamP $t) ↪ tlamP (subst $i $V $t)
-with subst $i $V (tappP $t $j) ↪ tappP (subst $i $V $t) $j
-with subst $i $V (tsys $f $g $u $v) ↪ tsys $f $g (subst $i $V $u) (subst $i $V $v)
-with subst $i $V (ttransp $A $f $u) ↪ ttransp (subst (dbsucc $i) (Shift $V) $A) $f (subst $i $V $u)
-with subst $i $V (thcomp $A $f $u $u0) ↪ thcomp (subst $i $V $A) $f (subst $i $V $u) (subst $i $V $u0)
-with subst $i $V (tgluety $f $T $w $A) ↪ tgluety $f (subst $i $V $T) (subst $i $V $w) (subst $i $V $A)
-with subst $i $V (tglue $f $t $a) ↪ tglue $f (subst $i $V $t) (subst $i $V $a)
-with subst $i $V (tunglue $f $w $b) ↪ tunglue $f (subst $i $V $w) (subst $i $V $b);
-
-// Some substitution commutation
-// might need the interval/face versions of this
-rule shift db0 (shift $i $t) ↪ shift (dbsucc $i) (Shift $t);
-rule shift (dbsucc db0) (shift (dbsucc $i) $t) ↪ shift (dbsucc (dbsucc $i)) (Shift1 $t);
-rule subst db0 _ (shift db0 $t) ↪ $t
-with subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t
-with shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
-
 // Interval variables will use disjoint DeBruijn indices, and will thus need their own shift and substitution.
-// As the work is obvious on terms and faces once these functions have been defined on interval terms, the
+// As the work is obvious on terms once these functions have been defined on interval terms, the
 // versions for these kind of terms will be obtained by lifting the definition on the interval.
 
 // Interval variables shift
@@ -207,7 +160,8 @@ with wrap $f $g $i $T (tpath $A $x $y) ↪ tpath (wrap $f $g (dbsucc $i) (IShift
 with wrap $f $g $i $T (tlamP $t) ↪ tlamP (wrap $f $g (dbsucc $i) (IShiftI $T) $t)
 with wrap $f $g $i $T (tappP $u $v) ↪ tappP (wrap $f $g $i $T $u) ($f $i $T $v)
 with wrap $f $g $i $T (tsys $f1 $f2 $u $v) ↪ tsys ($g $i $T $f1) ($g $i $T $f2) (wrap $f $g $i $T $u)
-                                                  (wrap $f $g $i $T $u)
+                                                  (wrap $f $g $i $T $v)
+with wrap _ _ _ _ temptysys ↪ temptysys
 with wrap $f $g $i $T (ttransp $A $p $u) ↪ ttransp (wrap $f $g (dbsucc $i) (IShiftI $T) $A) ($g $i $T $p)
                                                    (wrap $f $g $i $T $u)
 with wrap $f $g $i $T (thcomp $A $p $u $u0) ↪ thcomp (wrap $f $g $i $T $A) ($g $i $T $p)
@@ -225,6 +179,57 @@ symbol IShiftN : DBId → Term → Term;
 rule IShift* db0 $t ↪ $t
 with IShift* (dbsucc $n) $t ↪ IShift (IShift* $n $t)
 with IShiftN $i $t ↪ IShift (IShift* $i $t);
+
+// Select a term depending on whether two indices are equal, the first one is greater, or lower
+symbol dbselect : DBId → DBId → Term → Term → Term → Term;
+rule dbselect db0 db0 $eq _ _ ↪ $eq
+with dbselect (dbsucc $i) (dbsucc $j) $eq $gt $lt ↪ dbselect $i $j $eq $gt $lt
+with dbselect db0 (dbsucc _) _ _ $lt ↪ $lt
+with dbselect (dbsucc _) db0 _ $gt _ ↪ $gt;
+
+// Substitution (and shift down everything above the substituted index)
+// When substituting by a Term, interfal and face terms can't be affected
+// However, interval variables can appear in the substituted term and thus need to be shifted
+symbol subst : DBId → Term → Term → Term;
+rule subst $i $V (tvar $id) ↪ dbselect $i $id $V (tvar $id) (tvar (dbprev $id))
+with subst $i $V (tpi $A $B) ↪ tpi (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
+with subst $i $V (tabs $A $t) ↪ tabs (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $t)
+with subst $i $V (tapp $f $u) ↪ tapp (subst $i $V $f) (subst $i $V $u)
+with subst _  _  (tuniv $s) ↪ tuniv $s
+with subst _ _ tnat ↪ tnat
+with subst _ _ tzero ↪ tzero
+with subst $i $V (tsuc $n) ↪ tsuc (subst $i $V $n)
+with subst $i $V (trec $P $z $H $n) ↪ trec (subst (dbsucc $i) (Shift $V) $P) (subst $i $V $z)
+                                           (subst $i $V $H) (subst $i $V $n)
+with subst $i $V (tsig $A $B) ↪ tsig (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
+with subst $i $V (tpair $u $v) ↪ tpair (subst $i $V $u) (subst $i $V $v)
+with subst $i $V (tp1 $p) ↪ tp1 (subst $i $V $p)
+with subst $i $V (tp2 $p) ↪ tp2 (subst $i $V $p)
+with subst $i $V (tsum $A $B) ↪ tsum (subst $i $V $A) (subst $i $V $B)
+with subst $i $V (tinjl $a) ↪ tinjl (subst $i $V $a)
+with subst $i $V (tinjr $b) ↪ tinjr (subst $i $V $b)
+with subst $i $V (tcase $A $B $P $a $b $x) ↪ tcase (subst $i $V $A) (subst $i $V $B) (subst (dbsucc $i) (Shift $V) $P)
+                                                   (subst $i $V $a) (subst $i $V $b) (subst $i $V $x)
+with subst $i $V (tpath $A $x $y) ↪ tpath (subst $i (IShift $V) $A) (subst $i $V $x) (subst $i $V $y)
+with subst $i $V (tlamP $t) ↪ tlamP (subst $i (IShift $V) $t)
+with subst $i $V (tappP $t $j) ↪ tappP (subst $i $V $t) $j
+with subst $i $V (tsys $f $g $u $v) ↪ tsys $f $g (subst $i $V $u) (subst $i $V $v)
+with subst _ _ temptysys ↪ temptysys
+with subst $i $V (ttransp $A $f $u) ↪ ttransp (subst $i (IShift $V) $A) $f (subst $i $V $u)
+with subst $i $V (thcomp $A $f $u $u0) ↪ thcomp (subst $i $V $A) $f (subst $i (IShift $V) $u) (subst $i $V $u0)
+with subst $i $V (tgluety $f $T $w $A) ↪ tgluety $f (subst $i $V $T) (subst $i $V $w) (subst $i $V $A)
+with subst $i $V (tglue $f $t $a) ↪ tglue $f (subst $i $V $t) (subst $i $V $a)
+with subst $i $V (tunglue $f $w $b) ↪ tunglue $f (subst $i $V $w) (subst $i $V $b);
+
+symbol apply1 (t u : Term) : Term ≔ subst db0 u t;
+
+// Some substitution commutation
+// might need the interval/face versions of this
+// rule shift db0 (shift $i $t) ↪ shift (dbsucc $i) (Shift $t);
+// rule shift (dbsucc db0) (shift (dbsucc $i) $t) ↪ shift (dbsucc (dbsucc $i)) (Shift1 $t);
+// rule subst db0 _ (shift db0 $t) ↪ $t
+// with subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t
+// with shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
 
 symbol dbselectI : DBId → DBId → ITerm → ITerm → ITerm → ITerm;
 rule dbselectI db0 db0 $eq _ _ ↪ $eq
@@ -255,14 +260,14 @@ rule substeq0 it0 ↪ ft1
 with substeq0 it1 ↪ ft0
 with substeq0 (itvar $id) ↪ fteq0 $id
 with substeq0 (itsym $i) ↪ substeq1 $i
-with substeq0 (itmin $a $b) ↪ ftmax (substeq0 $a) (substeq0 $a)
-with substeq0 (itmax $a $b) ↪ ftmin (substeq0 $a) (substeq0 $a)
+with substeq0 (itmin $a $b) ↪ ftmax (substeq0 $a) (substeq0 $b)
+with substeq0 (itmax $a $b) ↪ ftmin (substeq0 $a) (substeq0 $b)
 with substeq1 it0 ↪ ft0
 with substeq1 it1 ↪ ft1
 with substeq1 (itvar $id) ↪ fteq1 $id
 with substeq1 (itsym $i) ↪ substeq0 $i
-with substeq1 (itmin $a $b) ↪ ftmin (substeq1 $a) (substeq1 $a)
-with substeq1 (itmax $a $b) ↪ ftmax (substeq1 $a) (substeq1 $a);
+with substeq1 (itmin $a $b) ↪ ftmin (substeq1 $a) (substeq1 $b)
+with substeq1 (itmax $a $b) ↪ ftmax (substeq1 $a) (substeq1 $b);
 
 symbol IsubstF : DBId → ITerm → FTerm → FTerm;
 // as eq0 and eq1 only apply to variables, when substituting the variable we transform the formula to obtain
@@ -273,3 +278,5 @@ with IsubstF $i $V (fteq1 $id) ↪ dbselectF $i $id (substeq1 $V) (fteq1 $id) (f
 with IsubstF $i $V (ftmin $a $b) ↪ ftmin (IsubstF $i $V $a) (IsubstF $i $V $b)
 with IsubstF $i $V (ftmax $a $b) ↪ ftmax (IsubstF $i $V $a) (IsubstF $i $V $b);
 symbol Isubst : DBId → ITerm → Term → Term ≔ wrap IsubstI IsubstF;
+
+symbol applyI1 (u : Term) (t : ITerm) ≔ Isubst db0 t u;

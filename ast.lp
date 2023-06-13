@@ -98,6 +98,7 @@ inductive Term : TYPE ≔
          Term → // First subterm
          Term → // Second subterm
          Term
+| temptysys : Term
 // Primitive transport
 | ttransp : Term → // Type
             FTerm → // Face
