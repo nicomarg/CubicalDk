@@ -15,132 +15,155 @@ with lmax (lsuc $n) (lsuc $m) ↪ lsuc (lmax $n $m)
 with lmax $s $s ↪ $s;
 constant symbol DBId : TYPE;
 
-inductive Term : TYPE ≔
+constant symbol Term : TYPE;
 // dependent λ-calculus
-| tvar : DBId → Term
-| tpi : Term → // Domain
-         Term → // Codomain
-         Term
-| tabs : Term → // Domain
-         // Term → // Codomain
-         Term → // Body
-         Term
-| tapp : // Term → // Domain
-         // Term → // Codomain
-         // Might need domain/codomain. was crucial for ETT → ITT, but not sure it's needed for cubical
-         Term → // Function
-         Term → // Argument
-         Term
-| tuniv : Lev → Term
+constant symbol tvar : DBId → Term;
+constant symbol tpi :
+          Term → // Domain
+          Term → // Codomain
+          Term;
+constant symbol tabs :
+          Term → // Domain
+          // Term → // Codomain
+          Term → // Body
+          Term;
+constant symbol tapp :
+          // Term → // Domain
+          // Term → // Codomain
+          // Might need domain/codomain. was crucial for ETT → ITT, but not sure it's needed for cubical
+          Term → // Function
+          Term → // Argument
+          Term;
+constant symbol tuniv : Lev → Term;
 // Integers
-| tnat : Term
-| tzero : Term
-| tsuc : Term → Term
-| trec : Term → // Predicate
-         Term → // zero case
-         Term → // heredity
-         Term → // Argument
-         Term
+constant symbol tnat : Term;
+constant symbol tzero : Term;
+constant symbol tsuc : Term → Term;
+constant symbol trec :
+          Term → // Predicate
+          Term → // zero case
+          Term → // heredity
+          Term → // Argument
+          Term;
 // Dependent pairs
-| tsig : Term → // Type of the first element
-         Term → // Type of the second element
-         Term
-| tpair : // Term → // Type of the first element
+constant symbol tsig :
+          Term → // Type of the first element
+          Term → // Type of the second element
+          Term;
+constant symbol tpair :
+          // Term → // Type of the first element
           // Term → // Type of the second element
           Term → // First element
           Term → // Second element
-          Term
-| tp1 : // Term → // Type of the first element
-        // Term → // Type of the second element
-        Term → // The pair
-        Term
-| tp2 : // Term → // Type of the first element
-        // Term → // Type of the second element
-        Term → // The pair
-        Term
+          Term;
+constant symbol tp1 :
+          // Term → // Type of the first element
+          // Term → // Type of the second element
+          Term → // The pair
+          Term;
+constant symbol tp2 :
+          // Term → // Type of the first element
+          // Term → // Type of the second element
+          Term → // The pair
+          Term;
 // Sum type
-| tsum : Term → // First type
-         Term → // Second type
-         Term
-| tinjl : // Term → // First type
+constant symbol tsum :
+          Term → // First type
+          Term → // Second type
+          Term;
+constant symbol tinjl :
+          // Term → // First type
           // Term → // Second type
           Term → // Argument
-          Term
-| tinjr : // Term → // First type
+          Term;
+constant symbol tinjr :
+          // Term → // First type
           // Term → // Second type
           Term → // Argument
-          Term
-| tcase : Term → // First type
+          Term;
+constant symbol tcase :
+          Term → // First type
           Term → // Second type
           Term → // Predicate
           Term → // First case
           Term → // Second case
           Term → // Argument
-          Term
+          Term;
 // Path types
-| tpath : Term → // Codomain
+constant symbol tpath :
+          Term → // Codomain
           Term → // Start point
           Term → // End point
-          Term
-| tlamP : // Term → // Codomain
+          Term;
+constant symbol tlamP :
+          // Term → // Codomain
           Term → // Body
-          Term
-| tappP : // Term → // Codomain
+          Term;
+constant symbol tappP :
+          // Term → // Codomain
           // Term → // Start point
           // Term → // End point
           Term → // path
           ITerm → // argument
-          Term
+          Term;
 // Systems
-| tsys : // Term → // Type
-         FTerm → // First face
-         FTerm → // Second face
-         Term → // First subterm
-         Term → // Second subterm
-         Term
-| temptysys : Term
+constant symbol tsys :
+          // Term → // Type
+          FTerm → // First face
+          FTerm → // Second face
+          Term → // First subterm
+          Term → // Second subterm
+          Term;
+constant symbol temptysys : Term;
 // Primitive transport
-| ttransp : Term → // Type
-            FTerm → // Face
-            Term → // Argument
-            Term
+constant symbol ttransp :
+          Term → // Type
+          FTerm → // Face
+          Term → // Argument
+          Term;
 // Hcomp operation
-| thcomp : Term → // Type
-           FTerm → // Face
-           Term → // Partial element
-           Term → // Base
-           Term
+constant symbol thcomp :
+          Term → // Type
+          FTerm → // Face
+          Term → // Partial element
+          Term → // Base
+          Term;
 // Glue types
-| tgluety : FTerm → // Face
-            Term → // Partial Type
-            Term → // Partial equivalence
-            Term → // Type
-            Term
-| tglue : FTerm → // Face
+constant symbol tgluety :
+          FTerm → // Face
+          Term → // Partial Type
+          Term → // Partial equivalence
+          Term → // Type
+          Term;
+constant symbol tglue :
+          FTerm → // Face
           // Term → // Partial Type
           // Term → // Partial equivalence
           // Term → // Type
           Term → // Preimage
           Term → // Argument
-          Term
-| tunglue : FTerm → // Face
-            // Term → // Partial Type
-            Term → // Partial equivalence
-            // Term → // Type
-            Term → // Argument
-            Term
-with ITerm : TYPE ≔
-| it0 : ITerm
-| it1 : ITerm
-| itvar : DBId → ITerm
-| itsym : ITerm → ITerm
-| itmin : ITerm → ITerm → ITerm
-| itmax : ITerm → ITerm → ITerm
-with FTerm : TYPE ≔
-| ft0 : FTerm
-| ft1 : FTerm
-| fteq0 : DBId → FTerm
-| fteq1 : DBId → FTerm
-| ftmin : FTerm → FTerm → FTerm
-| ftmax : FTerm → FTerm → FTerm
+          Term;
+constant symbol tunglue :
+          FTerm → // Face
+          // Term → // Partial Type
+          Term → // Partial equivalence
+          // Term → // Type
+          Term → // Argument
+          Term;
+// Interval terms
+constant symbol ITerm : TYPE;
+constant symbol it0 : ITerm;
+constant symbol it1 : ITerm;
+constant symbol itvar : DBId → ITerm;
+constant symbol itsym : ITerm → ITerm;
+constant symbol itmin : ITerm → ITerm → ITerm;
+constant symbol itmax : ITerm → ITerm → ITerm;
+// Face terms
+constant symbol FTerm : TYPE;
+constant symbol ft0 : FTerm;
+constant symbol ft1 : FTerm;
+constant symbol fteq0 : DBId → FTerm;
+constant symbol fteq1 : DBId → FTerm;
+constant symbol ftmin : FTerm → FTerm → FTerm;
+constant symbol ftmax : FTerm → FTerm → FTerm;
 ;
