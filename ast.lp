@@ -16,8 +16,11 @@ with lmax $s $s ↪ $s;
 constant symbol DBId : TYPE;
 
 constant symbol Term : TYPE;
+constant symbol ITerm : TYPE;
+constant symbol FTerm : TYPE;
 // dependent λ-calculus
 constant symbol tvar : DBId → Term;
+constant symbol tuniv : Lev → Term;
 constant symbol tpi :
           Term → // Domain
           Term → // Codomain
@@ -34,7 +37,6 @@ constant symbol tapp :
           Term → // Function
           Term → // Argument
           Term;
-constant symbol tuniv : Lev → Term;
 // Integers
 constant symbol tnat : Term;
 constant symbol tzero : Term;
@@ -151,7 +153,6 @@ constant symbol tunglue :
           Term → // Argument
           Term;
 // Interval terms
-constant symbol ITerm : TYPE;
 constant symbol it0 : ITerm;
 constant symbol it1 : ITerm;
 constant symbol itvar : DBId → ITerm;
@@ -159,11 +160,9 @@ constant symbol itsym : ITerm → ITerm;
 constant symbol itmin : ITerm → ITerm → ITerm;
 constant symbol itmax : ITerm → ITerm → ITerm;
 // Face terms
-constant symbol FTerm : TYPE;
 constant symbol ft0 : FTerm;
 constant symbol ft1 : FTerm;
 constant symbol fteq0 : DBId → FTerm;
 constant symbol fteq1 : DBId → FTerm;
 constant symbol ftmin : FTerm → FTerm → FTerm;
 constant symbol ftmax : FTerm → FTerm → FTerm;
-;

@@ -56,10 +56,10 @@ with dbshift (dbsucc _) db0 ↪ db0;
 symbol shift : DBId → Term → Term;
 // Computation rules for shifting on terms
 rule shift $i (tvar $id) ↪ tvar (dbshift $i $id)
+with shift _  (tuniv $s) ↪ tuniv $s
 with shift $i (tpi $A $B) ↪ tpi (shift $i $A) (shift (dbsucc $i) $B)
 with shift $i (tabs $A $t) ↪ tabs (shift $i $A) (shift (dbsucc $i) $t)
 with shift $i (tapp $f $u) ↪ tapp (shift $i $f) (shift $i $u)
-with shift _  (tuniv $s) ↪ tuniv $s
 with shift _ tnat ↪ tnat
 with shift _ tzero ↪ tzero
 with shift $i (tsuc $n) ↪ tsuc (shift $i $n)
@@ -136,10 +136,10 @@ with IShiftFN $i $t ↪ IShiftF (IShiftF* $i $t);
 // Wrapper for applying a function on interval variables inside a term
 symbol wrap : (DBId → ITerm → ITerm → ITerm) → (DBId → ITerm → FTerm → FTerm) → DBId → ITerm → Term → Term;
 rule wrap _ _ _ _ (tvar $id) ↪ (tvar $id)
+with wrap _ _ _ _ (tuniv $id) ↪ tuniv $id
 with wrap $f $g $i $T (tpi $A $B) ↪ tpi (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
 with wrap $f $g $i $T (tabs $A $t) ↪ tabs (wrap $f $g $i $T $A) (wrap $f $g $i $T $t)
 with wrap $f $g $i $T (tapp $u $v) ↪ tapp (wrap $f $g $i $T $u) (wrap $f $g $i $T $v)
-with wrap _ _ _ _ (tuniv $id) ↪ tuniv $id
 with wrap _ _ _ _ tnat ↪ tnat
 with wrap _ _ _ _ tzero ↪ tzero
 with wrap $f $g $i $T (tsuc $n) ↪ tsuc (wrap $f $g $i $T $n)
@@ -192,10 +192,10 @@ with dbselect (dbsucc _) db0 _ $gt _ ↪ $gt;
 // However, interval variables can appear in the substituted term and thus need to be shifted
 symbol subst : DBId → Term → Term → Term;
 rule subst $i $V (tvar $id) ↪ dbselect $i $id $V (tvar $id) (tvar (dbprev $id))
+with subst _  _  (tuniv $s) ↪ tuniv $s
 with subst $i $V (tpi $A $B) ↪ tpi (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
 with subst $i $V (tabs $A $t) ↪ tabs (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $t)
 with subst $i $V (tapp $f $u) ↪ tapp (subst $i $V $f) (subst $i $V $u)
-with subst _  _  (tuniv $s) ↪ tuniv $s
 with subst _ _ tnat ↪ tnat
 with subst _ _ tzero ↪ tzero
 with subst $i $V (tsuc $n) ↪ tsuc (subst $i $V $n)
