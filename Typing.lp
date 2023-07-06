@@ -56,85 +56,85 @@ constant symbol der_isOne : Context → FTerm → TYPE;
 // Typing derivation
 // The derivation is only truly valid with a proof of the validity of the context
 // Face reasoning
-constant symbol der_empty_face : Π (Γ : Context) (l : Lev) (t A : Term),
+constant symbol der_empty_face : Π [Γ : Context] [l : Lev] [t A : Term],
   der_isOne Γ ft0 → der Γ t A l;
-constant symbol der_union_face : Π (Γ : Context) (l : Lev) (t A : Term) (f g : FTerm),
+constant symbol der_union_face : Π [Γ : Context] [l : Lev] [t A : Term] [f g : FTerm],
   der (PushF f Γ) t A l → der (PushF g Γ) t A l → der_isOne Γ (ftmax f g) → der Γ t A l;
 // Dependent λ-calculus
-constant symbol der_var : Π(Γ : Context) (id : DBId), DBLe (dbsucc id) (len Γ) →
+constant symbol der_var : Π[Γ : Context] [id : DBId], DBLe (dbsucc id) (len Γ) →
   der Γ (tvar id) (ShiftN id (get Γ id)) (getS Γ id);
-constant symbol der_univ : Π (Γ : Context) (l : Lev), der Γ (tuniv l) (tuniv (lsuc l)) (lsuc (lsuc l));
-constant symbol der_pi : Π(Γ : Context) (l l' : Lev) (A B : Term),
+constant symbol der_univ : Π [Γ : Context] [l : Lev], der Γ (tuniv l) (tuniv (lsuc l)) (lsuc (lsuc l));
+constant symbol der_pi : Π[Γ : Context] [l l' : Lev] [A B : Term],
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
   der Γ (tpi A B) (tuniv (lmax l l')) (lsuc (lmax l l'));
-constant symbol der_abs : Π(Γ : Context) (s s' : Lev), Π(A t B : Term),
+constant symbol der_abs : Π[Γ : Context] [s s' : Lev], Π[A t B : Term],
   der Γ A (tuniv s) (lsuc s) → der (Push A s Γ) B (tuniv s') (lsuc s') → der (Push A s Γ) t B s' →
   der Γ (tabs A t) (tpi A B) (lmax s s');
-constant symbol der_app : Π(Γ : Context) (s s' : Lev) (A t u B : Term),
+constant symbol der_app : Π[Γ : Context] [s s' : Lev] (A t u B : Term),
   der Γ A (tuniv s) (lsuc s) → der (Push A s Γ) B (tuniv s') (lsuc s') →
   der Γ t (tpi A B) (lmax s s') → der Γ u A s → der Γ (tapp t u) (apply1 B u) s';
-constant symbol der_type_conv : Π (Γ : Context) (l : Lev) (u A B : Term),
+constant symbol der_type_conv : Π [Γ : Context] [l : Lev] [u A B : Term],
   der Γ u A l → der_eq Γ A B (tuniv l) (lsuc l) → der Γ u B l;
 // Integers
-constant symbol der_nat : Π (Γ : Context) (l : Lev), der Γ tnat (tuniv l) (lsuc l);
-constant symbol der_zero : Π (Γ : Context) (l : Lev), der Γ tzero tnat l;
-constant symbol der_suc : Π (Γ : Context) (l : Lev) (n : Term), der Γ n tnat l → der Γ (tsuc n) tnat l;
-constant symbol der_rec : Π (Γ : Context) (l l' : Lev) (P z H n : Term),
+constant symbol der_nat : Π [Γ : Context] [l : Lev], der Γ tnat (tuniv l) (lsuc l);
+constant symbol der_zero : Π [Γ : Context] [l : Lev], der Γ tzero tnat l;
+constant symbol der_suc : Π [Γ : Context] [l : Lev] [n : Term], der Γ n tnat l → der Γ (tsuc n) tnat l;
+constant symbol der_rec : Π [Γ : Context] [l l' : Lev] [P z H n : Term],
   der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l')) → der Γ z (tapp P tzero) l' →
   der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l') →
   der Γ n tnat l → der Γ (trec P z H n) (tapp P n) l';
 // Dependent pairs
-constant symbol der_sig : Π(Γ : Context) (l l' : Lev) (A B : Term),
+constant symbol der_sig : Π[Γ : Context] [l l' : Lev] [A B : Term],
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
   der Γ (tsig A B) (tuniv (lmax l l')) (lsuc (lmax l l'));
-constant symbol der_pair : Π (Γ : Context) (l l' : Lev) (A B a b : Term),
+constant symbol der_pair : Π [Γ : Context] [l l' : Lev] [A B a b : Term],
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
   der Γ a A l → der Γ b (apply1 B a) l' → der Γ (tpair a b) (tsig A B) (lmax l l');
-constant symbol der_p1 : Π (Γ : Context) (l l' : Lev) (A B p : Term),
+constant symbol der_p1 : Π [Γ : Context] [l l' : Lev] [A B p : Term],
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
   der Γ p (tsig A B) (lmax l l') → der Γ (tp1 p) A l;
-constant symbol der_p2 : Π (Γ : Context) (l l' : Lev) (A B p : Term),
+constant symbol der_p2 : Π [Γ : Context] [l l' : Lev] [A B p : Term],
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
   der Γ p (tsig A B) (lmax l l') → der Γ (tp2 p) (apply1 B (tp1 p)) l';
 // Sum type
-constant symbol der_sum : Π (Γ : Context) (l l' : Lev) (A B : Term),
+constant symbol der_sum : Π [Γ : Context] [l l' : Lev] [A B : Term],
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') →
   der Γ (tsum A B) (tuniv (lmax l l')) (lsuc (lmax l l'));
-constant symbol der_injl : Π (Γ : Context) (l l' : Lev) (A B a : Term),
+constant symbol der_injl : Π [Γ : Context] [l l' : Lev] [A B a : Term],
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') →
   der Γ a A l → der Γ (tinjl a) (tsum A B) (lmax l l');
-constant symbol der_injr : Π (Γ : Context) (l l' : Lev) (A B b : Term),
+constant symbol der_injr : Π [Γ : Context] [l l' : Lev] [A B b : Term],
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') →
   der Γ b B l → der Γ (tinjr b) (tsum A B) (lmax l l');
-constant symbol der_case : Π (Γ : Context) (l l' m : Lev) (A B P Ha Hb x : Term),
+constant symbol der_case : Π [Γ : Context] [l l' m : Lev] [A B P Ha Hb x : Term],
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') →
   der Γ P (tpi (tsum A B) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
   der Γ Ha (tpi A (tapp (Shift P) (tinjl (tvar db0)))) (lmax l m) →
   der Γ Hb (tpi B (tapp (Shift P) (tinjl (tvar db0)))) (lmax l' m) →
   der Γ x (tsum A B) (lmax l l') → der Γ (tcase A B P Ha Hb x) (tapp P x) m;
 // Path types
-constant symbol der_path : Π (Γ : Context) (l : Lev) (A x y : Term),
+constant symbol der_path : Π [Γ : Context] [l : Lev] [A x y : Term],
   der (PushI Γ) A (tuniv l) (lsuc l) → der Γ x (applyI1 A it0) l → der Γ y (applyI1 A it1) l →
   der Γ (tpath A x y) (tuniv l) (lsuc l);
-constant symbol der_lamP : Π (Γ : Context) (l : Lev) (A t : Term),
+constant symbol der_lamP : Π [Γ : Context] [l : Lev] [A t : Term],
   der (PushI Γ) A (tuniv l) (lsuc l) → der (PushI Γ) t A l →
   der Γ (tlamP t) (tpath A (applyI1 t it0) (applyI1 t it1)) l;
-constant symbol der_appP : Π (Γ : Context) (l : Lev) (A t x y : Term) (i : ITerm),
+constant symbol der_appP : Π [Γ : Context] [l : Lev] (A t x y : Term) (i : ITerm),
   der (PushI Γ) A (tuniv l) (lsuc l) → der Γ x (applyI1 A it0) l → der Γ y (applyI1 A it1) l →
   der Γ t (tpath A x y) l → der_I Γ i → der Γ (tappP t i) (applyI1 A i) l;
 // Systems
-constant symbol der_sys : Π (Γ : Context) (l : Lev) (A : Term) (f g : FTerm) (u v : Term),
+constant symbol der_sys : Π [Γ : Context] [l : Lev] [A : Term] [f g : FTerm] [u v : Term],
   der Γ A (tuniv l) (lsuc l) → der_F Γ f → der_F Γ g → der (PushF f Γ) u A l → der (PushF g Γ) v A l →
   der_isOne Γ (ftmax f g) → der_eq (PushF (ftmin f g) Γ) u v A l → der Γ (tsys f g u v) A l;
-constant symbol der_sys_empty : Π (Γ : Context) (l : Lev) (A : Term),
+constant symbol der_sys_empty : Π [Γ : Context] [l : Lev] [A : Term],
   der Γ A (tuniv l) (lsuc l) → der_isOne Γ ft0 → der Γ temptysys A l;
 // Transport
-constant symbol der_transp : Π (Γ : Context) (l : Lev) (A : Term) (f : FTerm) (u : Term),
+constant symbol der_transp : Π [Γ : Context] [l : Lev] [A : Term] [f : FTerm] [u : Term],
   der (PushI Γ) A (tuniv l) (lsuc l) → der_F Γ f → der Γ u (applyI1 A it0) l →
   der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
   der Γ (ttransp A f u) (applyI1 A it1) l;
 // Homogeneous composition
-constant symbol der_hcomp : Π (Γ : Context) (l : Lev) (A : Term) (f : FTerm) (u u0 : Term),
+constant symbol der_hcomp : Π [Γ : Context] [l : Lev] [A : Term] [f : FTerm] [u u0 : Term],
   der Γ A (tuniv l) (lsuc l) → der_F Γ f → der (PushF f (PushI Γ)) u A l → der Γ u0 A l →
   der_eq (PushF f Γ) u0 (applyI1 u it0) A l → der Γ (thcomp A f u u0) A l;
 // TODO : glue
@@ -409,12 +409,12 @@ constant symbol der_eq_cong_hcomp : Π (Γ : Context) (l : Lev) (A1 A2 : Term) (
   der_eq Γ (thcomp A1 f1 u1 v1) (thcomp A2 f2 u2 v2) A1 l;
 // TODO : Glue types congruences
 // Interval terms typing judgment
-constant symbol der_I_0 : Π (Γ : Context), der_I Γ it0;
-constant symbol der_I_1 : Π (Γ : Context), der_I Γ it1;
-constant symbol der_I_var : Π (Γ : Context) (id : DBId), DBLe (dbsucc id) (lenI Γ) → der_I Γ (itvar id);
-constant symbol der_I_sym : Π (Γ : Context) (i : ITerm), der_I Γ i → der_I Γ (itsym i);
-constant symbol der_I_min : Π (Γ : Context) (i j : ITerm), der_I Γ i → der_I Γ j → der_I Γ (itmin i j);
-constant symbol der_I_max : Π (Γ : Context) (i j : ITerm), der_I Γ i → der_I Γ j → der_I Γ (itmax i j);
+constant symbol der_I_0 : Π [Γ : Context], der_I Γ it0;
+constant symbol der_I_1 : Π [Γ : Context], der_I Γ it1;
+constant symbol der_I_var : Π [Γ : Context] [id : DBId], DBLe (dbsucc id) (lenI Γ) → der_I Γ (itvar id);
+constant symbol der_I_sym : Π [Γ : Context] [i : ITerm], der_I Γ i → der_I Γ (itsym i);
+constant symbol der_I_min : Π [Γ : Context] [i j : ITerm], der_I Γ i → der_I Γ j → der_I Γ (itmin i j);
+constant symbol der_I_max : Π [Γ : Context] [i j : ITerm], der_I Γ i → der_I Γ j → der_I Γ (itmax i j);
 // Interval terms conversion judgment
 // Structural rules
 constant symbol der_eq_I_refl : Π (Γ : Context) (i : ITerm), der_I Γ i → der_eq_I Γ i i;
@@ -453,12 +453,12 @@ constant symbol der_eq_I_cong_min : Π (Γ : Context) (i1 i2 j1 j2 : ITerm),
 constant symbol der_eq_I_cong_max : Π (Γ : Context) (i1 i2 j1 j2 : ITerm),
   der_eq_I Γ i1 i2 → der_eq_I Γ j1 j2 → der_eq_I Γ (itmax i1 j1) (itmax i2 j2);
 // Face terms typing judgment
-constant symbol der_F_0 : Π (Γ : Context), der_F Γ ft0;
-constant symbol der_F_1 : Π (Γ : Context), der_F Γ ft1;
-constant symbol der_F_eq0 : Π (Γ : Context) (id : DBId), DBLe (dbsucc id) (lenI Γ) → der_F Γ (fteq0 id);
-constant symbol der_F_eq1 : Π (Γ : Context) (id : DBId), DBLe (dbsucc id) (lenI Γ) → der_F Γ (fteq1 id);
-constant symbol der_F_min : Π (Γ : Context) (f g : FTerm), der_F Γ f → der_F Γ g → der_F Γ (ftmin f g);
-constant symbol der_F_max : Π (Γ : Context) (f g : FTerm), der_F Γ f → der_F Γ g → der_F Γ (ftmax f g);
+constant symbol der_F_0 : Π [Γ : Context], der_F Γ ft0;
+constant symbol der_F_1 : Π [Γ : Context], der_F Γ ft1;
+constant symbol der_F_eq0 : Π [Γ : Context] [id : DBId], DBLe (dbsucc id) (lenI Γ) → der_F Γ (fteq0 id);
+constant symbol der_F_eq1 : Π [Γ : Context] [id : DBId], DBLe (dbsucc id) (lenI Γ) → der_F Γ (fteq1 id);
+constant symbol der_F_min : Π [Γ : Context] [f g : FTerm], der_F Γ f → der_F Γ g → der_F Γ (ftmin f g);
+constant symbol der_F_max : Π [Γ : Context] [f g : FTerm], der_F Γ f → der_F Γ g → der_F Γ (ftmax f g);
 // Face terms conversion judgment
 // Structural rules
 constant symbol der_eq_F_refl : Π (Γ : Context) (f : FTerm), der_F Γ f → der_eq_F Γ f f;
