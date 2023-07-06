@@ -63,7 +63,7 @@ with shift $i (tapp $f $u) ↪ tapp (shift $i $f) (shift $i $u)
 with shift _ tnat ↪ tnat
 with shift _ tzero ↪ tzero
 with shift $i (tsuc $n) ↪ tsuc (shift $i $n)
-with shift $i (trec $P $z $H $n) ↪ trec (shift (dbsucc $i) $P) (shift $i $z) (shift $i $H) (shift $i $n)
+with shift $i (trec $P $z $H $n) ↪ trec (shift $i $P) (shift $i $z) (shift $i $H) (shift $i $n)
 with shift $i (tsig $A $B) ↪ tsig (shift $i $A) (shift (dbsucc $i) $B)
 with shift $i (tpair $u $v) ↪ tpair (shift $i $u) (shift $i $v)
 with shift $i (tp1 $p) ↪ tp1 (shift $i $p)
@@ -71,7 +71,7 @@ with shift $i (tp2 $p) ↪ tp2 (shift $i $p)
 with shift $i (tsum $A $B) ↪ tsum (shift $i $A) (shift $i $B)
 with shift $i (tinjl $a) ↪ tinjl (shift $i $a)
 with shift $i (tinjr $b) ↪ tinjr (shift $i $b)
-with shift $i (tcase $A $B $P $a $b $x) ↪ tcase (shift $i $A) (shift $i $B) (shift (dbsucc $i) $P) (shift $i $a)
+with shift $i (tcase $A $B $P $a $b $x) ↪ tcase (shift $i $A) (shift $i $B) (shift $i $P) (shift $i $a)
                                                 (shift $i $b) (shift $i $x)
 with shift $i (tpath $A $x $y) ↪ tpath (shift $i $A) (shift $i $x) (shift $i $y)
 with shift $i (tlamP $t) ↪ tlamP (shift $i $t)
@@ -199,7 +199,7 @@ with subst $i $V (tapp $f $u) ↪ tapp (subst $i $V $f) (subst $i $V $u)
 with subst _ _ tnat ↪ tnat
 with subst _ _ tzero ↪ tzero
 with subst $i $V (tsuc $n) ↪ tsuc (subst $i $V $n)
-with subst $i $V (trec $P $z $H $n) ↪ trec (subst (dbsucc $i) (Shift $V) $P) (subst $i $V $z)
+with subst $i $V (trec $P $z $H $n) ↪ trec (subst $i $V $P) (subst $i $V $z)
                                            (subst $i $V $H) (subst $i $V $n)
 with subst $i $V (tsig $A $B) ↪ tsig (subst $i $V $A) (subst (dbsucc $i) (Shift $V) $B)
 with subst $i $V (tpair $u $v) ↪ tpair (subst $i $V $u) (subst $i $V $v)
@@ -208,7 +208,7 @@ with subst $i $V (tp2 $p) ↪ tp2 (subst $i $V $p)
 with subst $i $V (tsum $A $B) ↪ tsum (subst $i $V $A) (subst $i $V $B)
 with subst $i $V (tinjl $a) ↪ tinjl (subst $i $V $a)
 with subst $i $V (tinjr $b) ↪ tinjr (subst $i $V $b)
-with subst $i $V (tcase $A $B $P $a $b $x) ↪ tcase (subst $i $V $A) (subst $i $V $B) (subst (dbsucc $i) (Shift $V) $P)
+with subst $i $V (tcase $A $B $P $a $b $x) ↪ tcase (subst $i $V $A) (subst $i $V $B) (subst $i $V $P)
                                                    (subst $i $V $a) (subst $i $V $b) (subst $i $V $x)
 with subst $i $V (tpath $A $x $y) ↪ tpath (subst $i (IShift $V) $A) (subst $i $V $x) (subst $i $V $y)
 with subst $i $V (tlamP $t) ↪ tlamP (subst $i (IShift $V) $t)
@@ -227,10 +227,10 @@ symbol apply1 (t u : Term) : Term ≔ subst db0 u t;
 // might need the interval/face versions of this
 // rule shift db0 (shift $i $t) ↪ shift (dbsucc $i) (Shift $t);
 // rule shift (dbsucc db0) (shift (dbsucc $i) $t) ↪ shift (dbsucc (dbsucc $i)) (Shift1 $t);
-rule subst $id $u (subst $id $v (shift (dbsucc $id) $t)) ↪ subst db0 (subst db0 $u $v) $t;
+// rule subst $id $u (subst $id $v (shift (dbsucc $id) $t)) ↪ subst db0 (subst db0 $u $v) $t;
 rule subst $id _ (shift $id $t) ↪ $t;
 rule subst (dbsucc $id) (shift $id $u) (shift $id $t) ↪ shift $id (subst $id $u $t);
-// rule subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t;
+rule subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t;
 // rule shift $id (subst $j $u $t) ↪ subst (dbshift (dbsucc $id) $j) (shift $id $u) (shift (dbsucc $id) $t);
 // rule shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
 

@@ -80,9 +80,9 @@ constant symbol der_nat : Π (Γ : Context) (l : Lev), der Γ tnat (tuniv l) (ls
 constant symbol der_zero : Π (Γ : Context) (l : Lev), der Γ tzero tnat l;
 constant symbol der_suc : Π (Γ : Context) (l : Lev) (n : Term), der Γ n tnat l → der Γ (tsuc n) tnat l;
 constant symbol der_rec : Π (Γ : Context) (l l' : Lev) (P z H n : Term),
-  der (Push tnat l Γ) P (tuniv l') (lsuc l') → der Γ z (apply1 P tzero) l' →
-  der Γ H (tpi tnat (tpi P (apply1 (Shift1 (Shift1 P)) (tsuc (tvar db1))))) (lmax l l') →
-  der Γ n tnat l → der Γ (trec P z H n) (apply1 P n) l';
+  der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l')) → der Γ z (tapp P tzero) l' →
+  der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l') →
+  der Γ n tnat l → der Γ (trec P z H n) (tapp P n) l';
 // Dependent pairs
 constant symbol der_sig : Π(Γ : Context) (l l' : Lev) (A B : Term),
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') →
@@ -108,10 +108,10 @@ constant symbol der_injr : Π (Γ : Context) (l l' : Lev) (A B b : Term),
   der Γ b B l → der Γ (tinjr b) (tsum A B) (lmax l l');
 constant symbol der_case : Π (Γ : Context) (l l' m : Lev) (A B P Ha Hb x : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') →
-  der (Push (tsum A B) (lmax l l') Γ) P (tuniv m) (lsuc m) →
-  der Γ Ha (tpi A (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l m) →
-  der Γ Hb (tpi B (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l' m) →
-  der Γ x (tsum A B) (lmax l l') → der Γ (tcase A B P Ha Hb x) (apply1 P x) m;
+  der Γ P (tpi (tsum A B) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der Γ Ha (tpi A (tapp (Shift P) (tinjl (tvar db0)))) (lmax l m) →
+  der Γ Hb (tpi B (tapp (Shift P) (tinjl (tvar db0)))) (lmax l' m) →
+  der Γ x (tsum A B) (lmax l l') → der Γ (tcase A B P Ha Hb x) (tapp P x) m;
 // Path types
 constant symbol der_path : Π (Γ : Context) (l : Lev) (A x y : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der Γ x (applyI1 A it0) l → der Γ y (applyI1 A it1) l →
@@ -163,13 +163,13 @@ constant symbol der_eq_eta : Π (Γ : Context) (l l' : Lev) (A B f : Term),
   der_eq Γ (tabs A (tapp (Shift f) (tvar db0))) f (tpi A B) (lmax l l');
 // Integers
 constant symbol der_eq_rec_zero : Π (Γ : Context) (l l' : Lev) (P z H : Term),
-  der (Push tnat l Γ) P (tuniv l') (lsuc l') → der Γ z (apply1 P tzero) l' →
-  der Γ H (tpi tnat (tpi P (apply1 (Shift1 (Shift1 P)) (tsuc (tvar db1))))) (lmax l l') →
-  der_eq Γ (trec P z H tzero) z (apply1 P tzero) l';
+  der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l')) → der Γ z (tapp P tzero) l' →
+  der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l') →
+  der_eq Γ (trec P z H tzero) z (tapp P tzero) l';
 constant symbol der_eq_rec_suc : Π (Γ : Context) (l l' : Lev) (P z H n : Term),
-  der (Push tnat l Γ) P (tuniv l') (lsuc l') → der Γ z (apply1 P tzero) l' →
-  der Γ H (tpi tnat (tpi P (apply1 (Shift1 (Shift1 P)) (tsuc (tvar db1))))) (lmax l l') →
-  der Γ n tnat l → der_eq Γ (trec P z H (tsuc n)) (tapp (tapp H n) (trec P z H n)) (apply1 P (tsuc n)) l';
+  der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l')) → der Γ z (tapp P tzero) l' →
+  der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l') →
+  der Γ n tnat l → der_eq Γ (trec P z H (tsuc n)) (tapp (tapp H n) (trec P z H n)) (tapp P (tsuc n)) l';
 // Σ-types
 constant symbol der_eq_p1 : Π (Γ : Context) (l l' : Lev) (A u B v : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ u A l → der (Push A l Γ) B (tuniv l') (lsuc l') → der Γ v (apply1 B u) l' →
@@ -184,16 +184,16 @@ constant symbol der_eq_pair : Π (Γ : Context) (l l' : Lev) (A B t u : Term),
 // Sum types
 constant symbol der_eq_case_left : Π (Γ : Context) (l l' m : Lev) (A B P Ha Hb a : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l) (lsuc l) →
-  der (Push (tsum A B) (lmax l l') Γ) P (tuniv m) (lsuc m) →
-  der Γ Ha (tpi A (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l m) →
-  der Γ Hb (tpi B (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l' m) →
-  der Γ a A l → der_eq Γ (tcase A B P Ha Hb (tinjl a)) (tapp Ha a) (apply1 P (tinjl a)) m;
+  der Γ P (tpi (tsum A B) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der Γ Ha (tpi A (tapp (Shift P) (tinjl (tvar db0)))) (lmax l m) →
+  der Γ Hb (tpi B (tapp (Shift P) (tinjl (tvar db0)))) (lmax l' m) →
+  der Γ a A l → der_eq Γ (tcase A B P Ha Hb (tinjl a)) (tapp Ha a) (tapp P (tinjl a)) m;
 constant symbol der_eq_case_right : Π (Γ : Context) (l l' m : Lev) (A B P Ha Hb b : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l) (lsuc l) →
-  der (Push (tsum A B) (lmax l l') Γ) P (tuniv m) (lsuc m) →
-  der Γ Ha (tpi A (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l m) →
-  der Γ Hb (tpi B (apply1 (Shift1 P) (tinjl (tvar db0)))) (lmax l' m) →
-  der Γ b B l' → der_eq Γ (tcase A B P Ha Hb (tinjr b)) (tapp Hb b) (apply1 P (tinjr b)) m;
+  der Γ P (tpi (tsum A B) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der Γ Ha (tpi A (tapp (Shift P) (tinjl (tvar db0)))) (lmax l m) →
+  der Γ Hb (tpi B (tapp (Shift P) (tinjl (tvar db0)))) (lmax l' m) →
+  der Γ b B l' → der_eq Γ (tcase A B P Ha Hb (tinjr b)) (tapp Hb b) (tapp P (tinjr b)) m;
 // Path types
 constant symbol der_eq_betaP : Π (Γ : Context) (l : Lev) (A t : Term) (i : ITerm),
   der (PushI Γ) A (tuniv l) (lsuc l) → der (PushI Γ) t A l → der_I Γ i →
@@ -336,12 +336,12 @@ constant symbol der_eq_cong_app : Π (Γ : Context) (l l' : Lev) (A B t1 t2 u1 u
 constant symbol der_eq_cong_suc : Π (Γ : Context) (l : Lev) (n n' : Term),
   der_eq Γ n n' tnat l → der_eq Γ (tsuc n) (tsuc n') tnat l;
 constant symbol der_eq_cong_rec : Π (Γ : Context) (l l' : Lev) (P1 P2 z1 z2 H1 H2 n1 n2 : Term),
-  der_eq (Push tnat l Γ) P1 P2 (tuniv l') (lsuc l') → der_eq Γ z1 z2 (apply1 P1 tzero) l' →
-  der_eq Γ H1 H2 (tpi tnat (tpi P1 (apply1 (Shift1 (Shift1 P1)) (tsuc (tvar db1))))) l' →
-  der_eq Γ n1 n2 tnat l → der Γ z1 (apply1 P1 tzero) l' → der Γ z2 (apply1 P2 tzero) l' →
-  der Γ H1 (tpi tnat (tpi P1 (apply1 (Shift1 (Shift1 P1)) (tsuc (tvar db1))))) l' →
-  der Γ H2 (tpi tnat (tpi P2 (apply1 (Shift1 (Shift1 P2)) (tsuc (tvar db1))))) l' →
-  der_eq Γ (trec P1 z1 H1 n1) (trec P2 z2 H2 n2) (apply1 P1 n1) l';
+  der_eq Γ P1 P2 (tpi tnat (tuniv l')) (lmax l (lsuc l')) → der_eq Γ z1 z2 (tapp P1 tzero) l' →
+  der_eq Γ H1 H2 (tpi tnat (tpi (tapp (Shift P1) (tvar db0)) (tapp (Shift (Shift P1)) (tsuc (tvar db1))))) l' →
+  der_eq Γ n1 n2 tnat l → der Γ z1 (tapp P1 tzero) l' → der Γ z2 (tapp P2 tzero) l' →
+  der Γ H1 (tpi tnat (tpi (tapp (Shift P1) (tvar db0)) (tapp (Shift (Shift P1)) (tsuc (tvar db1))))) l' →
+  der Γ H2 (tpi tnat (tpi (tapp (Shift P2) (tvar db0)) (tapp (Shift (Shift P2)) (tsuc (tvar db1))))) l' →
+  der_eq Γ (trec P1 z1 H1 n1) (trec P2 z2 H2 n2) (tapp P1 n1) l';
 constant symbol der_eq_cong_sig : Π (Γ : Context) (l l' : Lev) (A1 A2 B1 B2 : Term),
   der_eq Γ A1 A2 (tuniv l) (lsuc l) → der_eq (Push A1 l Γ) B1 B2 (tuniv l') (lsuc l') →
   der (Push A1 l Γ) B1 (tuniv l') (lsuc l') → der (Push A2 l Γ) B2 (tuniv l') (lsuc l') →
@@ -365,17 +365,17 @@ constant symbol der_eq_cong_injr : Π (Γ : Context) (l l' : Lev) (A B b1 b2 : T
   der_eq Γ b1 b2 B l' → der_eq Γ (tinjr b1) (tinjr b2) (tsum A B) (lmax l l');
 constant symbol der_eq_cong_case : Π (Γ : Context) (l l' m : Lev) (A1 A2 B1 B2 P1 P2 Ha1 Ha2 Hb1 Hb2 u v : Term),
   der_eq Γ A1 A2 (tuniv l) (lsuc l) → der_eq Γ B1 B2 (tuniv l') (lsuc l') →
-  der_eq (Push (tsum A1 B1) (lmax l l') Γ) P1 P2 (tuniv m) (lsuc m) →
-  der_eq Γ Ha1 Ha2 (tpi A1 (apply1 (Shift1 P1) (tinjl (tvar db0)))) (lmax l m) →
-  der_eq Γ Hb1 Hb2 (tpi B1 (apply1 (Shift1 P1) (tinjr (tvar db0)))) (lmax l' m) →
+  der_eq Γ P1 P2 (tpi (tsum A1 B1) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der_eq Γ Ha1 Ha2 (tpi A1 (tapp (Shift P1) (tinjl (tvar db0)))) (lmax l m) →
+  der_eq Γ Hb1 Hb2 (tpi B1 (tapp (Shift P1) (tinjr (tvar db0)))) (lmax l' m) →
   der_eq Γ u v (tsum A1 B1) (lmax l l') →
-  der (Push (tsum A1 A2) (lmax l l') Γ) P1 (tuniv m) (lsuc m) →
-  der (Push (tsum A2 B2) (lmax l l') Γ) P2 (tuniv m) (lsuc m) →
-  der Γ Ha1 (tpi A1 (apply1 (Shift1 P1) (tinjl (tvar db0)))) (lmax l m) →
-  der Γ Ha2 (tpi A2 (apply1 (Shift1 P2) (tinjl (tvar db0)))) (lmax l m) →
-  der Γ Hb1 (tpi B1 (apply1 (Shift1 P1) (tinjr (tvar db0)))) (lmax l' m) →
-  der Γ Hb2 (tpi B2 (apply1 (Shift1 P1) (tinjr (tvar db0)))) (lmax l' m) →
-  der_eq Γ (tcase A1 B1 P1 Ha1 Hb1 u) (tcase A2 B2 P2 Ha2 Hb2 v) (apply1 P1 u) m;
+  der Γ P1 (tpi (tsum A1 B1) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der Γ P2 (tpi (tsum A2 B2) (tuniv m)) (lmax (lmax l l') (lsuc m)) →
+  der Γ Ha1 (tpi A1 (tapp (Shift P1) (tinjl (tvar db0)))) (lmax l m) →
+  der Γ Ha2 (tpi A2 (tapp (Shift P2) (tinjl (tvar db0)))) (lmax l m) →
+  der Γ Hb1 (tpi B1 (tapp (Shift P1) (tinjr (tvar db0)))) (lmax l' m) →
+  der Γ Hb2 (tpi B2 (tapp (Shift P1) (tinjr (tvar db0)))) (lmax l' m) →
+  der_eq Γ (tcase A1 B1 P1 Ha1 Hb1 u) (tcase A2 B2 P2 Ha2 Hb2 v) (tapp P1 u) m;
 constant symbol der_eq_cong_path : Π (Γ : Context) (l : Lev) (A1 A2 x1 x2 y1 y2 : Term),
   der_eq (PushI Γ) A1 A2 (tuniv l) (lsuc l) →
   der_eq Γ x1 x2 (applyI1 A1 it0) l → der_eq Γ y1 y2 (applyI1 A1 it1) l →

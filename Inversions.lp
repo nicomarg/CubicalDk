@@ -34,31 +34,33 @@ symbol push2Γ [Γ : Context] [l : Lev] [T1 T2 : Term] (dΓ : der_context Γ) (d
 //      der_app $Γ $l' $l' (apply1 $P $n) (tapp $H $n) (trec $P $z $H $n) (Shift (apply1 $P (tsuc $n)))
 //              (substitution $dΓ $P $dn) (substitution $dΓ $P)
 symbol test (Γ : Context) (dΓ : der_context Γ) (l l' : Lev) (P z H n : Term)
-            (dP : der (Push tnat l Γ) P (tuniv l') (lsuc l')) (dz : der Γ z (apply1 P tzero) l')
-            (dH : der Γ H (tpi tnat (tpi P (Shift (apply1 (Shift1 P) (tsuc (tvar db0)))))) (lmax l l'))
+            (dP : der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l'))) (dz : der Γ z (tapp P tzero) l')
+            (dH : der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l'))
             (dn : der Γ n tnat l) :
-  der Γ (tapp (tapp H n) (trec P z H n)) (apply1 P (tsuc n)) l' ≔
+  der Γ (tapp (tapp H n) (trec P z H n)) (tapp P (tsuc n)) l' ≔
 begin
   assume Γ dΓ l l' P z H n dP dz dH dn;
-  refine der_app Γ l' l' (apply1 P n) (tapp H n) (trec P z H n)
-                 (Shift (apply1 (apply1 (Shift1 P) (tsuc (tvar db0))) n)) _ _ _ _
-  { refine substitution dΓ dP dn}
-  { refine der_shift0 (substitution dΓ dP dn) dΓ (substitution dΓ dP (der_suc Γ l n dn)); }
-  { refine der_app Γ l l' tnat H n (tpi P (Shift (apply1 (Shift1 P) (tsuc (tvar db0))))) (der_nat Γ l) _ dH dn;
-    refine der_pi (Push tnat l Γ) l' l' P _ dP _ ;
-    refine @der_shift0 (Push tnat l Γ) (apply1 (Shift1 P) (tsuc (tvar db0))) P (tuniv l') (lsuc l') l'
-            dP (pushΓ (der_nat Γ l) dΓ) _;
-    refine @substitution (Push tnat l Γ) l (lsuc l') tnat (tuniv l') (Shift1 P)
-            (pushΓ (der_nat Γ l) dΓ) _ (tsuc (tvar db0)) _
-    { refine der_shift1 (der_nat Γ l) (der_nat Γ l) dΓ dP }
-    { refine der_suc _ _ (tvar db0) _;
-  refine der_var _ _ _;
-  refine dble_n_S (dble_0_n (len Γ)) }
+  refine der_app Γ l' l' (tapp P n) (tapp H n) (trec P z H n)
+                 (tapp (Shift P) (tsuc (Shift n))) _ _ _ _
+  { refine der_app Γ l (lsuc l') tnat P n (tuniv l') (der_nat Γ l) (der_univ _ l') dP dn }
+  { refine der_shift0 (der_app Γ l (lsuc l') tnat P n (tuniv l') (der_nat Γ l) (der_univ _ l') dP dn)
+                      dΓ (der_app Γ l (lsuc l') tnat P (tsuc n) (tuniv l') (der_nat Γ l) (der_univ _ l') dP
+                                  (der_suc _ _ _ dn)) }
+  { refine der_app Γ l l' tnat H n (tpi (tapp (Shift P) (tvar db0))
+                                        (tapp (Shift (Shift P)) (tsuc (tvar db1)))) (der_nat Γ l) _ dH dn;
+    refine der_pi (Push tnat l Γ) l' l' (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))) _ _
+    { refine der_app _ _ _ tnat (Shift P) (tvar db0) (tuniv _) (der_nat _ _) (der_univ _ _)
+                                _ (der_var (Push tnat l Γ) db0 (dble_n_S (dble_0_n (len Γ))));
+      refine der_shift0 (der_nat _ _) dΓ dP;}
+    { refine der_shift0 (der_app _ _ _ tnat (Shift P) (tvar db0) (tuniv _) (der_nat _ _) (der_univ _ _)
+                                 (der_shift0 (der_nat _ _) dΓ dP) (der_var _ db0 (dble_n_S (dble_0_n (len Γ)))))
+                        (pushΓ (der_nat _ _) dΓ)
+                        (der_app _ _ _ tnat (Shift P) (tsuc (tvar db0)) (tuniv _) (der_nat _ _) (der_univ _ _)
+                                 (der_shift0 (der_nat _ _) dΓ dP) (der_suc _ _ _ (der_var _ db0 (dble_n_S (dble_0_n (len Γ)))))) };
   }
-  { refine der_rec Γ l l' P z H n dP dz _ dn;
-    }
+  { refine der_rec Γ l l' P z H n dP dz dH dn }
 end;
-
+print test;
 // Definition of inv_sort
 rule inv_type _ (der_empty_face $Γ $l _ $A $dz) ↪ der_empty_face $Γ (lsuc $l) $A (tuniv $l) $dz
 with inv_type $dΓ (der_union_face $Γ $l _ $A $f $g $d1 $d2 $df) ↪
@@ -72,7 +74,8 @@ with inv_type $dΓ (der_type_conv _ _ _ _ _ _ $deq) ↪ inv_eq_t2 $dΓ $deq
 with inv_type _ (der_nat $Γ $l) ↪ der_univ $Γ $l
 with inv_type _ (der_zero $Γ $l) ↪ der_nat $Γ $l
 with inv_type _ (der_suc $Γ $l _ _) ↪ der_nat $Γ $l
-with inv_type $dΓ (der_rec _ _ $l _ _ _ _ $dP _ _ $dn) ↪ substitution $dΓ $dP $dn
+with inv_type _ (der_rec $Γ $l $l' $P _ _ $n $dP _ _ $dn) ↪
+     der_app $Γ $l (lsuc $l') tnat $P $n (tuniv $l') (der_nat $Γ $l) (der_univ (Push tnat $l $Γ) $l') $dP $dn
 with inv_type _ (der_sig $Γ $s $s' _ _ _ _) ↪ der_univ $Γ (lmax $s $s')
 with inv_type $dΓ (der_pair $Γ $s $s' $A $B _ _ $dA $dB _ _) ↪ der_sig $Γ $s $s' $A $B $dA $dB // inv_type ?
 with inv_type _ (der_p1 _ _ _ _ _ _ $dA _ _) ↪ $dA
@@ -81,8 +84,9 @@ with inv_type $dΓ (der_p2 $Γ $s $s' $A $B $p $dA $dB $dp) ↪
 with inv_type _ (der_sum $Γ $l $l' _ _ _ _) ↪ der_univ $Γ (lmax $l $l')
 with inv_type _ (der_injl $Γ $l $l' $A $B _ $dA $dB _) ↪ der_sum $Γ $l $l' $A $B $dA $dB
 with inv_type _ (der_injr $Γ $l $l' $A $B _ $dA $dB _) ↪ der_sum $Γ $l $l' $A $B $dA $dB
-with inv_type $dΓ (der_case $Γ $l $l' $m $A $B $P $hA $Hb $x $dA $dB $dP $dHa $dHb $dx) ↪
-     substitution $dΓ $dP $dx
+with inv_type _ (der_case $Γ $l $l' $m $A $B $P $hA $Hb $x $dA $dB $dP $dHa $dHb $dx) ↪
+     der_app $Γ (lmax $l $l') (lsuc $m) (tsum $A $B) $P $x (tuniv $m) (der_sum $Γ $l $l' $A $B $dA $dB)
+             (der_univ (Push (tsum $A $B) (lmax $l $l') $Γ) $m) $dP $dx
 with inv_type _ (der_path $Γ $l _ _ _ _ _ _) ↪ der_univ $Γ $l
 with inv_type $dΓ (der_lamP $Γ $l $A $t $dA $dt) ↪
      der_path $Γ $l $A (applyI1 $t it0) (applyI1 $t it1) $dA
@@ -135,17 +139,21 @@ with inv_eq_t1   $dΓ (der_eq_eta  $Γ $s $s' $A $B $f $dA $dB $df) ↪
                       (der_shift0 $dA $dΓ $dA) (der_shift1 $dA $dA $dΓ $dB)
                       (der_shift0 $dA $dΓ $df) (der_var (Push $A $s $Γ) db0 (dble_n_S (dble_0_n (len $Γ)))))
 with inv_eq_t2   _   (der_eq_eta  _  _  _   _  _  _  _   _   $df) ↪ $df
-with inv_eq_type $dΓ (der_eq_rec_zero $Γ $l _ _ _ _ $dP _ _) ↪ substitution $dΓ $dP (der_zero $Γ $l)
+with inv_eq_type $dΓ (der_eq_rec_zero $Γ $l $l' $P _ _ $dP _ _) ↪
+     der_app $Γ $l (lsuc $l') tnat $P tzero (tuniv $l') (der_nat $Γ $l) (der_univ (Push tnat $l $Γ) $l')
+             $dP (der_zero $Γ $l)
 with inv_eq_t1 _ (der_eq_rec_zero $Γ $l $l' $P $z $H $dP $dz $dH) ↪
      der_rec $Γ $l $l' $P $z $H tzero $dP $dz $dH (der_zero $Γ $l)
 with inv_eq_t2 _ (der_eq_rec_zero _ _ _ _ _ _ _ $dz _) ↪ $dz
-with inv_eq_type $dΓ (der_eq_rec_suc $Γ $l _ _ _ _ $n $dP _ _ $dn) ↪ substitution $dΓ $dP (der_suc $Γ $l $n $dn)
+with inv_eq_type $dΓ (der_eq_rec_suc $Γ $l $l' $P _ _ $n $dP _ _ $dn) ↪
+     der_app $Γ $l (lsuc $l') tnat $P (tsuc $n) (tuniv $l') (der_nat $Γ $l) (der_univ (Push tnat $l $Γ) $l')
+             $dP (der_suc $Γ $l $n $dn)
 with inv_eq_t1 _ (der_eq_rec_suc $Γ $l $l' $P $z $H $n $dP $dz $dH $dn) ↪
      der_rec $Γ $l $l' $P $z $H (tsuc $n) $dP $dz $dH (der_suc $Γ $l $n $dn)
 // TODO : work out DeBruijn mess
 with inv_eq_t2 $dΓ (der_eq_rec_suc $Γ $l $l' $P $z $H $n $dP $dz $dH $dn) ↪
-     der_app $Γ $l' $l' (apply1 $P $n) (tapp $H $n) (trec $P $z $H $n) (Shift (apply1 $P (tsuc $n)))
-             (substitution $dΓ $P $dn) (substitution $dΓ $P)
+     der_app $Γ $l' $l' (tapp $P $n) (tapp $H $n) (trec $P $z $H $n) (tapp $P (tsuc $n))
+
 with inv_eq_sort $dΓ (der_eq_π1 _  _  _   _  _  _  _  _ $du _   _  ) ↪ inv_sort $dΓ $du
 with inv_eq_t1   $dΓ (der_eq_π1 $Γ $s $s' $u $A $v $B _ $du $dB $dv) ↪ der_π1 $Γ $s $s' (tpair $A $B $u $v) $A $B (inv_sort $dΓ $du) $dB
                                                                                (der_pair $Γ $s $s' $u $A $v $B (inv_sort $dΓ $du) $du $dB $dv)
