@@ -229,7 +229,7 @@ symbol apply1 (t u : Term) : Term ≔ subst db0 u t;
 // rule shift (dbsucc db0) (shift (dbsucc $i) $t) ↪ shift (dbsucc (dbsucc $i)) (Shift1 $t);
 // rule subst $id $u (subst $id $v (shift (dbsucc $id) $t)) ↪ subst db0 (subst db0 $u $v) $t;
 rule subst $id _ (shift $id $t) ↪ $t;
-rule subst (dbsucc $id) (shift $id $u) (shift $id $t) ↪ shift $id (subst $id $u $t);
+rule subst (dbsucc $id) $u (shift $id (shift $id $t)) ↪ shift $id $t;
 rule subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t;
 // rule shift $id (subst $j $u $t) ↪ subst (dbshift (dbsucc $id) $j) (shift $id $u) (shift (dbsucc $id) $t);
 // rule shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
@@ -283,3 +283,9 @@ with IsubstF $i $V (ftmax $a $b) ↪ ftmax (IsubstF $i $V $a) (IsubstF $i $V $b)
 symbol Isubst : DBId → ITerm → Term → Term ≔ wrap IsubstI IsubstF;
 
 symbol applyI1 (u : Term) (t : ITerm) ≔ Isubst db0 t u;
+
+// Interval substitution commutation
+rule wrap IsubstI IsubstF $id _ (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) $id _ $t) ↪ $t;
+rule wrap (λ i _ , IshiftI i) (λ i _, IshiftF i) $id _ (wrap IsubstI IsubstF db0 $u $t) ↪
+     wrap IsubstI IsubstF db0 (IshiftI $id $u) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) it0 $t);
+rule wrap IsubstI IsubstF $id (itvar $id) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪ $t;

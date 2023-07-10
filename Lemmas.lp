@@ -27,11 +27,17 @@ symbol pushΓF [Γ : Context] (f : FTerm) (dΓ : der_context Γ) :
 symbol pushΓI [Γ : Context] (dΓ : der_context Γ) :
   der_context (PushI Γ) ≔ der_context_PushI Γ dΓ;
 
+symbol dble_db0 [n : DBId] : DBLe (dbsucc db0) (dbsucc n) ≔
+  dble_n_S (dble_0_n n);
+
 // TODO : Prove all lemmas below
 // Shifting derivation
 symbol der_shift0 [Γ : Context] [t A T : Term] [l l' : Lev]
                   (_ : der Γ A (tuniv l') (lsuc l')) (_ : der_context Γ) (_ : der Γ t T l) :
   der (Push A l' Γ) (Shift t) (Shift T) l;
+symbol der_Ishift0 [Γ : Context] [t T : Term] [l : Lev]
+                  (_ : der_context Γ) (_ : der Γ t T l) :
+  der (PushI Γ) (IShift t) (IShift T) l;
 symbol der_eq_shift0 [Γ : Context] [t1 t2 A T : Term] [l l' : Lev]
                      (_ : der Γ A (tuniv l') (lsuc l')) (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) :
   der_eq (Push A l' Γ) (Shift t1) (Shift t2) (Shift T) l;
@@ -40,6 +46,9 @@ symbol der_shift1 [Γ : Context] [t A T B : Term] [l la lb : Lev]
                   (_ : der Γ B (tuniv lb) (lsuc lb))
                   (_ : der_context Γ)
                   (_ : der (Push A la Γ) t T l) : der (Push (Shift A) la (Push B lb Γ)) (Shift1 t) (Shift1 T) l;
+symbol der_Ishift1 [Γ : Context] [t T : Term] [l: Lev]
+                  (_ : der_context Γ)
+                  (_ : der (PushI Γ) t T l) : der (PushI (PushI Γ)) (IShift1 t) (IShift1 T) l;
 
 // Iterated shifting
 symbol der_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t T : Term] [l : Lev] (_ : der (getΓ Γ id) t T l) :
@@ -64,3 +73,10 @@ symbol substitution [Γ : Context] [l l' : Lev] [A B C : Term] :
   der_context Γ → der (Push A l Γ) C B l' → Π[u : Term], der Γ u A l → der Γ (apply1 C u) (apply1 B u) l';
 symbol Isubstitution [Γ : Context] [l : Lev] [B C : Term] :
   der_context Γ → der (PushI Γ) C B l → Π [i : ITerm], der_I Γ i → der Γ (applyI1 C i) (applyI1 B i) l;
+symbol Isubstitution_eq [Γ : Context] [l : Lev] [A B C : Term] :
+  der_context Γ → der_eq (PushI Γ) A B C l → Π [i : ITerm], der_I Γ i →
+  der_eq Γ (applyI1 A i) (applyI1 B i) (applyI1 C i) l;
+symbol Fsubstitution [Γ : Context] [l : Lev] [B C : Term] [f : FTerm] :
+  der_context Γ → der (PushF f Γ) C B l → der_F Γ f → der_isOne Γ f → der Γ C B l;
+symbol Fsubstitution_eq [Γ : Context] [l : Lev] [A B C : Term] [f : FTerm] :
+  der_context Γ → der_eq (PushF f Γ) A B C l → der_F Γ f → der_isOne Γ f → der_eq Γ A B C l;
