@@ -59,7 +59,7 @@ constant symbol der_isOne : Context → FTerm → TYPE;
 constant symbol der_empty_face : Π [Γ : Context] [l : Lev] [t A : Term],
   der_isOne Γ ft0 → der Γ t A l;
 constant symbol der_union_face : Π [Γ : Context] [l : Lev] [t A : Term] [f g : FTerm],
-  der (PushF f Γ) t A l → der (PushF g Γ) t A l → der_isOne Γ (ftmax f g) → der Γ t A l;
+  der_F Γ f → der_F Γ g → der (PushF f Γ) t A l → der (PushF g Γ) t A l → der_isOne Γ (ftmax f g) → der Γ t A l;
 // Dependent λ-calculus
 constant symbol der_var : Π[Γ : Context] [id : DBId], DBLe (dbsucc id) (len Γ) →
   der Γ (tvar id) (ShiftN id (get Γ id)) (getS Γ id);
@@ -131,11 +131,11 @@ constant symbol der_sys_empty : Π [Γ : Context] [l : Lev] [A : Term],
 // Transport
 constant symbol der_transp : Π [Γ : Context] [l : Lev] [A : Term] [f : FTerm] [u : Term],
   der (PushI Γ) A (tuniv l) (lsuc l) → der_F Γ f → der Γ u (applyI1 A it0) l →
-  der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
   der Γ (ttransp A f u) (applyI1 A it1) l;
 // Homogeneous composition
 constant symbol der_hcomp : Π [Γ : Context] [l : Lev] [A : Term] [f : FTerm] [u u0 : Term],
-  der Γ A (tuniv l) (lsuc l) → der_F Γ f → der (PushF f (PushI Γ)) u A l → der Γ u0 A l →
+  der Γ A (tuniv l) (lsuc l) → der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) u A l → der Γ u0 A l →
   der_eq (PushF f Γ) u0 (applyI1 u it0) A l → der Γ (thcomp A f u u0) A l;
 // TODO : glue
 // Term conversion judgment
@@ -152,7 +152,8 @@ constant symbol der_eq_conv : Π (Γ : Context) (l : Lev) (u v A B : Term),
 constant symbol der_eq_isOne_zero : Π (Γ : Context) (l : Lev) (A u v : Term),
   der_isOne Γ ft0 → der_eq Γ u v A l;
 constant symbol der_eq_isOne_max : Π (Γ : Context) (l : Lev) (A u v : Term) (f g : FTerm),
-  der_eq (PushF f Γ) u v A l → der_eq (PushF g Γ) u v A l → der_isOne Γ (ftmax f g) → der_eq Γ u v A l;
+  der_F Γ f → der_F Γ g → der_eq (PushF f Γ) u v A l → der_eq (PushF g Γ) u v A l → der_isOne Γ (ftmax f g) →
+  der_eq Γ u v A l;
 // Computation rules
 // λ-calculus
 constant symbol der_eq_beta : Π (Γ : Context) (l l' : Lev) (u A t B : Term),
@@ -217,19 +218,20 @@ constant symbol der_eq_sys_right : Π (Γ : Context) (l : Lev) (A : Term) (f g :
 // Transport, general rule first when transporting on the whole space,
 constant symbol der_eq_transp : Π (Γ : Context) (l : Lev) (A : Term) (f : FTerm) (u : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der_F Γ f → der Γ u (applyI1 A it0) l →
-  der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
   der_isOne Γ f → der_eq Γ (ttransp A f u) u (applyI1 A it1) l;
 // then computing rules by case analysis on the type
 // (transpⁱ (Π (x:A) B) φ u) v = transpⁱ B(x/transpFill⁻ⁱ A φ v) φ (u (transpʲ A(i/~j) φ v))
 constant symbol der_eq_transp_pi : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (u v : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der (Push A l (PushI Γ)) B (tuniv l') (lsuc l') →
-  der_F Γ f → der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
-  der_eq (Push A l (PushF f (PushI Γ))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l') →
+  der_F Γ f → der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (Push A l (PushF (IShiftF f) (PushI Γ))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l') →
+  der Γ u (applyI1 (tpi A B) it0) (lmax l l') → der Γ v (applyI1 A it1) l →
   der_eq Γ (tapp (ttransp (tpi A B) f u) v)
          (ttransp (apply1 B (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
                                      (ftmax f (fteq0 db0)) v))
                   f (tapp u (ttransp (applyI1 (IShift1 A) (itsym (itvar db0))) f v)))
-         (tpi (applyI1 A it1) (applyI1 B it1)) (lmax l l');
+         (apply1 (applyI1 B it1) v) l';
 constant symbol der_eq_transp_univ : Π (Γ : Context) (l : Lev) (f : FTerm) (A : Term),
   der Γ A (tuniv l) (lsuc l) → der_eq Γ (ttransp (tuniv l) f A) A (tuniv l) (lsuc l);
 constant symbol der_eq_transp_zero : Π (Γ : Context) (l : Lev) (f : FTerm),
@@ -239,8 +241,8 @@ constant symbol der_eq_transp_suc : Π (Γ : Context) (l : Lev) (f : FTerm) (n :
 // transpⁱ (Σ (x : A) B) φ u = (transpⁱ A φ u.1, transpⁱ B(x/transpFillⁱ A φ u.1) φ u.2)
 constant symbol der_eq_transp_sig : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (u : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der (Push A l (PushI Γ)) B (tuniv l') (lsuc l') →
-  der_F Γ f → der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
-  der_eq (Push A l (PushF f (PushI Γ))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l') →
+  der_F Γ f → der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (Push A l (PushF (IShiftF f) (PushI Γ))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l') →
   der_eq Γ (ttransp (tsig A B) f u)
          (tpair (ttransp A f (tp1 u))
                 (ttransp (apply1 B (ttranspFill A f (tp1 u))) f (tp2 u)))
@@ -248,23 +250,23 @@ constant symbol der_eq_transp_sig : Π (Γ : Context) (l l' : Lev) (A B : Term) 
 // transpⁱ (A + B) φ (injl a) = injl (transpⁱ A φ a)
 constant symbol der_eq_transp_sum_left : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (a : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der (PushI Γ) B (tuniv l') (lsuc l') →
-  der Γ a (applyI1 A it0) l → der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
-  der_eq (PushF f (PushI Γ)) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l) →
+  der Γ a (applyI1 A it0) l → der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f) (PushI Γ)) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l) →
   der_eq Γ (ttransp (tsum A B) f (tinjl a)) (tinjl (ttransp A f a)) (applyI1 (tsum A B) it1) (lmax l l');
 // transpⁱ (A + B) φ (injr b) = injr (transpⁱ B φ b)
 constant symbol der_eq_transp_sum_right : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (b : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der (PushI Γ) B (tuniv l') (lsuc l') →
-  der Γ b (applyI1 B it0) l' → der_eq (PushF f (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
-  der_eq (PushF f (PushI Γ)) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l) →
+  der Γ b (applyI1 B it0) l' → der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f) (PushI Γ)) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l) →
   der_eq Γ (ttransp (tsum A B) f (tinjr b)) (tinjr (ttransp B f b)) (applyI1 (tsum A B) it1) (lmax l l');
 // transpⁱ (Pathʲ A v w) φ u = λ j, compⁱ A [φ ↦ u j, (j = 0) ↦ v, (j = 1) ↦ w] (u j)
 // The ugly subst/shift is swapping the two interval variables in A's context
 constant symbol der_eq_transp_path : Π (Γ : Context) (l : Lev) (A x y : Term) (f : FTerm) (u : Term),
   der (PushI (PushI Γ)) A (tuniv l) (lsuc l) → der (PushI Γ) x (applyI1 A it0) l →
   der (PushI Γ) y (applyI1 A it1) l → der Γ u (applyI1 (tpath A x y) it0) l →
-  der_eq (PushF f (PushI (PushI Γ))) A (IShift1 (Isubst db1 it0 A)) (tuniv l) (lsuc l) →
-  der_eq (PushF f (PushI Γ)) x (IShift (applyI1 x it0)) (applyI1 A it0) l →
-  der_eq (PushF f (PushI Γ)) y (IShift (applyI1 y it0)) (applyI1 A it1) l →
+  der_eq (PushF (IShiftF f) (PushI (PushI Γ))) A (IShift1 (Isubst db1 it0 A)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f) (PushI Γ)) x (IShift (applyI1 x it0)) (applyI1 A it0) l →
+  der_eq (PushF (IShiftF f) (PushI Γ)) y (IShift (applyI1 y it0)) (applyI1 A it1) l →
   der_eq Γ (ttransp (tpath A x y) f u)
          (tlamP (tcomp (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))
                        (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))
@@ -276,42 +278,42 @@ constant symbol der_eq_transp_path : Π (Γ : Context) (l : Lev) (A x y : Term) 
 // TODO : Glue types transport
 // hcomp, general rule first when composing on the whole space,
 constant symbol der_eq_hcomp : Π (Γ : Context) (l : Lev) (A : Term) (f : FTerm) (u u0 : Term),
-  der Γ A (tuniv l) (lsuc l) → der_F Γ f → der (PushF f (PushI Γ)) u A l → der Γ u0 A l →
+  der Γ A (tuniv l) (lsuc l) → der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) u A l → der Γ u0 A l →
   der_eq (PushF f Γ) u0 (applyI1 u it0) A l → der_isOne Γ f → der_eq Γ (thcomp A f u u0) (applyI1 u it1) A l;
 // then computing rules by case analysis on the type
 // hcompⁱ (Π (x : A), B) [φ ↦ u] u0 v = hcompⁱ B(x/v) [φ ↦ u v] (u0 v)
 constant symbol der_eq_hcomp_pi : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (u u0 v : Term),
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l') (lsuc l') → der_F Γ f →
-  der (PushF f (PushI Γ)) u (tpi A B) (lmax l l') → der Γ u0 (tpi A B) (lmax l l') →
+  der (PushF (IShiftF f) (PushI Γ)) u (tpi A B) (lmax l l') → der Γ u0 (tpi A B) (lmax l l') →
   der_eq (PushF f Γ) u0 (applyI1 u it0) (tpi A B) (lmax l l') → der_isOne Γ f →
   der_eq Γ (tapp (thcomp A f u u0) v) (thcomp (apply1 B v) f (tapp u v) (tapp u0 v)) (apply1 B v) l;
 // hcomp (U l) [φ ↦ E] A = Glue [φ ↦ (E(i/1), (equivⁱ E(i/1-i)))] A
 constant symbol der_eq_hcomp_zero : Π (Γ : Context) (l : Lev) (f : FTerm) (n : Term),
-  der_F Γ f → der (PushF f (PushI Γ)) n tnat l → der_eq (PushF f Γ) tzero (applyI1 n it0) tnat l →
+  der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) n tnat l → der_eq (PushF f Γ) tzero (applyI1 n it0) tnat l →
   der_eq Γ (thcomp tnat f n tzero) tzero tnat l;
 constant symbol der_eq_hcomp_suc : Π (Γ : Context) (l : Lev) (f : FTerm) (n n0 : Term),
-  der_F Γ f → der (PushF f (PushI Γ)) n tnat l → der Γ n0 tnat l → der_eq (PushF f Γ) n0 (applyI1 n it0) tnat l →
+  der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) n tnat l → der Γ n0 tnat l → der_eq (PushF f Γ) n0 (applyI1 n it0) tnat l →
   der_eq Γ (thcomp tnat f (tsuc n) (tsuc n0)) (tsuc (thcomp tnat f n n0)) tnat l;
 // hcompⁱ (Σ (x : A), B) [φ ↦ u] u0 = (hcompⁱ A [φ ↦ u.1] u0.1, compⁱ B(x/hfillⁱ A [φ ↦ u.1] u0.1) [φ ↦ u.2] u0.2)
 constant symbol der_eq_hcomp_sig : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (u u0 : Term),
   der Γ A (tuniv l) (lsuc l) → der (Push A l Γ) B (tuniv l) (lsuc l) → der_F Γ f →
-  der (PushF f (PushI Γ)) u (tsig A B) (lmax l l') → der Γ u0 (tsig A B) (lmax l l') →
+  der (PushF (IShiftF f) (PushI Γ)) u (tsig A B) (lmax l l') → der Γ u0 (tsig A B) (lmax l l') →
   der_eq (PushF f Γ) u0 (applyI1 u it0) (tsig A B) (lmax l l') →
   der_eq Γ (thcomp (tsig A B) f u u0) (tpair (thcomp A f (tp1 u) (tp1 u0))
                                              (tcomp (apply1 B (thfill A f (tp1 u) (tp1 u0))) f (tp2 u) (tp2 u0)))
          (tsig A B) (lmax l l');
 constant symbol der_eq_hcomp_sum_left : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (a a0 : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') → der_F Γ f →
-  der (PushF f (PushI Γ)) a A l → der Γ a0 A l → der_eq (PushF f Γ) a0 (applyI1 a it0) A l →
+  der (PushF (IShiftF f) (PushI Γ)) a A l → der Γ a0 A l → der_eq (PushF f Γ) a0 (applyI1 a it0) A l →
   der_eq Γ (thcomp (tsum A B) f (tinjl a) (tinjl a0)) (tinjl (thcomp A f a a0)) (tsum A B) (lmax l l');
 constant symbol der_eq_hcomp_sum_right : Π (Γ : Context) (l l' : Lev) (A B : Term) (f : FTerm) (b b0 : Term),
   der Γ A (tuniv l) (lsuc l) → der Γ B (tuniv l') (lsuc l') → der_F Γ f →
-  der (PushF f (PushI Γ)) b B l' → der Γ b0 B l' → der_eq (PushF f Γ) b0 (applyI1 b it0) B l' →
+  der (PushF (IShiftF f) (PushI Γ)) b B l' → der Γ b0 B l' → der_eq (PushF f Γ) b0 (applyI1 b it0) B l' →
   der_eq Γ (thcomp (tsum A B) f (tinjr b) (tinjr b0)) (tinjr (thcomp B f b b0)) (tsum A B) (lmax l l');
 // hcompⁱ (Pathʲ A v w) [φ ↦ u] u0 = λ j, hcompⁱ A [φ ↦ u j, (j = 0) ↦ v, (j = 1) ↦ w] (u0 j)
 constant symbol der_eq_hcomp_path : Π (Γ : Context) (l : Lev) (A x y : Term) (f : FTerm) (u u0 : Term),
   der (PushI Γ) A (tuniv l) (lsuc l) → der Γ x (applyI1 A it0) l → der Γ y (applyI1 A it1) l →
-  der_F Γ f → der (PushF f (PushI Γ)) u (tpath A x y) l → der Γ u0 (tpath A x y) l →
+  der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) u (tpath A x y) l → der Γ u0 (tpath A x y) l →
   der_eq (PushF f Γ) u0 (applyI1 u it0) (tpath A x y) l →
   der_eq Γ (thcomp (tpath A x y) f u u0)
          (tlamP (thcomp A (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))
@@ -402,8 +404,8 @@ constant symbol der_eq_cong_transp : Π (Γ : Context) (l : Lev) (A1 A2 : Term) 
   der_eq (PushI Γ) A2 (IShift (applyI1 A2 it0)) (tuniv l) (lsuc l) →
   der_eq Γ (ttransp A1 f1 a1) (ttransp A2 f2 a2) (applyI1 A1 it1) l;
 constant symbol der_eq_cong_hcomp : Π (Γ : Context) (l : Lev) (A1 A2 : Term) (f1 f2 : FTerm) (u1 u2 v1 v2 : Term),
-  der_eq Γ A1 A2 (tuniv l) (lsuc l) → der_eq_F Γ f1 f2 → der_eq (PushF f1 (PushI Γ)) u1 u2 A1 l →
-  der_eq Γ v1 v2 A1 l → der (PushF f1 (PushI Γ)) u1 A1 l → der (PushF f2 (PushI Γ)) u2 A2 l →
+  der_eq Γ A1 A2 (tuniv l) (lsuc l) → der_eq_F Γ f1 f2 → der_eq (PushF (IShiftF f1) (PushI Γ)) u1 u2 A1 l →
+  der_eq Γ v1 v2 A1 l → der (PushF (IShiftF f1) (PushI Γ)) u1 A1 l → der (PushF (IShiftF f2) (PushI Γ)) u2 A2 l →
   der Γ u1 A1 l → der Γ u2 A2 l → der_eq (PushF f1 Γ) v1 (applyI1 u1 it0) A1 l →
   der_eq (PushF f2 Γ) v2 (applyI1 u2 it0) A2 l →
   der_eq Γ (thcomp A1 f1 u1 v1) (thcomp A2 f2 u2 v2) A1 l;
@@ -423,7 +425,8 @@ constant symbol der_eq_I_trans : Π (Γ : Context) (i j k : ITerm), der_eq_I Γ 
 // Face reasoning
 constant symbol der_eq_I_isOne_zero : Π (Γ : Context) (i j : ITerm), der_isOne Γ ft0 → der_eq_I Γ i j;
 constant symbol der_eq_I_isOne_max : Π (Γ : Context) (i j : ITerm) (f g : FTerm),
-  der_eq_I (PushF f Γ) i j → der_eq_I (PushF g Γ) i j → der_isOne Γ (ftmax f g) → der_eq_I Γ i j;
+  der_F Γ f → der_F Γ g → der_eq_I (PushF f Γ) i j → der_eq_I (PushF g Γ) i j → der_isOne Γ (ftmax f g) →
+  der_eq_I Γ i j;
 constant symbol der_eq_I_isOne_eq0 : Π (Γ : Context) (id : DBId), der_isOne Γ (fteq0 id) → der_eq_I Γ (itvar id) it0;
 constant symbol der_eq_I_isOne_eq1 : Π (Γ : Context) (id : DBId), der_isOne Γ (fteq1 id) → der_eq_I Γ (itvar id) it1;
 // Computation rules for interval operations
@@ -517,4 +520,4 @@ constant symbol der_context_empty : der_context Empty;
 constant symbol der_context_Push : Π (Γ : Context) (l : Lev) (A : Term),
   der Γ A (tuniv l) (lsuc l) → der_context Γ → der_context (Push A l Γ);
 constant symbol der_context_PushI : Π (Γ : Context), der_context Γ → der_context (PushI Γ);
-constant symbol der_context_PushF : Π (Γ : Context) (f : FTerm), der_context Γ → der_context (PushF f Γ);
+constant symbol der_context_PushF : Π (Γ : Context) (f : FTerm), der_context Γ → der_F Γ f → der_context (PushF f Γ);
