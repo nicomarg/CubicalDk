@@ -229,7 +229,7 @@ constant symbol der_eq_transp_pi : Π (Γ : Context) (l l' : Lev) (A B : Term) (
   der Γ u (applyI1 (tpi A B) it0) (lmax l l') → der Γ v (applyI1 A it1) l →
   der_eq Γ (tapp (ttransp (tpi A B) f u) v)
          (ttransp (apply1 B (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
-                                     (ftmax f (fteq0 db0)) v))
+                                     (ftmax (IShiftF f) (fteq0 db0)) (IShift v)))
                   f (tapp u (ttransp (applyI1 (IShift1 A) (itsym (itvar db0))) f v)))
          (apply1 (applyI1 B it1) v) l';
 constant symbol der_eq_transp_univ : Π (Γ : Context) (l : Lev) (f : FTerm) (A : Term),

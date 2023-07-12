@@ -29,6 +29,8 @@ symbol pushΓI [Γ : Context] (dΓ : der_context Γ) :
 
 symbol dble_db0 [n : DBId] : DBLe (dbsucc db0) (dbsucc n) ≔
   dble_n_S (dble_0_n n);
+symbol dble_db1 [n : DBId] : DBLe (dbsucc (dbsucc db0)) (dbsucc (dbsucc n)) ≔
+  dble_n_S (dble_n_S (dble_0_n n));
 
 // TODO : Prove all lemmas below
 // Shifting derivation
@@ -53,6 +55,16 @@ symbol der_Ishift1 [Γ : Context] [t T : Term] [l: Lev]
                   (_ : der_context Γ)
                   (_ : der (PushI Γ) t T l) : der (PushI (PushI Γ)) (IShift1 t) (IShift1 T) l;
 
+symbol der_Ishift_context [Γ : Context] [t T A : Term] [l l' : Lev]
+                          (_ : der_context Γ) (_ : der Γ A (tuniv l) (lsuc l))
+                          (_ : der (PushI (Push A l Γ)) t T l') : der (Push (IShift A) l (PushI Γ)) t T l';
+symbol der_weakF [Γ : Context] [t T : Term] [f : FTerm] [l : Lev]
+                 (_ : der_context Γ) (_ : der Γ t T l) (_ : der_F Γ f) :
+  der (PushF f Γ) t T l;
+symbol der_weakF1 [Γ : Context] [t A T : Term] [f : FTerm] [l l' : Lev]
+                 (_ : der_context Γ) (_ : der Γ A (tuniv l') (lsuc l')) (_ : der (Push A l' Γ) t T l) (_ : der_F Γ f) :
+  der (Push A l' (PushF f Γ)) t T l;
+
 // Iterated shifting
 symbol der_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t T : Term] [l : Lev] (_ : der (getΓ Γ id) t T l) :
   der Γ (ShiftN id t) (ShiftN id T) l;
@@ -76,6 +88,9 @@ symbol substitution [Γ : Context] [l l' : Lev] [A B C : Term] :
   der_context Γ → der (Push A l Γ) C B l' → Π[u : Term], der Γ u A l → der Γ (apply1 C u) (apply1 B u) l';
 symbol Isubstitution [Γ : Context] [l : Lev] [B C : Term] :
   der_context Γ → der (PushI Γ) C B l → Π [i : ITerm], der_I Γ i → der Γ (applyI1 C i) (applyI1 B i) l;
+symbol Isubstitution1 [Γ : Context] [l l' : Lev] [A B C : Term] :
+  der_context Γ → der (PushI Γ) A (tuniv l') (lsuc l') → der (Push A l' (PushI Γ)) C B l →
+  Π [i : ITerm], der_I Γ i → der (Push (applyI1 A i) l' Γ) (applyI1 C i) (applyI1 B i) l;
 symbol Isubstitution_eq [Γ : Context] [l : Lev] [A B C : Term] :
   der_context Γ → der_eq (PushI Γ) A B C l → Π [i : ITerm], der_I Γ i →
   der_eq Γ (applyI1 A i) (applyI1 B i) (applyI1 C i) l;

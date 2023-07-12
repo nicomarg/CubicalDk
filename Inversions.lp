@@ -30,50 +30,34 @@ symbol push2Γ [Γ : Context] [l : Lev] [T1 T2 : Term] (dΓ : der_context Γ) (d
               : der_context (Push T2 l Γ) ≔
   pushΓ (inv_eq_t2 dΓ deq) dΓ;
 
-// with inv_eq_t2 $dΓ (der_eq_rec_suc $Γ $l $l' $P $z $H $n $dP $dz $dH $dn) ↪
-// der_app (tapp $P $n) (tapp $H $n) (trec $P $z $H $n) (tapp (Shift $P) (tsuc (Shift $n)))
-//         (der_app tnat $P $n (tuniv $l') der_nat der_univ $dP $dn)
-//         (der_shift0 (der_app tnat $P $n (tuniv $l') der_nat der_univ $dP $dn) $dΓ
-//                     (der_app tnat $P (tsuc $n) (tuniv $l') der_nat der_univ $dP (der_suc $dn)))
-//         (der_app tnat $H $n (tpi (tapp (Shift $P) (tvar db0)) (tapp (Shift (Shift $P)) (tsuc (tvar db1))))
-//                  der_nat
-//                  (der_pi (der_app tnat (Shift $P) (tvar db0) (tuniv $l') der_nat der_univ
-//                                   (der_shift0 der_nat $dΓ $dP) (der_var (dble_n_S (dble_0_n (len $Γ)))))
-//                          (der_shift0 (der_app tnat (Shift $P) (tvar db0) (tuniv $l') der_nat der_univ
-//                                               (der_shift0 der_nat $dΓ $dP)
-//                                               (der_var (dble_n_S (dble_0_n (len $Γ)))))
-//                                      (pushΓ der_nat $dΓ)
-//                                      (der_app tnat (Shift $P) (tsuc (tvar db0)) (tuniv $l') der_nat der_univ
-//                                               (der_shift0 der_nat $dΓ $dP)
-//                                               (der_suc (der_var (dble_n_S (dble_0_n (len $Γ))))))))
-//                  $dH $dn)
-//         (der_rec $dP $dz $dH $dn)
-// symbol test2 (Γ : Context) (dΓ : der_context Γ) (l l' : Lev) (P z H n : Term)
-//   (dP : der Γ P (tpi tnat (tuniv l')) (lmax l (lsuc l'))) (dz : der Γ z (tapp P tzero) l')
-//   (dH : der Γ H (tpi tnat (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1))))) (lmax l l'))
-//   (dn : der Γ n tnat l) :
-//   der Γ (tapp (tapp H n) (trec P z H n)) (tapp P (tsuc n)) l' ≔
-// begin
-//   assume Γ dΓ l l' P z H n dP dz dH dn;
-//   refine der_app (tapp P n) (tapp H n) (trec P z H n) (Shift (tapp P (tsuc n))) _ _ _ (der_rec dP dz dH dn)
-//   { refine der_app tnat P n (tuniv _) der_nat der_univ dP dn }
-//   { refine der_shift0 (der_app tnat P n (tuniv _) der_nat der_univ dP dn) dΓ
-//                       (der_app tnat P (tsuc n) (tuniv _) der_nat der_univ dP (der_suc dn)) }
-//   { refine der_app tnat H n (tpi (tapp (Shift P) (tvar db0)) (tapp (Shift (Shift P)) (tsuc (tvar db1)))) _ _ _ _}
-// end;
-symbol test (Γ : Context) (dΓ : der_context Γ) (l : Lev) (A u : Term) (f : FTerm)
-  (dA : der (PushI Γ) A (tuniv l) (lsuc l)) (df : der_F Γ f) (du : der Γ u (applyI1 A it0) l)
-  (deq_A : der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l))
-  (d1f : der_isOne Γ f) :
-  der Γ u (applyI1 A it1) l ≔
+symbol test (Γ : Context) (dΓ : der_context Γ) (l l' : Lev) (A B u v : Term) (f : FTerm)
+  (dA : der (PushI Γ) A (tuniv l) (lsuc l)) (dB : der (Push A l (PushI Γ)) B (tuniv l') (lsuc l'))
+  (df : der_F Γ f) (deq_A : der_eq (PushF (IShiftF f) (PushI Γ)) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l))
+  (deq_B : der_eq (Push A l (PushF (IShiftF f) (PushI Γ))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l'))
+  (du : der Γ u (applyI1 (tpi A B) it0) (lmax l l')) (dv : der Γ v (applyI1 A it1) l) :
+  der Γ
+         (ttransp (apply1 B (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
+                                     (ftmax (IShiftF f) (fteq0 db0)) (IShift v)))
+                  f (tapp u (ttransp (applyI1 (IShift1 A) (itsym (itvar db0))) f v)))
+ (apply1 (applyI1 B it1) v) l' ≔
 begin
-  assume Γ dΓ l A u f dA df du deq_A d1f;
-  refine @der_type_conv _ _ _ (applyI1 A it0) (applyI1 A it1) _ _
-  { refine du }
-  { refine der_eq_sym _ _ _ _ _ _;
-    refine @Isubstitution_eq _ _ A (IShift (applyI1 A it0)) (tuniv l) dΓ _ it1 der_I_1;
-    refine Fsubstitution_eq [_] [lsuc l] (pushΓI dΓ) deq_A (der_Ishift0F dΓ df) (der_isOne_weakI _ _ d1f);
+  assume Γ dΓ l l' A B u v f dA dB df deq_A deq_B du dv;
+  refine der_type_conv (der_transp _ df _ _) _
+  { refine substitution (pushΓI dΓ) dB [ttransp (applyI1 (IShift1 (IShift1 A))
+                                                         (itmax (itvar db1) (itsym (itvar db0))))
+                                                (ftmax (IShiftF f) (fteq0 db0)) (IShift v)] _;
+    refine der_type_conv (der_transp _ _ _ _) _
+    { refine Isubstitution [_] [lsuc l] [tuniv l] [IShift1 (IShift1 A)] (pushΓI (pushΓI dΓ)) _
+             (der_I_max (der_I_var dble_db1) (der_I_sym (der_I_var dble_db0)));
+      refine der_Ishift1 (pushΓI dΓ) (der_Ishift1 dΓ dA)}
+    { refine der_F_max (der_Ishift0F dΓ df) (der_F_eq0 dble_db0)}
+    {  }
+    {}
+    {}
   }
+  {}
+  {}
+  {}
 end;
 print test;
 // Definition of inv_sort
@@ -271,8 +255,23 @@ with inv_eq_t2 $dΓ (der_eq_transp $Γ $l $A $f _ _ $df $du $deq_A $d1f) ↪
                                    (Isubstitution_eq $dΓ (Fsubstitution_eq (pushΓI $dΓ) $deq_A
                                                                            (der_Ishift0F $dΓ $df)
                                                                            (der_isOne_weakI $Γ $f $d1f)) der_I_1))
-with inv_eq_type $dΓ (der_eq_transp_pi _ _ _ _ _ _ _ _ _ $dB _ _ _ _ $dv) ↪
-     Isubstitution $dΓ (substitution (pushΓI $dΓ) $dB (der_Ishift0 $dΓ $dv)) der_I_1
+with inv_eq_type $dΓ (der_eq_transp_pi _ _ _ _ _ _ _ _ $dA $dB _ _ _ _ $dv) ↪
+     substitution $dΓ (Isubstitution1 $dΓ $dA $dB der_I_1) $dv
+with inv_eq_t1 $dΓ (der_eq_transp_pi $Γ $l $l' $A $B $f $u $v $dA $dB $df $deq_A $deq_B $du $dv) ↪
+     der_app (applyI1 $A it1) (ttransp (tpi $A $B) $f $u) $v (applyI1 $B it1) (Isubstitution $dΓ $dA der_I_1)
+             (Isubstitution1 $dΓ $dA $dB der_I_1)
+             (der_transp (der_pi $dA $dB) $df $du
+                         (der_eq_cong_pi
+                             (PushF (IShiftF $f) (PushI $Γ)) $l $l' $A (IShift (applyI1 $A it0))
+                             $B (IShift (applyI1 $B it0)) $deq_A $deq_B
+                             (der_weakF1 (pushΓI $dΓ) $dA $dB (der_Ishift0F $dΓ $df))
+                             (der_weakF1 (pushΓI $dΓ) (der_Ishift0 $dΓ (Isubstitution $dΓ $dA der_I_0))
+                                         (der_Ishift_context $dΓ (Isubstitution $dΓ $dA der_I_0)
+                                                             (der_Ishift0 (pushΓ (Isubstitution $dΓ $dA der_I_0) $dΓ)
+                                                                          (Isubstitution1 $dΓ $dA $dB der_I_0)))
+                                                     (der_Ishift0F $dΓ $df)))) $dv
+with inv_eq_t2 $dΓ (der_eq_transp_pi $Γ $l $l' $A $B $f $u $v $dA $dB $df $deq_A $deq_B $du $dv) ↪
+     TYPE
 // Congruence
 // Lambda-calculus
 with inv_eq_sort _   (der_eq_cong_tfun $Γ $s $s' _   _   _   _   _     _ _    _   ) ↪ der_sort $Γ (smax $s $s')
