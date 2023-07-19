@@ -19,9 +19,9 @@ rule dbprev (dbsucc $n) ↪ $n;
 // Equality
 constant symbol DBEq : DBId → DBId → TYPE;
 constant symbol DBRefl (i : DBId) : DBEq i i;
-symbol dbcongI (f : DBId → DBId) [i j : DBId]
+symbol dbcong (f : DBId → DBId) [i j : DBId]
                   : DBEq i j → DBEq (f i) (f j);
-rule dbcongI $f (DBRefl $i) ↪ DBRefl ($f $i);
+rule dbcong $f (DBRefl $i) ↪ DBRefl ($f $i);
 
 // Comparison
 constant symbol DBLe : DBId → DBId → TYPE;
@@ -225,7 +225,7 @@ symbol apply1 (t u : Term) : Term ≔ subst db0 u t;
 
 // Some substitution commutation
 // might need the interval/face versions of this
-// rule shift db0 (shift $i $t) ↪ shift (dbsucc $i) (Shift $t);
+rule shift db0 (shift $i $t) ↪ shift (dbsucc $i) (Shift $t);
 // rule shift (dbsucc db0) (shift (dbsucc $i) $t) ↪ shift (dbsucc (dbsucc $i)) (Shift1 $t);
 // rule subst $id $u (subst $id $v (shift (dbsucc $id) $t)) ↪ subst db0 (subst db0 $u $v) $t;
 rule subst $id _ (shift $id $t) ↪ $t;
@@ -285,6 +285,8 @@ symbol Isubst : DBId → ITerm → Term → Term ≔ wrap IsubstI IsubstF;
 symbol applyI1 (u : Term) (t : ITerm) ≔ Isubst db0 t u;
 
 // Interval substitution commutation
+rule IshiftI db0 (IshiftI $i $t) ↪ IshiftI (dbsucc $i) (IShiftI $t);
+rule IshiftF db0 (IshiftF $i $t) ↪ IshiftF (dbsucc $i) (IShiftF $t);
 rule wrap IsubstI IsubstF $id _ (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) $id _ $t) ↪ $t;
 // rule wrap (λ i _ , IshiftI i) (λ i _, IshiftF i) $id _ (wrap IsubstI IsubstF db0 $u $t) ↪
 //      wrap IsubstI IsubstF db0 (IshiftI $id $u) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) it0 $t);
@@ -294,4 +296,4 @@ rule wrap IsubstI IsubstF $id it0 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) 
 rule wrap IsubstI IsubstF $id it1 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪
      Ishift $id (Isubst $id it1 $t);
 // Not type-aware, but substitution of interval and regular variables commute
-rule subst $id $u (wrap IsubstI IsubstF $id' $v $t) ↪ wrap IsubstI IsubstF $id' $v (subst $id (IShift $u) $t);
+// rule subst $id $u (wrap IsubstI IsubstF $id' $v $t) ↪ wrap IsubstI IsubstF $id' $v (subst $id (IShift $u) $t);
