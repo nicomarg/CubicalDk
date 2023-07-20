@@ -288,6 +288,8 @@ symbol applyI1 (u : Term) (t : ITerm) ≔ Isubst db0 t u;
 rule IshiftI db0 (IshiftI $i $t) ↪ IshiftI (dbsucc $i) (IShiftI $t);
 rule IshiftF db0 (IshiftF $i $t) ↪ IshiftF (dbsucc $i) (IShiftF $t);
 rule wrap IsubstI IsubstF $id _ (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) $id _ $t) ↪ $t;
+rule IsubstI $id _ (IshiftI $id $t) ↪ $t;
+rule IsubstF $id _ (IshiftF $id $t) ↪ $t;
 // rule wrap (λ i _ , IshiftI i) (λ i _, IshiftF i) $id _ (wrap IsubstI IsubstF db0 $u $t) ↪
 //      wrap IsubstI IsubstF db0 (IshiftI $id $u) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) it0 $t);
 rule wrap IsubstI IsubstF $id (itvar $id) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪ $t;
