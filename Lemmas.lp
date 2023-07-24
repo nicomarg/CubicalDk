@@ -12,18 +12,18 @@ symbol der_subΓ [Γ : Context] (id : DBId) (_ : der_context Γ) : der_context (
 rule der_getΓ db0 (der_context_Push _ _ _ $dA _) ↪ $dA
 with der_getΓ (dbsucc $id) (der_context_Push _ _ _ _ $dt) ↪ der_getΓ $id $dt
 with der_getΓ $id (der_context_PushI _ $dt) ↪ der_getΓ $id $dt
-with der_getΓ $id (der_context_PushF _ _ $dt _) ↪ der_getΓ $id $dt
+with der_getΓ $id (der_context_PushF _ _ _ $dt) ↪ der_getΓ $id $dt
 with der_subΓ db0 (der_context_Push _ _ _ _ $dΓ) ↪ $dΓ
 with der_subΓ (dbsucc $id) (der_context_Push _ _ _ _ $dΓ) ↪ der_subΓ $id $dΓ
 with der_subΓ $id (der_context_PushI _ $dt) ↪ der_subΓ $id $dt
-with der_subΓ $id (der_context_PushF _ _ $dt _) ↪ der_subΓ $id $dt
+with der_subΓ $id (der_context_PushF _ _ _ $dt) ↪ der_subΓ $id $dt
 ;
 
 // Better der_context_push
 symbol pushΓ [Γ : Context] [l : Lev] [T : Term] (d : der Γ T (tuniv l) (lsuc l)) (dΓ : der_context Γ) :
   der_context (Push T l Γ) ≔ der_context_Push Γ l T d dΓ;
 symbol pushΓF [Γ : Context] [f : FTerm] (df : der_F Γ f) (dΓ : der_context Γ) :
-  der_context (PushF f Γ) ≔ der_context_PushF Γ f dΓ df;
+  der_context (PushF f Γ) ≔ der_context_PushF Γ f df dΓ;
 symbol pushΓI [Γ : Context] (dΓ : der_context Γ) :
   der_context (PushI Γ) ≔ der_context_PushI Γ dΓ;
 
@@ -61,6 +61,9 @@ symbol der_Ishift_context [Γ : Context] [t T A : Term] [l l' : Lev]
 symbol der_weakF [Γ : Context] [t T : Term] [f : FTerm] [l : Lev]
                  (_ : der_context Γ) (_ : der Γ t T l) (_ : der_F Γ f) :
   der (PushF f Γ) t T l;
+symbol der_weakFF [Γ : Context] [f g : FTerm]
+                 (_ : der_context Γ) (_ : der_F Γ g) (_ : der_F Γ f) :
+  der_F (PushF f Γ) g;
 symbol der_weakF1 [Γ : Context] [t A T : Term] [f : FTerm] [l l' : Lev]
                  (_ : der_context Γ) (_ : der Γ A (tuniv l') (lsuc l')) (_ : der (Push A l' Γ) t T l) (_ : der_F Γ f) :
   der (Push A l' (PushF f Γ)) t T l;
@@ -83,6 +86,12 @@ symbol der_eq_cong_apply [Γ : Context] [l l' : Lev] [A1 A2 B1 B2 t1 t2 : Term]
                          (_ : der (Push A2 l Γ) B2 (tuniv l') (lsuc l'))
                          (_ : der Γ t1 A1 l) (_ : der Γ t2 A2 l)
                          : der_eq Γ (apply1 B1 t1) (apply1 B2 t2) (tuniv l') (lsuc l');
+symbol der_eq_cong_Iapply [Γ : Context] [l' : Lev] [B1 B2 : Term] [t1 t2 : ITerm]
+                         (_ : der_context Γ)
+                         (_ : der_eq (PushI Γ) B1 B2 (tuniv l') (lsuc l'))
+                         (_ : der_eq_I Γ t1 t2)
+                         (_ : der_I Γ t1) (_ : der_I Γ t2)
+                         : der_eq Γ (applyI1 B1 t1) (applyI1 B2 t2) (tuniv l') (lsuc l');
 
 symbol substitution [Γ : Context] [l l' : Lev] [A B C : Term] :
   der_context Γ → der (Push A l Γ) C B l' → Π[u : Term], der Γ u A l → der Γ (apply1 C u) (apply1 B u) l';

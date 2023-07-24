@@ -232,7 +232,7 @@ rule subst $id _ (shift $id $t) ↪ $t;
 rule subst (dbsucc $id) _ (shift $id (shift $id $t)) ↪ shift $id $t;
 rule subst $id (tvar $id) (shift (dbsucc $id) $t) ↪ $t;
 // rule shift $id (subst $j $u $t) ↪ subst (dbshift (dbsucc $id) $j) (shift $id $u) (shift (dbsucc $id) $t);
-// rule shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
+rule shift $id (subst db0 $u $t) ↪ subst db0 (shift $id $u) (shift (dbsucc $id) $t);
 
 symbol dbselectI : DBId → DBId → ITerm → ITerm → ITerm → ITerm;
 rule dbselectI db0 db0 $eq _ _ ↪ $eq
@@ -297,5 +297,4 @@ rule wrap IsubstI IsubstF $id it0 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) 
      Ishift $id (Isubst $id it0 $t);
 rule wrap IsubstI IsubstF $id it1 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪
      Ishift $id (Isubst $id it1 $t);
-// Not type-aware, but substitution of interval and regular variables commute
-// rule subst $id $u (wrap IsubstI IsubstF $id' $v $t) ↪ wrap IsubstI IsubstF $id' $v (subst $id (IShift $u) $t);
+rule shift $id (wrap IsubstI IsubstF db0 $u $t) ↪ Isubst db0 $u (shift $id $t);

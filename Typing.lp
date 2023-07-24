@@ -431,6 +431,8 @@ constant symbol der_eq_I_isOne_eq0 : Π (Γ : Context) (id : DBId), der_isOne Γ
 constant symbol der_eq_I_isOne_eq1 : Π (Γ : Context) (id : DBId), der_isOne Γ (fteq1 id) → der_eq_I Γ (itvar id) it1;
 // Computation rules for interval operations
 constant symbol der_eq_I_sym_sym : Π (Γ : Context) (i : ITerm), der_eq_I Γ i (itsym (itsym i));
+constant symbol der_eq_I_sym_zero : Π (Γ : Context), der_eq_I Γ (itsym it0) it1;
+constant symbol der_eq_I_sym_one : Π (Γ : Context), der_eq_I Γ (itsym it1) it0;
 constant symbol der_eq_I_min_assoc : Π (Γ : Context) (i j k : ITerm),
   der_eq_I Γ (itmin i (itmin j k)) (itmin (itmin i j) k);
 constant symbol der_eq_I_min_comm : Π (Γ : Context) (i j : ITerm), der_eq_I Γ (itmin i j) (itmin j i);
@@ -520,4 +522,4 @@ constant symbol der_context_empty : der_context Empty;
 constant symbol der_context_Push : Π (Γ : Context) (l : Lev) (A : Term),
   der Γ A (tuniv l) (lsuc l) → der_context Γ → der_context (Push A l Γ);
 constant symbol der_context_PushI : Π (Γ : Context), der_context Γ → der_context (PushI Γ);
-constant symbol der_context_PushF : Π (Γ : Context) (f : FTerm), der_context Γ → der_F Γ f → der_context (PushF f Γ);
+constant symbol der_context_PushF : Π (Γ : Context) (f : FTerm), der_F Γ f → der_context Γ → der_context (PushF f Γ);

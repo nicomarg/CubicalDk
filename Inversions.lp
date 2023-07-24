@@ -3,6 +3,7 @@ require open ctt.ast;
 require open ctt.DeBruijn;
 require open ctt.Typing;
 require open ctt.Lemmas;
+require open ctt.TermEquality;
 // require ETT.ITT as ITT;
 
 // Lemmas
@@ -51,8 +52,35 @@ begin
              (der_I_max (der_I_var dble_db1) (der_I_sym (der_I_var dble_db0)));
       refine der_Ishift1 (pushΓI dΓ) (der_Ishift1 dΓ dA)}
     { refine der_F_max (der_Ishift0F dΓ df) (der_F_eq0 dble_db0)}
-    {  }
-    {}
+    { refine JT (teq_inv (teq_Isubst_Iapply db0 it0 (itmax (itvar db1) (itsym (itvar db0))) (IShift1 (IShift1 A)))) _;
+      simplify;
+      refine @Isubstitution_conv_arg _ _ (IShift (IShift v)) (Ishift db1 A) it1 (itmax (itvar db0) (itsym it0))
+                                     (pushΓI dΓ) (der_Ishift0 dΓ dv) _;
+      refine der_eq_I_sym _ _ _ _;
+      refine der_eq_I_trans _ _ (itmax (itvar db0) it1) _ _
+                                    (der_eq_I_max_one _ _);
+      refine der_eq_I_cong_max _ _ _ _ _ (der_eq_I_refl _ _ (der_I_var dble_db0)) (der_eq_I_sym_zero _);
+    }
+    { refine der_eq_isOne_max _ _ (tuniv l) (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
+                              (IShift (applyI1 (applyI1 (IShift1 (IShift1 A))
+                                                        (itmax (itvar db1) (itsym (itvar db0)))) it0))
+                              (IShiftF (IShiftF f)) (IShiftF (fteq0 db0))
+                              _
+                              _
+                              _
+                              _
+                              (der_isOne_axiom _ _)
+      { refine der_weakFF (pushΓI (pushΓI dΓ)) (der_Ishift0F (pushΓI dΓ) (der_Ishift0F dΓ df)) _;
+        refine der_Ishift0F (pushΓI dΓ) (der_F_max (der_Ishift0F dΓ df) (der_F_eq0 dble_db0))
+      }
+      { refine der_weakFF (pushΓI (pushΓI dΓ)) (der_Ishift0F (pushΓI dΓ) (der_F_eq0 dble_db0)) _;
+        refine der_Ishift0F (pushΓI dΓ) (der_F_max (der_Ishift0F dΓ df) (der_F_eq0 dble_db0))
+      }
+      //(applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
+      //(IShift (applyI1 (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0)))) it0))
+      { refine der_eq_trans _ _ () }
+      {};
+    }
     {}
   }
   {}
