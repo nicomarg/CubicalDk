@@ -1172,15 +1172,6 @@ with aux_teq_subst_Ishift $i $j $u (thcomp $A _ $x $y) ↪
 symbol aux_teq_Isubst_shift (i j : DBId) (u : ITerm) (t : Term) :
   TEq (Isubst i (IShiftI* i u) (shift j t))
       (shift j (Isubst i (IShiftI* i u) t));
-// symbol aux_teq_Isubst_shift_rec (i j : DBId) (u t : Term) ≔
-//   teq_trans (Jcong (λ v, subst (dbsucc i) v (Ishift j t)) (aux_teq_shift_Ishift db0 j (Shift* i u)))
-//             (aux_teq_Isubst_shift (dbsucc i) j u t);
-// symbol aux_teq_Isubst_shift_Irec (i j : DBId) (u t : Term) ≔
-//   teq_trans (Jcong (λ v, subst i v (Ishift (dbsucc j) t)) (aux_teq_Ishift_Ishift0 j (Shift* i u)))
-//             (teq_trans (Jcong (λ v, subst i (Ishift (dbsucc j) v) (Ishift (dbsucc j) t))
-//                               (teq_inv (aux_teq_Shift*_Ishift i db0 u)))
-//                        (teq_trans (aux_teq_Isubst_shift i (dbsucc j) (IShift u) t)
-//                                   (Jcong (λ v, Ishift (dbsucc j) (subst i v t)) (aux_teq_Shift*_Ishift i db0 u))));
 
 rule aux_teq_Isubst_shift _ _ _ (tvar _) ↪ TRefl _
 with aux_teq_Isubst_shift _ _ _ (tuniv _) ↪ TRefl _
@@ -1281,6 +1272,16 @@ with aux_teq_subst_dbselect (dbsucc _) db0 $k $u _ $gtT _ ↪ TRefl (subst $k $u
 with aux_teq_subst_dbselect db0 (dbsucc _) $k $u _ _ $ltT ↪ TRefl (subst $k $u $ltT)
 with aux_teq_subst_dbselect (dbsucc $i) (dbsucc $j) $k $u $eqT $gtT $ltT ↪
       aux_teq_subst_dbselect $i $j $k $u $eqT $gtT $ltT;
+
+// teq_Isubst_dbselect
+symbol aux_teq_Isubst_dbselect (i j k : DBId) (u : ITerm) (eqT gtT ltT : Term) :
+  TEq (Isubst k u (dbselect i j eqT gtT ltT))
+      (dbselect i j (Isubst k u eqT) (Isubst k u gtT) (Isubst k u ltT));
+rule aux_teq_Isubst_dbselect db0        db0 $k $u $eqT _ _ ↪ TRefl (Isubst $k $u $eqT)
+with aux_teq_Isubst_dbselect (dbsucc _) db0 $k $u _ $gtT _ ↪ TRefl (Isubst $k $u $gtT)
+with aux_teq_Isubst_dbselect db0 (dbsucc _) $k $u _ _ $ltT ↪ TRefl (Isubst $k $u $ltT)
+with aux_teq_Isubst_dbselect (dbsucc $i) (dbsucc $j) $k $u $eqT $gtT $ltT ↪
+      aux_teq_Isubst_dbselect $i $j $k $u $eqT $gtT $ltT;
 
 // teq_subst_dbselectI
 symbol aux_teq_subst_dbselectI (i j k : DBId) (u eqT gtT ltT : ITerm) :
@@ -1828,25 +1829,6 @@ symbol aux_teq_Isubst_Isubst_Irec (i j : DBId) (u t1 : ITerm) (t2 : Term) (h : D
   teq_trans (aux_teq_Isubst_Isubst (dbsucc i) (dbsucc j) u t1 t2 (dble_n_S h))
             (IcongT (λ t, Isubst (dbsucc j) t (Isubst (dbsucc (dbsucc i)) (IShiftI* (dbsucc (dbsucc i)) u) t2))
                     (teq_IsubstI_IshiftI i (IShiftI* i u) (IShiftI* j t1)));
-// symbol aux_teq_subst_subst_Irec (i j : DBId) (u t1 t2 : Term) (h : DBLe j i) ≔
-//   teq_trans (Jcong (λ v, subst i v (subst j (IShift (Shift* j t1)) t2)) (teq_inv (aux_teq_Shift*_Ishift i db0 u)))
-//             (teq_trans (Jcong (λ v, subst i (Shift* i (IShift u)) (subst j v t2))
-//                               (teq_inv (aux_teq_Shift*_Ishift j db0 t1)))
-//                        (teq_trans
-//                          (teq_trans
-//                            (teq_trans
-//                              (teq_trans (aux_teq_subst_subst i j (IShift u) (IShift t1) t2 h)
-//                                         (Jcong (λ v, subst j (subst i (Shift* i (IShift u)) (Shift* j (IShift t1)))
-//                                                            (subst (dbsucc i) v t2))
-//                                                (aux_teq_Shift*_Ishift (dbsucc i) db0 u)))
-//                              (Jcong (λ v, subst j (subst i (Shift* i (IShift u)) v)
-//                                                 (subst (dbsucc i) (IShift (Shift* (dbsucc i) u)) t2))
-//                                     (aux_teq_Shift*_Ishift j db0 t1)))
-//                            (Jcong (λ v, subst j (subst i v (IShift (Shift* j t1)))
-//                                               (subst (dbsucc i) (IShift (Shift* (dbsucc i) u)) t2))
-//                                   (aux_teq_Shift*_Ishift i db0 u)))
-//                          (Jcong (λ v, subst j v (subst (dbsucc i) (IShift (Shift* (dbsucc i) u)) t2))
-//                                 (aux_teq_subst_Ishift i db0 u (Shift* j t1)))));
 
 // aux_teq_Isubst_Isubst_itvar
 symbol aux_teq_Isubst_Isubst_itvar (i j : DBId) (u t : ITerm) (n : DBId) :
@@ -2053,32 +2035,6 @@ with aux_teq_Isubst_Isubst_fteq0 (dbsucc $i) (dbsucc $j) $u $t (dbsucc $n) $h �
                                   (dbselectF (dbsucc $j) $n (substeq0 t1) (fteq0 $n) (fteq0 (dbprev $n))))
                  (iteq_inv (teq_IsubstI_IshiftI $i (IShiftI* $i $u) (IShiftI* $j $t)))));
 
-symbol test (i j : DBId) (u t1 : ITerm) (n : DBId) (h : DBLe j i) :
-  FTEq (IsubstF i (IShiftI* i u) (IsubstF j (IShiftI* j t1) (fteq0 n)))
-       (IsubstF j (IsubstI i (IShiftI* i u) (IShiftI* j t1)) (IsubstF (dbsucc i) (IShiftI* (dbsucc i) u) (fteq0 n))) ≔
-begin
-  assume i j u t1 n h;
-  refine fteq_trans
-       (aux_teq_subst_dbselectF j n i (IShiftI* i u) (substeq0 (IShiftI* j t1)) (fteq0 n) (fteq0 (dbprev n)))
- _;
-  refine fteq_trans (FJcong (λ v, dbselectF j n v (IsubstF i (IShiftI* i u) (fteq0 n))
-                                            (IsubstF i (IShiftI* i u) (fteq0 (dbprev n))))
-                            (fteq_inv (aux_teq_Isubst_substeq0 i (IShiftI* i u) (IShiftI* j t1)))) _;
-       refine fteq_trans
-         (aux_teq_Isubst_Isubst_fteq0 i j u t1 n h) _;
-       refine fteq_trans _
-         (fteq_inv (aux_teq_subst_dbselectF (dbsucc i) n j
-                    (IsubstI i (IShiftI* i u) (IShiftI* j t1))
-                    (substeq0 (IShiftI* (dbsucc i) u))
-                    (fteq0 n) (fteq0 (dbprev n))));
-refine FJcong (λ v, dbselectF (dbsucc i) n v
-                              (dbselectF j n (substeq0 (IsubstI i (IShiftI* i u) (IShiftI* j t1)))
-                                         (fteq0 n) (fteq0 (dbprev n)))
-                              (dbselectF j (dbprev n) (substeq0 (IsubstI i (IShiftI* i u) (IShiftI* j t1)))
-                                         (fteq0 (dbprev n)) (fteq0 (dbprev (dbprev n)))))
-              (aux_teq_Isubst_substeq0 j (IsubstI i (IShiftI* i u) (IShiftI* j t1)) (IShiftI* (dbsucc i) u));
-end;
-print test;
 // aux_teq_Isubst_Isubst_fteq1
 symbol aux_teq_Isubst_Isubst_fteq1 (i j : DBId) (u t : ITerm) (n : DBId) :
   DBLe j i →
@@ -2351,3 +2307,88 @@ symbol teq_Isubst_Iapply (i : DBId) (u t1 : ITerm) (t2 : Term) :
   aux_teq_Isubst_Isubst i db0 u t1 t2 (dble_0_n i);
 
 // TODO subst/Isubst commutations
+// aux_teq_Isubst_subst
+symbol aux_teq_Isubst_subst (i j : DBId) (u : ITerm) (t1 t2 : Term) :
+  TEq (Isubst i (IShiftI* i u) (subst j (Shift* j t1) t2))
+      (subst j (Isubst i (IShiftI* i u) (Shift* j t1)) (Isubst i (IShiftI* i u) t2));
+symbol aux_teq_Isubst_subst_rec (i j : DBId) (u : ITerm) (t1 t2 : Term) ≔
+  teq_trans (aux_teq_Isubst_subst i (dbsucc j) u t1 t2)
+            (Jcong (λ v, subst (dbsucc j) v (Isubst i (IShiftI* i u) t2))
+                   (aux_teq_Isubst_shift i db0 u (Shift* j t1)));
+symbol aux_teq_Isubst_subst_Irec (i j : DBId) (u : ITerm) (t1 t2 : Term) ≔
+  teq_trans (Jcong (λ v, Isubst (dbsucc i) (IShiftI* (dbsucc i) u) (subst j v t2))
+                   (teq_inv (aux_teq_Shift*_Ishift j db0 t1)))
+            (teq_trans (aux_teq_Isubst_subst (dbsucc i) j u (IShift t1) t2)
+                       (teq_trans (Jcong (λ v, subst j (Isubst (dbsucc i) (IShiftI* (dbsucc i) u) v)
+                                                     (Isubst (dbsucc i) (IShiftI* (dbsucc i) u) t2))
+                                         (aux_teq_Shift*_Ishift j db0 t1))
+                                  (Jcong (λ v, subst j v (Isubst (dbsucc i) (IShiftI* (dbsucc i) u) t2))
+                                         (aux_teq_Isubst_Ishift i db0 (IShiftI* i u) (Shift* j t1) (dble_0_n i)))));
+
+rule aux_teq_Isubst_subst $i $j $u $t1 (tvar $n) ↪
+      aux_teq_Isubst_dbselect $j $n $i (IShiftI* $i $u) (Shift* $j $t1) (tvar $n) (tvar (dbprev $n))
+with aux_teq_Isubst_subst _ _ _ _ (tuniv $l) ↪ TRefl (tuniv $l)
+with aux_teq_Isubst_subst $i $j $u $t1 (tpi $A $B) ↪
+      Jpi (aux_teq_Isubst_subst $i $j $u $t1 $A)
+          (aux_teq_Isubst_subst_rec $i $j $u $t1 $B)
+with aux_teq_Isubst_subst $i $j $u $t1 (tabs $A $B) ↪
+      Jabs (aux_teq_Isubst_subst $i $j $u $t1 $A)
+           (aux_teq_Isubst_subst_rec $i $j $u $t1 $B)
+with aux_teq_Isubst_subst $i $j $u $t1 (tapp $A $B) ↪
+      Japp (aux_teq_Isubst_subst $i $j $u $t1 $A)
+           (aux_teq_Isubst_subst $i $j $u $t1 $B)
+with aux_teq_Isubst_subst _ _ _ _ tnat ↪ TRefl tnat
+with aux_teq_Isubst_subst _ _ _ _ tzero ↪ TRefl tzero
+with aux_teq_Isubst_subst $i $j $u $t1 (tsuc $n) ↪
+      Jcong tsuc (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (trec $P $z $H $n) ↪
+      Jrec (aux_teq_Isubst_subst $i $j $u $t1 $P)
+           (aux_teq_Isubst_subst $i $j $u $t1 $z)
+           (aux_teq_Isubst_subst $i $j $u $t1 $H)
+           (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (tsig $A $B) ↪
+      Jsig (aux_teq_Isubst_subst $i $j $u $t1 $A)
+           (aux_teq_Isubst_subst_rec $i $j $u $t1 $B)
+with aux_teq_Isubst_subst $i $j $u $t1 (tpair $A $B) ↪
+      Jpair (aux_teq_Isubst_subst $i $j $u $t1 $A)
+            (aux_teq_Isubst_subst $i $j $u $t1 $B)
+with aux_teq_Isubst_subst $i $j $u $t1 (tp1 $n) ↪
+      Jcong tp1 (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (tp2 $n) ↪
+      Jcong tp2 (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (tsum $A $B) ↪
+      Jsum (aux_teq_Isubst_subst $i $j $u $t1 $A)
+           (aux_teq_Isubst_subst $i $j $u $t1 $B)
+with aux_teq_Isubst_subst $i $j $u $t1 (tinjl $n) ↪
+      Jcong tinjl (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (tinjr $n) ↪
+      Jcong tinjr (aux_teq_Isubst_subst $i $j $u $t1 $n)
+with aux_teq_Isubst_subst $i $j $u $t1 (tcase $A $B $P $Ha $Hb $t) ↪
+      Jcase (aux_teq_Isubst_subst $i $j $u $t1 $A)
+            (aux_teq_Isubst_subst $i $j $u $t1 $B)
+            (aux_teq_Isubst_subst $i $j $u $t1 $P)
+            (aux_teq_Isubst_subst $i $j $u $t1 $Ha)
+            (aux_teq_Isubst_subst $i $j $u $t1 $Hb)
+            (aux_teq_Isubst_subst $i $j $u $t1 $t)
+with aux_teq_Isubst_subst $i $j $u $t1 (tpath $A $x $y) ↪
+      Jpath (aux_teq_Isubst_subst_Irec $i $j $u $t1 $A)
+            (aux_teq_Isubst_subst $i $j $u $t1 $x)
+            (aux_teq_Isubst_subst $i $j $u $t1 $y)
+with aux_teq_Isubst_subst $i $j $u $t1 (tlamP $x) ↪
+      Jcong tlamP (aux_teq_Isubst_subst_Irec $i $j $u $t1 $x)
+with aux_teq_Isubst_subst $i $j $u $t1 (tappP $x _) ↪
+      JappP (aux_teq_Isubst_subst $i $j $u $t1 $x) (ITRefl _)
+with aux_teq_Isubst_subst $i $j $u $t1 (tsys _ _ $x $y) ↪
+      Jsys (FTRefl _) (FTRefl _)
+           (aux_teq_Isubst_subst $i $j $u $t1 $x)
+           (aux_teq_Isubst_subst $i $j $u $t1 $y)
+with aux_teq_Isubst_subst _ _ _ _ temptysys ↪ TRefl temptysys
+with aux_teq_Isubst_subst $i $j $u $t1 (ttransp $A _ $x) ↪
+      Jtransp (aux_teq_Isubst_subst_Irec $i $j $u $t1 $A)
+              (FTRefl _)
+              (aux_teq_Isubst_subst $i $j $u $t1 $x)
+with aux_teq_Isubst_subst $i $j $u $t1 (thcomp $A _ $x $y) ↪
+      Jhcomp (aux_teq_Isubst_subst $i $j $u $t1 $A)
+             (FTRefl _)
+             (aux_teq_Isubst_subst_Irec $i $j $u $t1 $x)
+             (aux_teq_Isubst_subst $i $j $u $t1 $y);
