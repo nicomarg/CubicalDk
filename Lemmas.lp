@@ -107,3 +107,18 @@ symbol Fsubstitution [Γ : Context] [l : Lev] [B C : Term] [f : FTerm] :
   der_context Γ → der (PushF f Γ) C B l → der_F Γ f → der_isOne Γ f → der Γ C B l;
 symbol Fsubstitution_eq [Γ : Context] [l : Lev] [A B C : Term] [f : FTerm] :
   der_context Γ → der_eq (PushF f Γ) A B C l → der_F Γ f → der_isOne Γ f → der_eq Γ A B C l;
+
+// Inversion lemmas
+symbol inv_type [Γ : Context] [l : Lev] [t T : Term] : der_context Γ → der Γ t T l → der Γ T (tuniv l) (lsuc l);
+symbol inv_eq_type [Γ : Context] [l : Lev] [T t1 t2 : Term] : der_context Γ → der_eq Γ t1 t2 T l →
+                                                              der Γ T (tuniv l) (lsuc l);
+symbol inv_eq_t2   [Γ : Context] [l : Lev] [T t1 t2 : Term] : der_context Γ → der_eq Γ t1 t2 T l → der Γ t2 T l;
+symbol inv_eq_t1   [Γ : Context] [l : Lev] [T t1 t2 : Term] : der_context Γ → der_eq Γ t1 t2 T l → der Γ t1 T l;
+
+symbol inv_eq_I_t1 [Γ : Context] [t1 t2 : ITerm] : der_context Γ → der_eq_I Γ t1 t2 → der_I Γ t1;
+symbol inv_eq_I_t2 [Γ : Context] [t1 t2 : ITerm] : der_context Γ → der_eq_I Γ t1 t2 → der_I Γ t2;
+
+symbol inv_eq_F_t1 [Γ : Context] [t1 t2 : FTerm] : der_context Γ → der_eq_F Γ t1 t2 → der_F Γ t1;
+symbol inv_eq_F_t2 [Γ : Context] [t1 t2 : FTerm] : der_context Γ → der_eq_F Γ t1 t2 → der_F Γ t2;
+
+symbol inv_isOne [Γ : Context] [t1 : FTerm] : der_context Γ → der_isOne Γ t1 → der_F Γ t1;

@@ -119,8 +119,7 @@ symbol UIP [A] (x y : xeps A) (p p' : xtEq x y) : xtEq p p' ≔
 begin
 assume A x;
 refine xJ (λ y p, xPi (xEq x y) (λ p', xEq p p')) _;
-refine xK _ _;
-refine xrefl
+refine xK _ xrefl;
 end;
 
 // FunExt for external equality
@@ -136,7 +135,7 @@ symbol xcomposition [A] [x y z : xeps A] : xtEq x y → xtEq y z → xtEq x z �
 symbol xcong [A B] (f : xtndPi A B) [x y : xeps A] : (xtEq x y) → xtEq (f x) (f y) ≔
   λ eq, xJ (λ y _, xEq (f x) (f y)) xrefl y eq;
 
-// Coercion from internal external layer
+// Coercion from internal to external layer
 
 constant symbol c [i] : T i → xT;
 symbol tc [i] ≔ λ (A : T i), xeps (c A);
@@ -167,6 +166,7 @@ refine xJ (λ z q, c (tau (isoDown z) q)) _ _ _;
 refine isoUp _;
 refine H
 end;
+print convelim;
 
 symbol convtransp [i] [A : eps (t i)] [B : eps (t i)] : tconv A B → eps A → eps B ≔
   λ p a, @convelim (lsuc i) i (t i) A (λ B _, B) a _ p;
@@ -241,7 +241,7 @@ with eq1 (sym $i) ↪ eq0 $i;
 /* These would break conluence if added as rewrite rules. We will be happy with
 the type of their witnesses being isomorphic to the empty type
 rule Fmin (eq1 $a) (eq0 $a) ↪ 0f;
-rule Fmin (eq0 $&) (eq1 $a) ↪ 0f;
+rule Fmin (eq0 $a) (eq1 $a) ↪ 0f;
 */
 
 /* One creates a type isOne φ recording the fact that the face formula φ holds.
@@ -266,6 +266,7 @@ rule isOneOneUp (isOneOneDown $a) ↪ $a;
 symbol itIsOne : tisOne 1f ≔ isOneOneDown xtt;
 symbol elimIsOneOne (A : tisOne 1f → xT) (H : xeps (A itIsOne)) (p : tisOne 1f) : xeps (A p) ≔
   xelimTrue (λ p, A (isOneOneDown p)) H (isOneOneUp p);
+rule isOneConv 1f _ ↪ xrefl;
 
 injective symbol isOneEq1Up [i] : tisOne (eq1 i) → xtEq i 1;
 injective symbol isOneEq1Down [i] : xtEq i 1 → tisOne (eq1 i);
@@ -615,7 +616,7 @@ begin
                (λ q v, _) f (isOneConv f p) p u;
         refine xcong (λ q, isoUp (p1 (v i q))) (elimIsOneOne (λ q, xEq q itIsOne) xrefl q) };
       refine convtransp H (p2 (u i p)) }
-  { refine p2 u0 } }
+    { refine p2 u0 } }
 end;
 
 rule primHcomp (Sig $A $B) $f $u $u0 ↪ hcompSigRHS $A $B $f $u $u0;

@@ -2,6 +2,7 @@
 require open ctt.ast;
 require open ctt.DeBruijn;
 require open ctt.Typing;
+require open ctt.derived;
 
 // Term equality, necessary to express commutation of different operations
 constant symbol TEq : Term → Term → TYPE;
@@ -2392,3 +2393,127 @@ with aux_teq_Isubst_subst $i $j $u $t1 (thcomp $A _ $x $y) ↪
              (FTRefl _)
              (aux_teq_Isubst_subst_Irec $i $j $u $t1 $x)
              (aux_teq_Isubst_subst $i $j $u $t1 $y);
+
+// Universe level equality
+constant symbol LEq : Lev → Lev → TYPE;
+constant symbol LRefl (t : Lev) : LEq t t;
+
+// Elimination of term equality
+symbol leq_inv [t1 t2 : Lev] : LEq t1 t2 → LEq t2 t1;
+symbol leq_trans [t1 t2 t3 : Lev] : LEq t1 t2 → LEq t2 t3 → LEq t1 t3;
+symbol Jl [Γ : Context] [s s' : Lev] [t T : Term]
+          : LEq s s' → der Γ t T s → der Γ t T s';
+symbol Jlcong [t1 t2 : Lev] (f : Lev → Lev)
+             : LEq t1 t2 → LEq (f t1) (f t2);
+symbol Jleq [Γ : Context] [s s' : Lev] [T t1 t2]
+           : LEq s s'
+           → der_eq Γ t1 t2 T s
+           → der_eq Γ t1 t2 T s';
+rule leq_inv (LRefl $t) ↪ LRefl $t
+with leq_trans (LRefl $t) (LRefl _) ↪ LRefl $t
+with Jl (LRefl _) $d ↪ $d
+with Jleq (LRefl _) $d ↪ $d;
+
+// derived operations lemmas
+symbol JtranspFill [A1 A2 : Term] [f1 f2 : FTerm] [u1 u2 : Term] :
+  TEq A1 A2 → FTEq f1 f2 → TEq u1 u2 →
+  TEq (ttranspFill A1 f1 u1) (ttranspFill A2 f2 u2) ≔
+begin
+  assume A1 A2 f1 f2 u1 u2 eqA eqf equ;
+  apply Jtransp _ _ _
+  { refine Jcong (λ v, applyI1 (IShift1 (IShift1 v)) (itmin (itvar db0) (itvar db1))) eqA }
+  { refine FJcong (λ v, (ftmax (IShiftF v) (fteq0 db0))) eqf }
+  { refine Jcong IShift equ }
+end;
+
+symbol Jforward [A1 A2 : Term] [r1 r2 : ITerm] [a1 a2 : Term] :
+  TEq A1 A2 → ITEq r1 r2 → TEq a1 a2 →
+  TEq (forward A1 r1 a1) (forward A2 r2 a2) ≔
+begin
+  assume A1 A2 r1 r2 a1 a2 eqA eqr eqa;
+  refine Jtransp _ _ eqa
+  { refine teq_trans (Jcong (λ v, applyI1 (IShift1 v) (itmax (itvar db0) r1)) eqA) _;
+    refine IcongT (λ i, applyI1 (IShift1 A2) (itmax (itvar db0) i)) eqr }
+  { refine IcongF (λ i, IsubstF db0 i (fteq1 db0)) eqr }
+end;
+
+symbol Jhfill [A1 A2] [f1 f2] [u1 u2 v1 v2] :
+  TEq A1 A2 → FTEq f1 f2 → TEq u1 u2 → TEq v1 v2 →
+  TEq (thfill A1 f1 u1 v1) (thfill A2 f2 u2 v2) ≔
+begin
+  assume A1 A2 f1 f2 u1 u2 v1 v2 eqA eqf equ eqv;
+  refine Jhcomp _ _ _ _
+  { refine Jcong IShift eqA }
+  { refine FJcong (λ f, ftmax (fteq0 db0) (IShiftF f)) eqf }
+  { refine Jsys _ _ _ _
+    { refine FTRefl _ }
+    { refine FJcong (λ f, IShiftF (IShiftF f)) eqf }
+    { refine Jcong (λ v, IShift1 (IShift v)) eqv }
+    { refine Jcong (λ u, applyI1 (IShift1 (IShift1 u)) (itmax (itvar db0) (itvar db1))) equ }
+  }
+  { refine Jcong IShift eqv }
+end;
+
+symbol Jcomp [A1 A2 f1 f2 u1 u2 v1 v2] :
+  TEq A1 A2 → FTEq f1 f2 → TEq u1 u2 → TEq v1 v2 →
+  TEq (tcomp A1 f1 u1 v1) (tcomp A2 f2 u2 v2) ≔
+begin
+  assume A1 A2 f1 f2 u1 u2 v1 v2 eqA eqf equ eqv;
+  refine Jhcomp _ _ _ _
+  { refine Jcong (Isubst db0 it1) eqA }
+  { refine eqf }
+  { refine Jforward (Jcong IShift1 eqA) (ITRefl (itvar db0)) equ }
+  { refine Jforward eqA (ITRefl it0) eqv }
+end;
+
+symbol teq_shift_transpfill (id : DBId) (A : Term) (f : FTerm) (u : Term) :
+  TEq (ttranspFill (shift id A) f (shift id u)) (shift id (ttranspFill A f u)) ≔
+begin
+  assume id A f u;
+  refine Jtransp _ (FTRefl _) _
+  { refine Jcong [IShift1 (IShift1 (shift id A))] [shift id (IShift1 (IShift1 A))] (λ v, applyI1 v (itmin (itvar db0) (itvar db1))) _;
+    refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_shift_Ishift id db1 A))) _;
+    refine teq_inv (aux_teq_shift_Ishift id db1 (IShift1 A))}
+  { refine teq_inv (aux_teq_shift_Ishift id db0 u) }
+end;
+
+symbol teq_shift_forward (id : DBId) (A : Term) (r : ITerm) (a : Term) :
+  TEq (forward (shift id A) r (shift id a)) (shift id (forward A r a)) ≔
+begin
+  assume id A r a;
+  refine Jtransp _ (FTRefl _) (TRefl _);
+  refine Jcong [IShift1 (shift id A)] [shift id (IShift1 A)] (λ v, applyI1 v (itmax (itvar db0) r)) _;
+  refine teq_inv (aux_teq_shift_Ishift id db1 A)
+end;
+
+symbol teq_shift_hfill (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (thfill (shift id A) f (shift id u) (shift id u0)) (shift id (thfill A f u u0)) ≔
+begin
+  assume id A f u u0;
+    refine Jhcomp _ (FTRefl _) _ _
+    { refine teq_inv (aux_teq_shift_Ishift id db0 A) }
+    {
+      refine Jsys (FTRefl _) (FTRefl _) _ _
+      {
+        refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_shift_Ishift id db0 u0))) _;
+        refine teq_inv (aux_teq_shift_Ishift id db1 (IShift u0))
+      }
+      { simplify;
+        refine Jcong [IShift1 (IShift1 (shift id u))] [shift id (IShift1 (IShift1 u))] (Isubst db0 (itmax (itvar db0) (itvar db1))) _;
+        refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_shift_Ishift id db1 u))) (teq_inv (aux_teq_shift_Ishift id db1 (IShift1 u)))
+      }
+      }
+    {
+      refine teq_inv (aux_teq_shift_Ishift id db0 u0)
+    }
+end;
+
+ symbol teq_shift_comp (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
+   TEq (tcomp (shift id A) f (shift id u) (shift id u0)) (shift id (tcomp A f u u0)) ≔
+begin
+  assume id A f u u0;
+  refine Jhcomp (TRefl _) (FTRefl _) _ _
+  { refine teq_trans _ (teq_shift_forward id (IShift1 A) (itvar db0) u);
+    refine Jcong (λ v, forward v (itvar db0) (shift id u)) (teq_inv (aux_teq_shift_Ishift id db1 A))}
+  { refine teq_shift_forward id A it0 u0 }
+end;
