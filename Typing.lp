@@ -51,6 +51,12 @@ rule shiftgetΓ (Push $t _ _) db0 ↪ Shift $t
 with shiftgetΓ (Push _ _ $t) (dbsucc $i) ↪ Shift (shiftgetΓ $t $i)
 with shiftgetΓ (PushF _ $t) $i ↪ shiftgetΓ $t $i
 with shiftgetΓ (PushI $t) $i ↪ IShift (shiftgetΓ $t $i);
+// Shifts the term t valid in context (getΓ id Γ) to context Γ
+symbol shiftΓ (Γ : Context) (id : DBId) (t : Term) : Term;
+rule shiftΓ (Push _ _ _) db0 $t ↪ Shift $t
+with shiftΓ (Push _ _ $Γ) (dbsucc $i) $t ↪ Shift (shiftΓ $Γ $i $t)
+with shiftΓ (PushF _ $Γ) $i $t ↪ shiftΓ $Γ $i $t
+with shiftΓ (PushI $Γ) $i $t ↪ IShift (shiftΓ $Γ $i $t);
 
 // Judgments definition
 constant symbol der : Context → Term → Term → Lev → TYPE;

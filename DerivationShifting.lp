@@ -8,23 +8,15 @@ require open ctt.Lemmas;
 
 // Exported lemmas TODO : define them
 // Shifting derivation
-symbol der_shift0 [Γ : Context] [t A T : Term] [l l' : Lev]
-                  (_ : der Γ A (tuniv l') (lsuc l')) (_ : der_context Γ) (_ : der Γ t T l) :
-  der (Push A l' Γ) (Shift t) (Shift T) l;
 symbol der_Ishift0 [Γ : Context] [t T : Term] [l : Lev]
                   (_ : der_context Γ) (_ : der Γ t T l) :
   der (PushI Γ) (IShift t) (IShift T) l;
 symbol der_Ishift0F [Γ : Context] [f : FTerm]
                   (_ : der_context Γ) (_ : der_F Γ f) :
   der_F (PushI Γ) (IShiftF f);
-symbol der_eq_shift0 [Γ : Context] [t1 t2 A T : Term] [l l' : Lev]
-                     (_ : der Γ A (tuniv l') (lsuc l')) (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) :
-  der_eq (Push A l' Γ) (Shift t1) (Shift t2) (Shift T) l;
-symbol der_shift1 [Γ : Context] [t A T B : Term] [l la lb : Lev]
-                  (_ : der Γ A (tuniv la) (lsuc la))
-                  (_ : der Γ B (tuniv lb) (lsuc lb))
-                  (_ : der_context Γ)
-                  (_ : der (Push A la Γ) t T l) : der (Push (Shift A) la (Push B lb Γ)) (Shift1 t) (Shift1 T) l;
+symbol der_eq_Ishift0 [Γ : Context] [t1 t2 T : Term] [l : Lev]
+                      (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) :
+  der_eq (PushI Γ) (IShift t1) (IShift t2) (IShift T) l;
 symbol der_Ishift1 [Γ : Context] [t T : Term] [l: Lev]
                   (_ : der_context Γ)
                   (_ : der (PushI Γ) t T l) : der (PushI (PushI Γ)) (IShift1 t) (IShift1 T) l;
@@ -38,18 +30,12 @@ symbol der_weakF [Γ : Context] [t T : Term] [f : FTerm] [l : Lev]
 symbol der_weakFF [Γ : Context] [f g : FTerm]
                  (_ : der_context Γ) (_ : der_F Γ g) (_ : der_F Γ f) :
   der_F (PushF f Γ) g;
+symbol der_eq_weakF [Γ : Context] [t1 t2 T : Term] [l : Lev] [f : FTerm]
+                    (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) (_ : der_F Γ f) :
+  der_eq (PushF f Γ) t1 t2 T l;
 symbol der_weakF1 [Γ : Context] [t A T : Term] [f : FTerm] [l l' : Lev]
                  (_ : der_context Γ) (_ : der Γ A (tuniv l') (lsuc l')) (_ : der (Push A l' Γ) t T l) (_ : der_F Γ f) :
   der (Push A l' (PushF f Γ)) t T l;
-
-// Iterated shifting
-symbol der_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t T : Term] [l : Lev] (_ : der (getΓ Γ id) t T l) :
-  der Γ (ShiftN id t) (ShiftN id T) l;
-rule der_shift db0 (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ $d
-with der_shift (dbsucc $id) (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ (der_shift $id $dΓ $d);
-symbol der_eq_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t1 t2 T : Term] [l : Lev]
-                    (_ : der_eq (getΓ Γ id) t1 t2 T l) :
-  der_eq Γ (ShiftN id t1) (ShiftN id t2) (ShiftN id T) l;
 
 // Generic der_shift
 constant symbol ShiftContext : Context → DBId → TYPE;
@@ -156,89 +142,11 @@ begin
   refine der_var _;
   refine len_ctx_sctx i sc dA h
 end;
-symbol test [Γ : Context] [sa s s' : Lev] [T : Term] (id : DBId)
-                      (sc : ShiftContext Γ id) (d : der Γ T (tuniv sa) (lsuc sa))
-                      (A x y : Term) (f : FTerm) (u : Term)
-  (dA : der (PushI (PushI (sc_to_ctx sc))) A (tuniv s) (lsuc s))
-  (dx : der (PushI (sc_to_ctx sc)) x (applyI1 A it0) s)
-  (dy : der (PushI (sc_to_ctx sc)) y (applyI1 A it1) s)
-  (df : der_F (sc_to_ctx sc) f)
-  (du : der (sc_to_ctx sc) u (applyI1 (tpath A x y) it0) s)
-  (deqA : der_eq (PushF (IShiftF (IShiftF f)) (PushI (PushI (sc_to_ctx sc)))) A (IShift1 (Isubst db1 it0 A)) (tuniv s) (lsuc s))
-  (deqx : der_eq (PushF (IShiftF f) (PushI (sc_to_ctx sc))) x (IShift (applyI1 x it0)) (applyI1 A it0) s)
-  (deqy : der_eq (PushF (IShiftF f) (PushI (sc_to_ctx sc))) y (IShift (applyI1 y it0)) (applyI1 A it1) s) :
-  der_eq (sc_to_sctx d sc) (shift id (ttransp (tpath A x y) f u))
-         (shift id (tlamP (tcomp (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))
-                       (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))
-                       (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1))
-                             (tappP (IShift (IShift u)) (itvar db1))
-                             (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y)))
-                       (tappP (IShift u) (itvar db0))))) (shift id (applyI1 (tpath A x y) it1)) s
-         ≔
-begin
-  assume Γ sa s s' T id sc d A x y f u dA dx dy df du deqA deqx deqy;
-  refine
-     (Jeq _ _ _ (der_eq_transp_path _ s (shift id A) (shift id x) (shift id y) f (shift id u)
-                            _ _ _ _ _ _ _ _))
-     { refine (Jcong (λ v, tpath v (applyI1 (shift id x) it1) (applyI1 (shift id y) it1))
-                (aux_teq_Isubst_shift db1 id it1 A)) }
-     { apply TRefl }
-     { apply Jcong tlamP;
-       refine teq_trans _ (teq_shift_comp id (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))
-                                          (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))
-                                          (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1))
-                                                (tappP (IShift (IShift u)) (itvar db1))
-                                                (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y)))
-                                          (tappP (IShift u) (itvar db0)));
-       refine Jcomp [(applyI1 (applyI1 (Ishift db2 (Ishift db2 (shift id A))) (itvar db2)) (itvar db0))]
-                    [(shift id (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0)))]
-                    [(ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))]
-                    [(ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))]
-                    [(tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1)) (tappP (IShift (IShift (shift id u))) (itvar db1))
-                           (tsys (fteq0 db1) (fteq1 db1) (IShift1 (shift id x)) (IShift1 (shift id y))))]
-                    [(shift id (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1)) (tappP (IShift (IShift u)) (itvar db1))
-                                     (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y))))]
-                    [(tappP (IShift (shift id u)) (itvar db0))]
-                    [(shift id (tappP (IShift u) (itvar db0)))] _ (FTRefl _) _ _
-       { refine Jcong [Ishift db2 (Ishift db2 (shift id A))] [shift id (Ishift db2 (Ishift db2 A))]
-                      (λ v, applyI1 (applyI1 v (itvar db2)) (itvar db0)) _;
-         refine teq_trans _ (teq_inv (aux_teq_shift_Ishift id db2 (Ishift db2 A)));
-         refine Jcong (Ishift db2) (teq_inv (aux_teq_shift_Ishift id db2 A))
-       }
-       { refine Jsys _ _ _ _
-         { apply FTRefl }
-         { apply FTRefl }
-         { refine JappP _ (ITRefl _);
-           refine teq_trans (Jcong IShift (teq_inv (aux_teq_shift_Ishift id db0 u))) _;
-           refine teq_inv (aux_teq_shift_Ishift id db0 (IShift u))}
-         { refine Jsys (FTRefl _) (FTRefl _) _ _
-           { refine teq_inv (aux_teq_shift_Ishift id db1 x) }
-           { refine teq_inv (aux_teq_shift_Ishift id db1 y) }
-         }
-       }
-       { refine JappP _ (ITRefl _);
-         refine teq_inv (aux_teq_shift_Ishift id db0 u) }
-     }
-     { refine der_shift_n _ (SCI (SCI sc)) d dA }
-     { refine der_shift_n _ (SCI sc) d dx }
-     { refine der_shift_n _ (SCI sc) d dy }
-     { refine der_F_shift_n _ sc d df }
-     { refine JT _ (der_shift_n _ sc d du);
-       refine teq_inv (aux_teq_Isubst_shift db0 id it0 (tpath A x y)) }
-     { refine Jeq (TRefl _) (TRefl _) _ (der_eq_shift_n _ (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc)) (der_Ishift0F (sc_to_dctx sc) df))) d deqA);
-       refine teq_trans (aux_teq_shift_Ishift id db1 (Isubst db1 it0 A)) _;
-       refine Jcong IShift1 (teq_inv (aux_teq_Isubst_shift db1 id it0 A));  }
-     { refine Jeq (TRefl _) (TRefl _) _ (der_eq_shift_n _ (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) d deqx);
-       refine teq_trans (aux_teq_shift_Ishift id db0 (applyI1 x it0)) _;
-       refine Jcong IShift (teq_inv (aux_teq_Isubst_shift db0 id it0 x))}
-     { refine Jeq (TRefl _) (TRefl _) _ (der_eq_shift_n _ (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) d deqy);
-       refine teq_trans (aux_teq_shift_Ishift id db0 (applyI1 y it0)) _;
-       refine Jcong IShift (teq_inv (aux_teq_Isubst_shift db0 id it0 y))}
-end;
-print test;
 
 rule sc_to_dsctx $d (SC0 $dΓ) ↪ der_context_Push _ _ _ $d $dΓ
-with sc_to_dsctx $d (SCSucc $sc $dA) ↪ der_context_Push _ _ _ (der_shift_n _ $sc $d $dA) (sc_to_dsctx $d $sc);
+with sc_to_dsctx $d (SCSucc $sc $dA) ↪ der_context_Push _ _ _ (der_shift_n _ $sc $d $dA) (sc_to_dsctx $d $sc)
+with sc_to_dsctx $d (SCI $sc) ↪ der_context_PushI _ (sc_to_dsctx $d $sc)
+with sc_to_dsctx $d (SCF $sc $df) ↪ der_context_PushF _ _ (der_F_shift_n _ $sc $d $df) (sc_to_dsctx $d $sc);
 
 // der_shift_n
 rule der_shift_n $id $sc $d (der_empty_face $d1) ↪ der_empty_face (der_isOne_shift_n $id $sc $d $d1)
@@ -675,6 +583,7 @@ with der_eq_shift_n $id $sc $d (der_eq_cong_hcomp _ $s $A1 $A2 $f1 $f2 $u1 $u2 $
                        (der_shift_n _ (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) (inv_eq_F_t2 (sc_to_dctx $sc) $deqf))) $d $du2)
                        (der_eq_shift_n _ (SCF $sc (inv_eq_F_t1 (sc_to_dctx $sc) $deqf)) $d $dequv1)
                        (der_eq_shift_n _ (SCF $sc (inv_eq_F_t2 (sc_to_dctx $sc) $deqf)) $d $dequv2)
+// der_I_shift_n
 with der_I_shift_n _ _ _ der_I_0 ↪ der_I_0
 with der_I_shift_n _ _ _ der_I_1 ↪ der_I_1
 with der_I_shift_n _ $sc $d (@der_I_var _ $i $le) ↪ der_I_var (lenI_ctx_sctx $i $sc $d $le)
@@ -683,6 +592,7 @@ with der_I_shift_n $id $sc $d (der_I_min $da $db) ↪
      der_I_min (der_I_shift_n $id $sc $d $da) (der_I_shift_n $id $sc $d $db)
 with der_I_shift_n $id $sc $d (der_I_max $da $db) ↪
      der_I_max (der_I_shift_n $id $sc $d $da) (der_I_shift_n $id $sc $d $db)
+// der_eq_I_shift_n
 with der_eq_I_shift_n $id $sc $d (der_eq_I_refl _ _ $di) ↪ der_eq_I_refl _ _ (der_I_shift_n $id $sc $d $di)
 with der_eq_I_shift_n $id $sc $d (der_eq_I_sym _ _ _ $di) ↪ der_eq_I_sym _ _ _ (der_eq_I_shift_n $id $sc $d $di)
 with der_eq_I_shift_n $id $sc $d (der_eq_I_trans _ _ _ _ $deq1 $deq2) ↪
@@ -720,6 +630,7 @@ with der_eq_I_shift_n $id $sc $d (der_eq_I_cong_min _ _ _ _ _ $di $dj) ↪
      der_eq_I_cong_min _ _ _ _ _ (der_eq_I_shift_n $id $sc $d $di) (der_eq_I_shift_n $id $sc $d $dj)
 with der_eq_I_shift_n $id $sc $d (der_eq_I_cong_max _ _ _ _ _ $di $dj) ↪
      der_eq_I_cong_max _ _ _ _ _ (der_eq_I_shift_n $id $sc $d $di) (der_eq_I_shift_n $id $sc $d $dj)
+// der_F_shift_n
 with der_F_shift_n _ _ _ der_F_0 ↪ der_F_0
 with der_F_shift_n _ _ _ der_F_1 ↪ der_F_1
 with der_F_shift_n _ $sc $d (@der_F_eq0 _ $i $le)  ↪ der_F_eq0 (lenI_ctx_sctx $i $sc $d $le)
@@ -728,6 +639,7 @@ with der_F_shift_n $id $sc $d (der_F_min $df $dg) ↪
      der_F_min (der_F_shift_n $id $sc $d $df) (der_F_shift_n $id $sc $d $dg)
 with der_F_shift_n $id $sc $d (der_F_max $df $dg) ↪
      der_F_max (der_F_shift_n $id $sc $d $df) (der_F_shift_n $id $sc $d $dg)
+// der_eq_F_shift_n
 with der_eq_F_shift_n $id $sc $d (der_eq_F_refl _ _ $df) ↪
      der_eq_F_refl _ _ (der_F_shift_n $id $sc $d $df)
 with der_eq_F_shift_n $id $sc $d (der_eq_F_sym _ _ _ $df) ↪
@@ -759,6 +671,7 @@ with der_eq_F_shift_n $id $sc $d (der_eq_F_cong_min _ _ _ _ _ $deq1 $deq2) ↪
      der_eq_F_cong_min _ _ _ _ _ (der_eq_F_shift_n $id $sc $d $deq1) (der_eq_F_shift_n $id $sc $d $deq2)
 with der_eq_F_shift_n $id $sc $d (der_eq_F_cong_max _ _ _ _ _ $deq1 $deq2) ↪
      der_eq_F_cong_max _ _ _ _ _ (der_eq_F_shift_n $id $sc $d $deq1) (der_eq_F_shift_n $id $sc $d $deq2)
+// der_isOne_shift_n
 with der_isOne_shift_n _ _ _ (der_isOne_one _) ↪ der_isOne_one _
 with der_isOne_shift_n $id $sc $d (der_isOne_zero _ _ $d0) ↪
      der_isOne_zero _ _ (der_isOne_shift_n $id $sc $d $d0)
@@ -794,6 +707,14 @@ rule der_shift0 $dA $dΓ $dt ↪ der_shift_n db0 (SC0 $dΓ) $dA $dt
 with der_eq_shift0 $dA $dΓ $deq ↪ der_eq_shift_n db0 (SC0 $dΓ) $dA $deq
 with der_shift1 $dA $dB $dΓ $dt ↪ der_shift_n db1 (SCSucc (SC0 $dΓ) $dA) $dB $dt;
 
+// Implementation of der_shift
+rule der_shift db0 (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ $d
+with der_shift (dbsucc $id) (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ (der_shift $id $dΓ $d)
+with der_shift $id (der_context_PushI _ $dΓ) $d ↪ der_Ishift0 $dΓ (der_shift $id $dΓ $d)
+with der_shift $id (der_context_PushF _ _ $df $dΓ) $d ↪ der_weakF $dΓ (der_shift $id $dΓ $d) $df;
+
 // Implementation of der_eq_shift
 rule der_eq_shift db0 (der_context_Push _ _ _ $dA $dΓ) $deq ↪ der_eq_shift_n db0 (SC0 $dΓ) $dA $deq
-with der_eq_shift (dbsucc $id) (der_context_Push _ _ _ $dA $dΓ) $deq ↪ der_eq_shift_n db0 (SC0 $dΓ) $dA (der_eq_shift $id $dΓ $deq);
+with der_eq_shift (dbsucc $id) (der_context_Push _ _ _ $dA $dΓ) $deq ↪ der_eq_shift_n db0 (SC0 $dΓ) $dA (der_eq_shift $id $dΓ $deq)
+with der_eq_shift $id (der_context_PushI _ $dΓ) $deq ↪ der_eq_Ishift0 $dΓ (der_eq_shift $id $dΓ $deq)
+with der_eq_shift $id (der_context_PushF _ _ $df $dΓ) $deq ↪ der_eq_weakF $dΓ (der_eq_shift $id $dΓ $deq) $df;

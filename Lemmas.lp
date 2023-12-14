@@ -46,6 +46,9 @@ symbol der_Ishift0F [Γ : Context] [f : FTerm]
 symbol der_eq_shift0 [Γ : Context] [t1 t2 A T : Term] [l l' : Lev]
                      (_ : der Γ A (tuniv l') (lsuc l')) (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) :
   der_eq (Push A l' Γ) (Shift t1) (Shift t2) (Shift T) l;
+symbol der_eq_Ishift0 [Γ : Context] [t1 t2 T : Term] [l : Lev]
+                      (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) :
+  der_eq (PushI Γ) (IShift t1) (IShift t2) (IShift T) l;
 symbol der_shift1 [Γ : Context] [t A T B : Term] [l la lb : Lev]
                   (_ : der Γ A (tuniv la) (lsuc la))
                   (_ : der Γ B (tuniv lb) (lsuc lb))
@@ -64,18 +67,19 @@ symbol der_weakF [Γ : Context] [t T : Term] [f : FTerm] [l : Lev]
 symbol der_weakFF [Γ : Context] [f g : FTerm]
                  (_ : der_context Γ) (_ : der_F Γ g) (_ : der_F Γ f) :
   der_F (PushF f Γ) g;
+symbol der_eq_weakF [Γ : Context] [t1 t2 T : Term] [l : Lev] [f : FTerm]
+                    (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) (_ : der_F Γ f) :
+  der_eq (PushF f Γ) t1 t2 T l;
 symbol der_weakF1 [Γ : Context] [t A T : Term] [f : FTerm] [l l' : Lev]
                  (_ : der_context Γ) (_ : der Γ A (tuniv l') (lsuc l')) (_ : der (Push A l' Γ) t T l) (_ : der_F Γ f) :
   der (Push A l' (PushF f Γ)) t T l;
 
 // Iterated shifting
 symbol der_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t T : Term] [l : Lev] (_ : der (getΓ Γ id) t T l) :
-  der Γ (ShiftN id t) (ShiftN id T) l;
-rule der_shift db0 (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ $d
-with der_shift (dbsucc $id) (der_context_Push _ _ _ $dA $dΓ) $d ↪ der_shift0 $dA $dΓ (der_shift $id $dΓ $d);
+  der Γ (shiftΓ Γ id t) (shiftΓ Γ id T) l;
 symbol der_eq_shift (id : DBId) [Γ : Context] (_ : der_context Γ) [t1 t2 T : Term] [l : Lev]
                     (_ : der_eq (getΓ Γ id) t1 t2 T l) :
-  der_eq Γ (ShiftN id t1) (ShiftN id t2) (ShiftN id T) l;
+  der_eq Γ (shiftΓ Γ id t1) (shiftΓ Γ id t2) (shiftΓ Γ id T) l;
 
 // Congruence for replacement
 symbol der_eq_cong_apply [Γ : Context] [l l' : Lev] [A1 A2 B1 B2 t1 t2 : Term]
