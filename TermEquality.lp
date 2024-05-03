@@ -162,6 +162,47 @@ with FJmax (FTRefl _) (FTRefl _) ↪ FTRefl _
 with FJselect _ _ (FTRefl _) (FTRefl _) (FTRefl _) ↪ FTRefl _;
 
 // Auxiliary lemmas
+
+// shift_lt
+symbol aux_dbshift_le (i j : DBId) : DBLe j (dbshift i j);
+rule aux_dbshift_le db0 $j ↪ DBLe_succ (DBLe_refl $j)
+with aux_dbshift_le (dbsucc _) db0 ↪ DBLe_refl db0
+with aux_dbshift_le (dbsucc $i) (dbsucc $j) ↪ dble_n_S (aux_dbshift_le $i $j);
+
+symbol aux_dbshift_le_refl (i j : DBId) : DBLe j i → DBEq j (dbshift (dbsucc i) j);
+rule aux_dbshift_le_refl _ db0 _ ↪ DBRefl _
+with aux_dbshift_le_refl (dbsucc $i) (dbsucc $j) $h ↪ dbcong dbsucc (aux_dbshift_le_refl $i $j (dble_S_n $h));
+
+symbol aux_dbshift_lt_refl (i j : DBId) : DBLe (dbsucc j) i → DBEq j (dbshift i j);
+rule aux_dbshift_lt_refl (dbsucc _) db0 _ ↪ DBRefl _
+with aux_dbshift_lt_refl (dbsucc $i) (dbsucc $j) $h ↪ dbcong dbsucc (aux_dbshift_lt_refl $i $j (dble_S_n $h));
+
+symbol aux_dbshift_le_succ (i j : DBId) : DBLe i j → DBEq (dbsucc j) (dbshift i j);
+rule aux_dbshift_le_succ db0 _ _ ↪ DBRefl _
+with aux_dbshift_le_succ (dbsucc $i) (dbsucc $j) $h ↪ dbcong dbsucc (aux_dbshift_le_succ $i $j (dble_S_n $h));
+
+symbol aux_dbshift_dbprev (i j k : DBId) : DBLe (dbsucc k) j →
+  DBEq (dbprev (dbshift (dbsucc i) j)) (dbshift i (dbprev j));
+rule aux_dbshift_dbprev db0 (dbsucc _) _ _ ↪ DBRefl _
+with aux_dbshift_dbprev (dbsucc _) (dbsucc _) _ _ ↪ DBRefl _;
+
+// dbselect*_spec_eq
+symbol aux_dbselect_spec_eq (i j : DBId) (eqT gtT ltT : Term) :
+  DBEq i j → TEq (dbselect i j eqT gtT ltT) eqT;
+rule aux_dbselect_spec_eq db0 db0 $eqT _ _ _ ↪ TRefl $eqT
+with aux_dbselect_spec_eq (dbsucc $i) (dbsucc $j) $eqT $gtT $ltT $h ↪
+      aux_dbselect_spec_eq $i $j $eqT $gtT $ltT (dbeq_S_n $h);
+symbol aux_dbselectI_spec_eq (i j : DBId) (eqT gtT ltT : ITerm) :
+  DBEq i j → ITEq (dbselectI i j eqT gtT ltT) eqT;
+rule aux_dbselectI_spec_eq db0 db0 $eqT _ _ _ ↪ ITRefl $eqT
+with aux_dbselectI_spec_eq (dbsucc $i) (dbsucc $j) $eqT $gtT $ltT $h ↪
+      aux_dbselectI_spec_eq $i $j $eqT $gtT $ltT (dbeq_S_n $h);
+symbol aux_dbselectF_spec_eq (i j : DBId) (eqT gtT ltT : FTerm) :
+  DBEq i j → FTEq (dbselectF i j eqT gtT ltT) eqT;
+rule aux_dbselectF_spec_eq db0 db0 $eqT _ _ _ ↪ FTRefl $eqT
+with aux_dbselectF_spec_eq (dbsucc $i) (dbsucc $j) $eqT $gtT $ltT $h ↪
+      aux_dbselectF_spec_eq $i $j $eqT $gtT $ltT (dbeq_S_n $h);
+
 // dbselect*_spec_lt
 symbol aux_dbselect_spec_lt (i j : DBId) (eqT gtT ltT : Term) :
   DBLe (dbsucc i) j → TEq (dbselect i j eqT gtT ltT) ltT;
@@ -195,6 +236,70 @@ symbol aux_dbselectF_spec_gt (i j : DBId) (eqT gtT ltT : FTerm) :
 rule aux_dbselectF_spec_gt (dbsucc _) db0 _ $gtT _ _ ↪ FTRefl $gtT
 with aux_dbselectF_spec_gt (dbsucc $i) (dbsucc $j) $eqT $gtT $ltT $h ↪
       aux_dbselectF_spec_gt $i $j $eqT $gtT $ltT (dble_S_n $h);
+
+// dbselect*_spec_match
+symbol aux_dbselect_spec_match (i j : DBId) (eq gt lt t : Term) :
+  (DBEq i j → TEq (dbselect i j eq gt lt) t) →
+  (DBLe (dbsucc j) i → TEq (dbselect i j eq gt lt) t) →
+  (DBLe (dbsucc i) j → TEq (dbselect i j eq gt lt) t) →
+  TEq (dbselect i j eq gt lt) t;
+rule aux_dbselect_spec_match db0 db0 _ _ _ _ $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselect_spec_match (dbsucc $i) db0 _ _ _ _ _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselect_spec_match db0 (dbsucc $j) _ _ _ _ _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselect_spec_match (dbsucc $i) (dbsucc $j) $eq $gt $lt $t $e $g $l ↪
+      aux_dbselect_spec_match $i $j $eq $gt $lt $t (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
+symbol aux_dbselectI_spec_match (i j : DBId) (eq gt lt t : ITerm) :
+  (DBEq i j → ITEq (dbselectI i j eq gt lt) t) →
+  (DBLe (dbsucc j) i → ITEq (dbselectI i j eq gt lt) t) →
+  (DBLe (dbsucc i) j → ITEq (dbselectI i j eq gt lt) t) →
+  ITEq (dbselectI i j eq gt lt) t;
+rule aux_dbselectI_spec_match db0 db0 _ _ _ _ $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselectI_spec_match (dbsucc $i) db0 _ _ _ _ _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselectI_spec_match db0 (dbsucc $j) _ _ _ _ _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselectI_spec_match (dbsucc $i) (dbsucc $j) $eq $gt $lt $t $e $g $l ↪
+      aux_dbselectI_spec_match $i $j $eq $gt $lt $t (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
+symbol aux_dbselectF_spec_match (i j : DBId) (eq gt lt t : FTerm) :
+  (DBEq i j → FTEq (dbselectF i j eq gt lt) t) →
+  (DBLe (dbsucc j) i → FTEq (dbselectF i j eq gt lt) t) →
+  (DBLe (dbsucc i) j → FTEq (dbselectF i j eq gt lt) t) →
+  FTEq (dbselectF i j eq gt lt) t;
+rule aux_dbselectF_spec_match db0 db0 _ _ _ _ $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselectF_spec_match (dbsucc $i) db0 _ _ _ _ _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselectF_spec_match db0 (dbsucc $j) _ _ _ _ _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselectF_spec_match (dbsucc $i) (dbsucc $j) $eq $gt $lt $t $e $g $l ↪
+      aux_dbselectF_spec_match $i $j $eq $gt $lt $t (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
+
+// dbselect*_cong
+symbol aux_dbselect_cong_match (i j : DBId) [eq gt lt eq' gt' lt' : Term] :
+  (DBEq i j → TEq eq eq') →
+  (DBLe (dbsucc j) i → TEq gt gt') →
+  (DBLe (dbsucc i) j → TEq lt lt') →
+  TEq (dbselect i j eq gt lt) (dbselect i j eq' gt' lt');
+rule aux_dbselect_cong_match db0 db0 $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselect_cong_match (dbsucc $i) db0 _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselect_cong_match db0 (dbsucc $j) _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselect_cong_match (dbsucc $i) (dbsucc $j) $e $g $l ↪
+    aux_dbselect_cong_match $i $j (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
+symbol aux_dbselectI_cong_match (i j : DBId) [eq gt lt eq' gt' lt' : ITerm] :
+  (DBEq i j → ITEq eq eq') →
+  (DBLe (dbsucc j) i → ITEq gt gt') →
+  (DBLe (dbsucc i) j → ITEq lt lt') →
+  ITEq (dbselectI i j eq gt lt) (dbselectI i j eq' gt' lt');
+rule aux_dbselectI_cong_match db0 db0 $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselectI_cong_match (dbsucc $i) db0 _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselectI_cong_match db0 (dbsucc $j) _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselectI_cong_match (dbsucc $i) (dbsucc $j) $e $g $l ↪
+    aux_dbselectI_cong_match $i $j (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
+symbol aux_dbselectF_cong_match (i j : DBId) [eq gt lt eq' gt' lt' : FTerm] :
+  (DBEq i j → FTEq eq eq') →
+  (DBLe (dbsucc j) i → FTEq gt gt') →
+  (DBLe (dbsucc i) j → FTEq lt lt') →
+  FTEq (dbselectF i j eq gt lt) (dbselectF i j eq' gt' lt');
+rule aux_dbselectF_cong_match db0 db0 $e _ _ ↪ $e (DBRefl db0)
+with aux_dbselectF_cong_match (dbsucc $i) db0 _ $e _ ↪ $e (dble_n_S (dble_0_n $i))
+with aux_dbselectF_cong_match db0 (dbsucc $j) _ _ $e ↪ $e (dble_n_S (dble_0_n $j))
+with aux_dbselectF_cong_match (dbsucc $i) (dbsucc $j) $e $g $l ↪
+    aux_dbselectF_cong_match $i $j (λ p, $e (dbcong dbsucc p)) (λ p, $g (dble_n_S p)) (λ p, $l (dble_n_S p));
 
 // teq_shift_shift
 symbol aux_teq_shift_shift (i j : DBId) (u : Term) :
@@ -799,6 +904,146 @@ symbol teq_subst_shift1 (i : DBId) (u t : Term) :
       (Shift1 (subst (dbsucc i) (Shift u) t)) ≔
   aux_teq_subst_shift (dbsucc i) db1 u t (dble_n_S (dble_0_n i));
 
+// teq_shift_subst
+symbol aux_teq_shift_subst (i j : DBId) (u t : Term) :
+  DBLe i j →
+  TEq (shift j (subst i u t)) (subst i (shift j u) (shift (dbsucc j) t));
+
+symbol aux_teq_shift_subst_Ishift (i j : DBId) (u t : Term) :
+  DBLe i j →
+  TEq (shift j (subst i (IShift u) t)) (subst i (IShift (shift j u)) (shift (dbsucc j) t)) ≔
+begin
+  assume i j u t h;
+  refine teq_trans (aux_teq_shift_subst i j (IShift u) t h) _;
+  refine Jcong (λ v, (subst i v (shift (dbsucc j) t))) (aux_teq_shift_Ishift j db0 u)
+end;
+
+symbol aux_dbselect_dbshift (i j k : DBId) (eq gt lt : Term) :
+  DBLe i k → TEq (dbselect i j eq gt lt) (dbselect i (dbshift (dbsucc k) j) eq gt lt) ≔
+begin
+  assume i j k eq gt lt h;
+  refine aux_dbselect_spec_match i j eq gt lt (dbselect i (dbshift (dbsucc k) j) eq gt lt) _ _ _
+  {
+    assume e;
+    refine @dbcongT j (dbshift (dbsucc k) j) (λ v, dbselect i v eq gt lt) _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_eq_left i j k e h;
+  }
+  {
+    assume e;
+    refine teq_trans (aux_dbselect_spec_gt i j eq gt lt e) _;
+    refine teq_inv _;
+    refine aux_dbselect_spec_gt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_eq_left (dbsucc j) _ i _ e;
+    refine dbcong dbsucc _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_trans _ _ _ (dble_Sn_n e) h
+  }
+  {
+    assume e;
+    refine teq_trans (aux_dbselect_spec_lt i j eq gt lt e) _;
+    refine teq_inv _;
+    refine aux_dbselect_spec_lt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_trans _ _ _ e _;
+    refine aux_dbshift_le (dbsucc k) j
+  }
+end;
+
+symbol aux_teq_shift_subst_var (i j : DBId) (u : Term) (n : DBId) :
+  DBLe i j →
+  TEq (dbselect i n (shift j u) (shift j (tvar n)) (shift j (tvar (dbprev n))))
+      (dbselect i (dbshift (dbsucc j) n) (shift j u) (tvar (dbshift (dbsucc j) n)) (tvar (dbprev (dbshift (dbsucc j) n)))) ≔
+begin
+  assume i j u n h;
+  refine teq_trans _ (aux_dbselect_dbshift i n j (shift j u) (tvar (dbshift (dbsucc j) n)) (tvar (dbprev (dbshift (dbsucc j) n))) h);
+  refine aux_dbselect_cong_match i n [shift j u] [shift j (tvar n)] [shift j (tvar (dbprev n))]
+                                 [shift j u] [tvar (dbshift (dbsucc j) n)] [tvar (dbprev (dbshift (dbsucc j) n))] (λ _, TRefl _) (λ e, _) (λ e, _)
+  {
+    refine dbcongT tvar _;
+    refine dbeq_trans _ (aux_dbshift_le_refl j n (dble_trans n i j (dble_Sn_n e) h));
+    refine dbeq_inv _ ;
+    refine aux_dbshift_lt_refl j n (dble_trans (dbsucc n) i j e h)
+  }
+  {
+    refine dbcongT tvar _;
+    refine dbeq_inv _;
+    refine aux_dbshift_dbprev j n i e
+  }
+end;
+
+rule aux_teq_shift_subst $i $j $u (tvar $n) $h ↪
+      teq_trans (aux_teq_shift_dbselect $j $i $n $u (tvar $n) (tvar (dbprev $n))) (aux_teq_shift_subst_var $i $j $u $n $h)
+with aux_teq_shift_subst _ _ _ (tuniv _) _ ↪ TRefl _
+with aux_teq_shift_subst $i $j $u (tpi $A $B) $h ↪
+      Jpi (aux_teq_shift_subst $i $j $u $A $h)
+          (aux_teq_shift_subst (dbsucc $i) (dbsucc $j) (Shift $u) $B (dble_n_S $h))
+with aux_teq_shift_subst $i $j $u (tabs $A $t) $h ↪
+      Jabs (aux_teq_shift_subst $i $j $u $A $h)
+           (aux_teq_shift_subst (dbsucc $i) (dbsucc $j) (Shift $u) $t (dble_n_S $h))
+with aux_teq_shift_subst $i $j $u (tapp $f $a) $h ↪
+      Japp (aux_teq_shift_subst $i $j $u $f $h)
+           (aux_teq_shift_subst $i $j $u $a $h)
+with aux_teq_shift_subst _ _ _ tnat _ ↪ TRefl _
+with aux_teq_shift_subst _ _ _ tzero _ ↪ TRefl _
+with aux_teq_shift_subst $i $j $u (tsuc $n) $h ↪
+      Jcong tsuc (aux_teq_shift_subst $i $j $u $n $h)
+with aux_teq_shift_subst $i $j $u (trec $P $z $H $n) $h ↪
+      Jrec (aux_teq_shift_subst $i $j $u $P $h)
+           (aux_teq_shift_subst $i $j $u $z $h)
+           (aux_teq_shift_subst $i $j $u $H $h)
+           (aux_teq_shift_subst $i $j $u $n $h)
+with aux_teq_shift_subst $i $j $u (tsig $A $B) $h ↪
+      Jsig (aux_teq_shift_subst $i $j $u $A $h)
+           (aux_teq_shift_subst (dbsucc $i) (dbsucc $j) (Shift $u) $B (dble_n_S $h))
+with aux_teq_shift_subst $i $j $u (tpair $a $b) $h ↪
+      Jpair (aux_teq_shift_subst $i $j $u $a $h)
+            (aux_teq_shift_subst $i $j $u $b $h)
+with aux_teq_shift_subst $i $j $u (tp1 $p) $h ↪
+      Jcong tp1 (aux_teq_shift_subst $i $j $u $p $h)
+with aux_teq_shift_subst $i $j $u (tp2 $p) $h ↪
+      Jcong tp2 (aux_teq_shift_subst $i $j $u $p $h)
+with aux_teq_shift_subst $i $j $u (tsum $A $B) $h ↪
+      Jsum (aux_teq_shift_subst $i $j $u $A $h)
+           (aux_teq_shift_subst $i $j $u $B $h)
+with aux_teq_shift_subst $i $j $u (tinjl $p) $h ↪
+      Jcong tinjl (aux_teq_shift_subst $i $j $u $p $h)
+with aux_teq_shift_subst $i $j $u (tinjr $p) $h ↪
+      Jcong tinjr (aux_teq_shift_subst $i $j $u $p $h)
+with aux_teq_shift_subst $i $j $u (tcase $A $B $P $a $b $t) $h ↪
+      Jcase (aux_teq_shift_subst $i $j $u $A $h)
+            (aux_teq_shift_subst $i $j $u $B $h)
+            (aux_teq_shift_subst $i $j $u $P $h)
+            (aux_teq_shift_subst $i $j $u $a $h)
+            (aux_teq_shift_subst $i $j $u $b $h)
+            (aux_teq_shift_subst $i $j $u $t $h)
+with aux_teq_shift_subst $i $j $u (tpath $A $x $y) $h ↪
+      Jpath (aux_teq_shift_subst_Ishift $i $j $u $A $h)
+      (aux_teq_shift_subst $i $j $u $x $h)
+      (aux_teq_shift_subst $i $j $u $y $h)
+with aux_teq_shift_subst $i $j $u (tlamP $t) $h ↪
+      Jcong tlamP (aux_teq_shift_subst_Ishift $i $j $u $t $h)
+with aux_teq_shift_subst $i $j $u (tappP $x _) $h ↪
+      JappP (aux_teq_shift_subst $i $j $u $x $h) (ITRefl _)
+with aux_teq_shift_subst $i $j $u (tsys _ _ $x $y) $h ↪
+      Jsys (FTRefl _) (FTRefl _)
+           (aux_teq_shift_subst $i $j $u $x $h)
+           (aux_teq_shift_subst $i $j $u $y $h)
+with aux_teq_shift_subst _ _ _ temptysys _ ↪ TRefl _
+with aux_teq_shift_subst $i $j $u (ttransp $A _ $x) $h ↪
+      Jtransp (aux_teq_shift_subst_Ishift $i $j $u $A $h)
+              (FTRefl _)
+              (aux_teq_shift_subst $i $j $u $x $h)
+with aux_teq_shift_subst $i $j $u (thcomp $A _ $x $y) $h ↪
+      Jhcomp (aux_teq_shift_subst $i $j $u $A $h)
+             (FTRefl _)
+             (aux_teq_shift_subst_Ishift $i $j $u $x $h)
+             (aux_teq_shift_subst $i $j $u $y $h);
+
+// teq_shift_subst
+symbol teq_shift_subst (j : DBId) (u t : Term) :
+  TEq (shift j (apply1 t u)) (apply1 (shift (dbsucc j) t) (shift j u)) ≔
+    aux_teq_shift_subst db0 j u t (dble_0_n j);
+
 // teq_Isubst_Ishift
 symbol aux_teq_Isubst_Ishift (i j : DBId) (u : ITerm) (t : Term) :
   DBLe j i →
@@ -1087,6 +1332,265 @@ symbol teq_IsubstF_IshiftF (i : DBId) (u : ITerm) (t : FTerm) :
        (IShiftF (IsubstF i u t)) ≔
   aux_teq_IsubstF_IshiftF i db0 u t (dble_0_n i);
 
+// teq_Ishift_Isubst
+symbol aux_teq_Ishift_Isubst (i j : DBId) (u : ITerm) (t : Term) :
+  DBLe i j →
+  TEq (Ishift j (Isubst i u t)) (Isubst i (IshiftI j u) (Ishift (dbsucc j) t));
+
+symbol aux_teq_IshiftI_IsubstI (i j : DBId) (u : ITerm) (t : ITerm) :
+  DBLe i j →
+  ITEq (IshiftI j (IsubstI i u t)) (IsubstI i (IshiftI j u) (IshiftI (dbsucc j) t));
+
+symbol aux_teq_IshiftF_IsubstF (i j : DBId) (u : ITerm) (t : FTerm) :
+  DBLe i j →
+  FTEq (IshiftF j (IsubstF i u t)) (IsubstF i (IshiftI j u) (IshiftF (dbsucc j) t));
+
+symbol aux_dbselectI_dbshift (i j k : DBId) (eq gt lt : ITerm) :
+  DBLe i k → ITEq (dbselectI i j eq gt lt) (dbselectI i (dbshift (dbsucc k) j) eq gt lt) ≔
+begin
+  assume i j k eq gt lt h;
+  refine aux_dbselectI_spec_match i j eq gt lt (dbselectI i (dbshift (dbsucc k) j) eq gt lt) _ _ _
+  {
+    assume e;
+    refine @dbcongI j (dbshift (dbsucc k) j) (λ v, dbselectI i v eq gt lt) _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_eq_left i j k e h;
+  }
+  {
+    assume e;
+    refine iteq_trans (aux_dbselectI_spec_gt i j eq gt lt e) _;
+    refine iteq_inv _;
+    refine aux_dbselectI_spec_gt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_eq_left (dbsucc j) _ i _ e;
+    refine dbcong dbsucc _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_trans _ _ _ (dble_Sn_n e) h
+  }
+  {
+    assume e;
+    refine iteq_trans (aux_dbselectI_spec_lt i j eq gt lt e) _;
+    refine iteq_inv _;
+    refine aux_dbselectI_spec_lt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_trans _ _ _ e _;
+    refine aux_dbshift_le (dbsucc k) j
+  }
+end;
+
+symbol aux_teq_Ishift_Isubst_var (i j : DBId) (u : ITerm) (n : DBId) :
+  DBLe i j →
+  ITEq (dbselectI i n (IshiftI j u) (IshiftI j (itvar n)) (IshiftI j (itvar (dbprev n))))
+       (dbselectI i (dbshift (dbsucc j) n) (IshiftI j u) (itvar (dbshift (dbsucc j) n)) (itvar (dbprev (dbshift (dbsucc j) n)))) ≔
+begin
+  assume i j u n h;
+  refine iteq_trans _ (aux_dbselectI_dbshift i n j (IshiftI j u) (itvar (dbshift (dbsucc j) n)) (itvar (dbprev (dbshift (dbsucc j) n))) h);
+  refine aux_dbselectI_cong_match i n [IshiftI j u] [IshiftI j (itvar n)] [IshiftI j (itvar (dbprev n))]
+                                  [IshiftI j u] [itvar (dbshift (dbsucc j) n)] [itvar (dbprev (dbshift (dbsucc j) n))] (λ _, ITRefl _) _ _
+  {
+    assume e;
+    refine dbcongI itvar _;
+    refine dbeq_trans _ (aux_dbshift_le_refl j n (dble_trans n i j (dble_Sn_n e) h));
+    refine dbeq_inv _;
+    refine aux_dbshift_lt_refl j n (dble_trans (dbsucc n) i j e h)
+  }
+  {
+    assume e;
+    simplify;
+    refine dbcongI itvar _;
+    refine dbeq_inv _;
+    refine aux_dbshift_dbprev j n i e
+  }
+end;
+
+symbol aux_dbselectF_dbshift (i j k : DBId) (eq gt lt : FTerm) :
+  DBLe i k → FTEq (dbselectF i j eq gt lt) (dbselectF i (dbshift (dbsucc k) j) eq gt lt) ≔
+begin
+  assume i j k eq gt lt h;
+  refine aux_dbselectF_spec_match i j eq gt lt (dbselectF i (dbshift (dbsucc k) j) eq gt lt) _ _ _
+  {
+    assume e;
+    refine @dbcongF j (dbshift (dbsucc k) j) (λ v, dbselectF i v eq gt lt) _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_eq_left i j k e h;
+  }
+  {
+    assume e;
+    refine fteq_trans (aux_dbselectF_spec_gt i j eq gt lt e) _;
+    refine fteq_inv _;
+    refine aux_dbselectF_spec_gt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_eq_left (dbsucc j) _ i _ e;
+    refine dbcong dbsucc _;
+    refine aux_dbshift_le_refl k j _;
+    refine dble_trans _ _ _ (dble_Sn_n e) h
+  }
+  {
+    assume e;
+    refine fteq_trans (aux_dbselectF_spec_lt i j eq gt lt e) _;
+    refine fteq_inv _;
+    refine aux_dbselectF_spec_lt i (dbshift (dbsucc k) j) eq gt lt _;
+    refine dble_trans _ _ _ e _;
+    refine aux_dbshift_le (dbsucc k) j
+  }
+end;
+
+symbol aux_teq_Ishift_Isubst_eq0 (i j : DBId) (u : ITerm) (n : DBId) :
+  DBLe i j →
+  FTEq (dbselectF i n (IshiftF j (substeq0 u)) (IshiftF j (fteq0 n)) (IshiftF j (fteq0 (dbprev n))))
+       (dbselectF i (dbshift (dbsucc j) n) (substeq0 (IshiftI j u)) (fteq0 (dbshift (dbsucc j) n)) (fteq0 (dbprev (dbshift (dbsucc j) n)))) ≔
+begin
+  assume i j u n h;
+  refine fteq_trans _ (aux_dbselectF_dbshift i n j (substeq0 (IshiftI j u)) (fteq0 (dbshift (dbsucc j) n)) (fteq0 (dbprev (dbshift (dbsucc j) n))) h);
+  refine aux_dbselectF_cong_match i n [IshiftF j (substeq0 u)] [IshiftF j (fteq0 n)] [IshiftF j (fteq0 (dbprev n))]
+                                  [substeq0 (IshiftI j u)] [fteq0 (dbshift (dbsucc j) n)] [fteq0 (dbprev (dbshift (dbsucc j) n))] (λ e, _) (λ e, _) (λ e, _)
+  {
+    refine fteq_inv (aux_teq_Ishift_substeq0 j u)
+  }
+  {
+    refine dbcongF fteq0 _;
+    refine dbeq_trans _ (aux_dbshift_le_refl j n (dble_trans n i j (dble_Sn_n e) h));
+    refine dbeq_inv _;
+    refine aux_dbshift_lt_refl j n (dble_trans (dbsucc n) i j e h)
+  }
+  {
+    simplify;
+    refine dbcongF fteq0 _;
+    refine dbeq_inv _;
+    refine aux_dbshift_dbprev j n i e
+  }
+end;
+
+symbol aux_teq_Ishift_Isubst_eq1 (i j : DBId) (u : ITerm) (n : DBId) :
+  DBLe i j →
+  FTEq (dbselectF i n (IshiftF j (substeq1 u)) (IshiftF j (fteq1 n)) (IshiftF j (fteq1 (dbprev n))))
+       (dbselectF i (dbshift (dbsucc j) n) (substeq1 (IshiftI j u)) (fteq1 (dbshift (dbsucc j) n)) (fteq1 (dbprev (dbshift (dbsucc j) n)))) ≔
+begin
+  assume i j u n h;
+  refine fteq_trans _ (aux_dbselectF_dbshift i n j (substeq1 (IshiftI j u)) (fteq1 (dbshift (dbsucc j) n)) (fteq1 (dbprev (dbshift (dbsucc j) n))) h);
+  refine aux_dbselectF_cong_match i n [IshiftF j (substeq1 u)] [IshiftF j (fteq1 n)] [IshiftF j (fteq1 (dbprev n))]
+                                  [substeq1 (IshiftI j u)] [fteq1 (dbshift (dbsucc j) n)] [fteq1 (dbprev (dbshift (dbsucc j) n))] (λ e, _) (λ e, _) (λ e, _)
+  {
+    refine fteq_inv (aux_teq_Ishift_substeq1 j u)
+  }
+  {
+    refine dbcongF fteq1 _;
+    refine dbeq_trans _ (aux_dbshift_le_refl j n (dble_trans n i j (dble_Sn_n e) h));
+    refine dbeq_inv _;
+    refine aux_dbshift_lt_refl j n (dble_trans (dbsucc n) i j e h)
+  }
+  {
+    simplify;
+    refine dbcongF fteq1 _;
+    refine dbeq_inv _;
+    refine aux_dbshift_dbprev j n i e
+  }
+end;
+
+symbol test (i j : DBId) (u : ITerm) (n : DBId) :
+  DBLe i j →
+  FTEq (IshiftF j (IsubstF i u (fteq0 n))) (IsubstF i (IshiftI j u) (IshiftF (dbsucc j) (fteq0 n))) ≔
+begin
+  assume i j u n h;
+  simplify;
+  refine fteq_trans (aux_teq_shift_dbselectF j i n (substeq0 u) (fteq0 n) (fteq0 (dbprev n))) _;
+  refine aux_teq_Ishift_Isubst_eq0 i j u n h;
+end;
+print test;
+
+rule aux_teq_Ishift_Isubst _ _ _ (tvar _) _ ↪
+      TRefl _
+with aux_teq_Ishift_Isubst _ _ _ (tuniv _) _ ↪ TRefl _
+with aux_teq_Ishift_Isubst $i $j $u (tpi $A $B) $h ↪
+      Jpi (aux_teq_Ishift_Isubst $i $j $u $A $h)
+          (aux_teq_Ishift_Isubst $i $j $u $B $h)
+with aux_teq_Ishift_Isubst $i $j $u (tabs $A $t) $h ↪
+      Jabs (aux_teq_Ishift_Isubst $i $j $u $A $h)
+           (aux_teq_Ishift_Isubst $i $j $u $t $h)
+with aux_teq_Ishift_Isubst $i $j $u (tapp $f $a) $h ↪
+      Japp (aux_teq_Ishift_Isubst $i $j $u $f $h)
+           (aux_teq_Ishift_Isubst $i $j $u $a $h)
+with aux_teq_Ishift_Isubst _ _ _ tnat _ ↪ TRefl _
+with aux_teq_Ishift_Isubst _ _ _ tzero _ ↪ TRefl _
+with aux_teq_Ishift_Isubst $i $j $u (tsuc $n) $h ↪
+      Jcong tsuc (aux_teq_Ishift_Isubst $i $j $u $n $h)
+with aux_teq_Ishift_Isubst $i $j $u (trec $P $z $H $n) $h ↪
+      Jrec (aux_teq_Ishift_Isubst $i $j $u $P $h)
+           (aux_teq_Ishift_Isubst $i $j $u $z $h)
+           (aux_teq_Ishift_Isubst $i $j $u $H $h)
+           (aux_teq_Ishift_Isubst $i $j $u $n $h)
+with aux_teq_Ishift_Isubst $i $j $u (tsig $A $B) $h ↪
+      Jsig (aux_teq_Ishift_Isubst $i $j $u $A $h)
+           (aux_teq_Ishift_Isubst $i $j $u $B $h)
+with aux_teq_Ishift_Isubst $i $j $u (tpair $a $b) $h ↪
+      Jpair (aux_teq_Ishift_Isubst $i $j $u $a $h)
+            (aux_teq_Ishift_Isubst $i $j $u $b $h)
+with aux_teq_Ishift_Isubst $i $j $u (tp1 $p) $h ↪
+      Jcong tp1 (aux_teq_Ishift_Isubst $i $j $u $p $h)
+with aux_teq_Ishift_Isubst $i $j $u (tp2 $p) $h ↪
+      Jcong tp2 (aux_teq_Ishift_Isubst $i $j $u $p $h)
+with aux_teq_Ishift_Isubst $i $j $u (tsum $A $B) $h ↪
+      Jsum (aux_teq_Ishift_Isubst $i $j $u $A $h)
+           (aux_teq_Ishift_Isubst $i $j $u $B $h)
+with aux_teq_Ishift_Isubst $i $j $u (tinjl $p) $h ↪
+      Jcong tinjl (aux_teq_Ishift_Isubst $i $j $u $p $h)
+with aux_teq_Ishift_Isubst $i $j $u (tinjr $p) $h ↪
+      Jcong tinjr (aux_teq_Ishift_Isubst $i $j $u $p $h)
+with aux_teq_Ishift_Isubst $i $j $u (tcase $A $B $P $a $b $t) $h ↪
+      Jcase (aux_teq_Ishift_Isubst $i $j $u $A $h)
+            (aux_teq_Ishift_Isubst $i $j $u $B $h)
+            (aux_teq_Ishift_Isubst $i $j $u $P $h)
+            (aux_teq_Ishift_Isubst $i $j $u $a $h)
+            (aux_teq_Ishift_Isubst $i $j $u $b $h)
+            (aux_teq_Ishift_Isubst $i $j $u $t $h)
+with aux_teq_Ishift_Isubst $i $j $u (tpath $A $x $y) $h ↪
+      Jpath (aux_teq_Ishift_Isubst (dbsucc $i) (dbsucc $j) (IShiftI $u) $A (dble_n_S $h))
+      (aux_teq_Ishift_Isubst $i $j $u $x $h)
+      (aux_teq_Ishift_Isubst $i $j $u $y $h)
+with aux_teq_Ishift_Isubst $i $j $u (tlamP $t) $h ↪
+      Jcong tlamP (aux_teq_Ishift_Isubst (dbsucc $i) (dbsucc $j) (IShiftI $u) $t (dble_n_S $h))
+with aux_teq_Ishift_Isubst $i $j $u (tappP $x $y) $h ↪
+      JappP (aux_teq_Ishift_Isubst $i $j $u $x $h) (aux_teq_IshiftI_IsubstI $i $j $u $y $h)
+with aux_teq_Ishift_Isubst $i $j $u (tsys $f $g $x $y) $h ↪
+      Jsys (aux_teq_IshiftF_IsubstF $i $j $u $f $h)
+           (aux_teq_IshiftF_IsubstF $i $j $u $g $h)
+           (aux_teq_Ishift_Isubst $i $j $u $x $h)
+           (aux_teq_Ishift_Isubst $i $j $u $y $h)
+with aux_teq_Ishift_Isubst _ _ _ temptysys _ ↪ TRefl _
+with aux_teq_Ishift_Isubst $i $j $u (ttransp $A $f $x) $h ↪
+      Jtransp (aux_teq_Ishift_Isubst (dbsucc $i) (dbsucc $j) (IShiftI $u) $A (dble_n_S $h))
+              (aux_teq_IshiftF_IsubstF $i $j $u $f $h)
+              (aux_teq_Ishift_Isubst $i $j $u $x $h)
+with aux_teq_Ishift_Isubst $i $j $u (thcomp $A $f $x $y) $h ↪
+      Jhcomp (aux_teq_Ishift_Isubst $i $j $u $A $h)
+             (aux_teq_IshiftF_IsubstF $i $j $u $f $h)
+             (aux_teq_Ishift_Isubst (dbsucc $i) (dbsucc $j) (IShiftI $u) $x (dble_n_S $h))
+             (aux_teq_Ishift_Isubst $i $j $u $y $h)
+with aux_teq_IshiftI_IsubstI _ _ _ it0 _ ↪ ITRefl _
+with aux_teq_IshiftI_IsubstI _ _ _ it1 _ ↪ ITRefl _
+with aux_teq_IshiftI_IsubstI $i $j $u (itvar $n) $h ↪
+      iteq_trans (aux_teq_shift_dbselectI $j $i $n $u (itvar $n) (itvar (dbprev $n)))
+                 (aux_teq_Ishift_Isubst_var $i $j $u $n $h)
+with aux_teq_IshiftI_IsubstI $i $j $u (itsym $n) $h ↪
+      IJcong itsym (aux_teq_IshiftI_IsubstI $i $j $u $n $h)
+with aux_teq_IshiftI_IsubstI $i $j $u (itmin $x $y) $h ↪
+      IJmin (aux_teq_IshiftI_IsubstI $i $j $u $x $h)
+            (aux_teq_IshiftI_IsubstI $i $j $u $y $h)
+with aux_teq_IshiftI_IsubstI $i $j $u (itmax $x $y) $h ↪
+      IJmax (aux_teq_IshiftI_IsubstI $i $j $u $x $h)
+            (aux_teq_IshiftI_IsubstI $i $j $u $y $h)
+with aux_teq_IshiftF_IsubstF _ _ _ ft0 _ ↪ FTRefl _
+with aux_teq_IshiftF_IsubstF _ _ _ ft1 _ ↪ FTRefl _
+with aux_teq_IshiftF_IsubstF $i $j $u (fteq0 $n) $h ↪
+      fteq_trans (aux_teq_shift_dbselectF $j $i $n (substeq0 $u) (fteq0 $n) (fteq0 (dbprev $n)))
+                 (aux_teq_Ishift_Isubst_eq0 $i $j $u $n $h)
+with aux_teq_IshiftF_IsubstF $i $j $u (fteq1 $n) $h ↪
+      fteq_trans (aux_teq_shift_dbselectF $j $i $n (substeq1 $u) (fteq1 $n) (fteq1 (dbprev $n)))
+                 (aux_teq_Ishift_Isubst_eq1 $i $j $u $n $h)
+with aux_teq_IshiftF_IsubstF $i $j $u (ftmin $x $y) $h ↪
+      FJmin (aux_teq_IshiftF_IsubstF $i $j $u $x $h)
+            (aux_teq_IshiftF_IsubstF $i $j $u $y $h)
+with aux_teq_IshiftF_IsubstF $i $j $u (ftmax $x $y) $h ↪
+      FJmax (aux_teq_IshiftF_IsubstF $i $j $u $x $h)
+            (aux_teq_IshiftF_IsubstF $i $j $u $y $h);
+
 // teq_subst_Ishift
 symbol aux_teq_subst_Ishift (i j : DBId) (u t : Term) :
   TEq (subst i (Ishift j (Shift* i u)) (Ishift j t))
@@ -1168,6 +1672,11 @@ with aux_teq_subst_Ishift $i $j $u (thcomp $A _ $x $y) ↪
              (FTRefl _)
              (aux_teq_subst_Ishift_Irec $i $j $u $x)
              (aux_teq_subst_Ishift $i $j $u $y);
+
+// teq_Ishift_Isubst
+symbol teq_Ishift_Isubst (j : DBId) (u : ITerm) (t : Term) :
+  TEq (Ishift j (applyI1 t u)) (applyI1 (Ishift (dbsucc j) t) (IshiftI j u)) ≔
+    aux_teq_Ishift_Isubst db0 j u t (dble_0_n j);
 
 // teq_Isubst_shift
 symbol aux_teq_Isubst_shift (i j : DBId) (u : ITerm) (t : Term) :
@@ -2432,8 +2941,8 @@ symbol Jforward [A1 A2 : Term] [r1 r2 : ITerm] [a1 a2 : Term] :
 begin
   assume A1 A2 r1 r2 a1 a2 eqA eqr eqa;
   refine Jtransp _ _ eqa
-  { refine teq_trans (Jcong (λ v, applyI1 (IShift1 v) (itmax (itvar db0) r1)) eqA) _;
-    refine IcongT (λ i, applyI1 (IShift1 A2) (itmax (itvar db0) i)) eqr }
+  { refine teq_trans (Jcong (λ v, applyI1 (IShift1 v) (itmax (itvar db0) (IShiftI r1))) eqA) _;
+    refine IcongT (λ i, applyI1 (IShift1 A2) (itmax (itvar db0) (IShiftI i))) eqr }
   { refine IcongF (λ i, IsubstF db0 i (fteq1 db0)) eqr }
 end;
 
@@ -2477,13 +2986,48 @@ begin
   { refine teq_inv (aux_teq_shift_Ishift id db0 u) }
 end;
 
+symbol teq_Ishift_transpfill (id : DBId) (A : Term) (f : FTerm) (u : Term) :
+  TEq (ttranspFill (Ishift (dbsucc id) A) (IshiftF id f) (Ishift id u)) (Ishift (dbsucc id) (ttranspFill A f u)) ≔
+begin
+  assume id A f u;
+
+    refine Jtransp _ (FTRefl _) _
+    {
+      refine teq_trans _ (teq_inv (teq_Ishift_Isubst (dbsucc (dbsucc id)) (itmin (itvar db0) (itvar db1)) (IShift1 (IShift1 A))));
+      refine Jcong [IShift1 (IShift1 (Ishift (dbsucc id) A))] [Ishift (dbsucc (dbsucc (dbsucc id))) (IShift1 (IShift1 A))]
+                   (λ t, applyI1 t (itmin (itvar db0) (itvar db1))) _;
+      refine teq_trans (Jcong IShift1 (aux_teq_Ishift_Ishift db1 (dbsucc id) A (dble_n_S (dble_0_n _)))) _;
+      refine aux_teq_Ishift_Ishift db1 (dbsucc (dbsucc id)) (IShift1 A) (dble_n_S (dble_0_n _))
+    }
+    {
+      refine aux_teq_Ishift_Ishift db0 id u (dble_0_n id)
+    }
+end;
+
 symbol teq_shift_forward (id : DBId) (A : Term) (r : ITerm) (a : Term) :
   TEq (forward (shift id A) r (shift id a)) (shift id (forward A r a)) ≔
 begin
   assume id A r a;
   refine Jtransp _ (FTRefl _) (TRefl _);
-  refine Jcong [IShift1 (shift id A)] [shift id (IShift1 A)] (λ v, applyI1 v (itmax (itvar db0) r)) _;
+  refine Jcong [IShift1 (shift id A)] [shift id (IShift1 A)] (λ v, applyI1 v (itmax (itvar db0) (IShiftI r))) _;
   refine teq_inv (aux_teq_shift_Ishift id db1 A)
+end;
+
+symbol teq_Ishift_forward (id : DBId) (A : Term) (r : ITerm) (a : Term) :
+  TEq (forward (Ishift (dbsucc id) A) (IshiftI id r) (Ishift id a)) (Ishift id (forward A r a)) ≔
+begin
+  assume id A r a;
+  refine Jtransp _ _ (TRefl _)
+  {
+    refine teq_trans _ (teq_inv (teq_Ishift_Isubst (dbsucc id) (itmax (itvar db0) (IShiftI r)) (IShift1 A)));
+    refine teq_trans (Jcong (λ t, applyI1 t (itmax (itvar db0) (IShiftI (IshiftI id r))))
+                            (aux_teq_Ishift_Ishift db1 (dbsucc id) A (dble_n_S (dble_0_n _)))) _;
+    refine IcongT (λ t, applyI1 (Ishift (dbsucc (dbsucc id)) (IShift1 A)) (itmax (itvar db0) t))
+                  (aux_teq_IshiftI_IshiftI db0 id r (dble_0_n _))
+  }
+  {
+    refine fteq_inv (aux_teq_IshiftF_IsubstF db0 id r (fteq1 db0) (dble_0_n _))
+  }
 end;
 
 symbol teq_shift_hfill (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
@@ -2508,12 +3052,54 @@ begin
     }
 end;
 
- symbol teq_shift_comp (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
-   TEq (tcomp (shift id A) f (shift id u) (shift id u0)) (shift id (tcomp A f u u0)) ≔
+symbol teq_Ishift_hfill (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (thfill (Ishift id A) (IshiftF id f) (Ishift (dbsucc id) u) (Ishift id u0)) (Ishift (dbsucc id) (thfill A f u u0)) ≔
+begin
+  assume id A f u u0;
+  refine Jhcomp _ _ _ _
+  { refine aux_teq_Ishift_Ishift db0 id A (dble_0_n _) }
+  { refine FJmax (FTRefl _) _;
+    refine aux_teq_IshiftF_IshiftF db0 id f (dble_0_n _) }
+  {
+    refine Jsys (FTRefl _) _ _ _
+    { refine fteq_trans (FJcong IShiftF (aux_teq_IshiftF_IshiftF db0 id f (dble_0_n _))) _;
+      refine aux_teq_IshiftF_IshiftF db0 (dbsucc id) (IShiftF f) (dble_0_n _) }
+    { refine teq_trans (Jcong IShift1 (aux_teq_Ishift_Ishift db0 id u0 (dble_0_n _))) _;
+      refine aux_teq_Ishift_Ishift db1 (dbsucc id) (IShift u0) (dble_n_S (dble_0_n _)) }
+    {
+      refine teq_trans _ (teq_inv (teq_Ishift_Isubst (dbsucc (dbsucc id)) (itmax (itvar db0) (itvar db1)) (IShift1 (IShift1 u))));
+      refine Jcong [(IShift1 (IShift1 (Ishift (dbsucc id) u)))] [Ishift (dbsucc (dbsucc (dbsucc id))) (IShift1 (IShift1 u))]
+                   (λ t, applyI1 t (itmax (itvar db0) (itvar db1))) _;
+      refine teq_trans _ (aux_teq_Ishift_Ishift db1 (dbsucc (dbsucc id)) (IShift1 u) (dble_n_S (dble_0_n _)));
+      refine Jcong IShift1 (aux_teq_Ishift_Ishift db1 (dbsucc id) u (dble_n_S (dble_0_n _)))
+    }
+  }
+  { refine aux_teq_Ishift_Ishift db0 id u0 (dble_0_n _) }
+end;
+
+symbol teq_shift_comp (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (tcomp (shift id A) f (shift id u) (shift id u0)) (shift id (tcomp A f u u0)) ≔
 begin
   assume id A f u u0;
   refine Jhcomp (TRefl _) (FTRefl _) _ _
   { refine teq_trans _ (teq_shift_forward id (IShift1 A) (itvar db0) u);
     refine Jcong (λ v, forward v (itvar db0) (shift id u)) (teq_inv (aux_teq_shift_Ishift id db1 A))}
   { refine teq_shift_forward id A it0 u0 }
+end;
+
+symbol teq_Ishift_comp (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (tcomp (Ishift (dbsucc id) A) (IshiftF id f) (Ishift (dbsucc id) u) (Ishift id u0)) (Ishift id (tcomp A f u u0)) ≔
+begin
+  assume id A f u u0;
+  refine Jhcomp _ (FTRefl _) _ _
+  {
+    refine teq_inv (teq_Ishift_Isubst id it1 A)
+  }
+  {
+    refine teq_trans _ (teq_Ishift_forward (dbsucc id) (IShift1 A) (itvar db0) u);
+    refine Jcong (λ v, forward v (itvar db0) (Ishift (dbsucc id) u)) (aux_teq_Ishift_Ishift db1 (dbsucc id) A (dble_n_S (dble_0_n _)));
+  }
+  {
+    refine teq_Ishift_forward id A it0 u0
+  }
 end;

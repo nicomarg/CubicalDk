@@ -22,6 +22,13 @@ constant symbol DBRefl (i : DBId) : DBEq i i;
 symbol dbcong (f : DBId → DBId) [i j : DBId]
                   : DBEq i j → DBEq (f i) (f j);
 rule dbcong $f (DBRefl $i) ↪ DBRefl ($f $i);
+symbol dbeq_inv [i j] : DBEq i j → DBEq j i;
+rule dbeq_inv (DBRefl _) ↪ DBRefl _;
+symbol dbeq_trans [i j k : DBId] : DBEq i j → DBEq j k → DBEq i k;
+rule dbeq_trans (DBRefl _) (DBRefl _) ↪ DBRefl _;
+
+symbol dbeq_S_n [i j : DBId] : DBEq (dbsucc i) (dbsucc j) → DBEq i j;
+rule dbeq_S_n (DBRefl _) ↪ DBRefl _;
 
 // Comparison
 constant symbol DBLe : DBId → DBId → TYPE;
@@ -42,6 +49,15 @@ with dble_S_n (DBLe_refl (dbsucc $i)) ↪ DBLe_refl $i
 with dble_S_n (DBLe_succ $h) ↪ dble_Sn_n $h
 with dble_0_n db0 ↪ DBLe_refl db0
 with dble_0_n (dbsucc $i) ↪ DBLe_succ (dble_0_n $i);
+
+symbol dble_eq_left i j k : DBEq i j → DBLe i k → DBLe j k;
+symbol dble_eq_right i j k : DBEq i j → DBLe k i → DBLe k j;
+rule dble_eq_left _ _ _ (DBRefl _) $h ↪ $h
+with dble_eq_right _ _ _ (DBRefl _) $h ↪ $h;
+
+symbol dble_trans i j k : DBLe i j → DBLe j k → DBLe i k;
+rule dble_trans _ _ _ $e (DBLe_refl _) ↪ $e
+with dble_trans _ _ _ $e (DBLe_succ $f) ↪ DBLe_succ (dble_trans _ _ _ $e $f);
 
 // Increments the second argument if it is (not strictly) greater than the
 // first, otherwise is the identity
@@ -133,45 +149,42 @@ with IShiftF* db0 $t ↪ $t
 with IShiftF* (dbsucc $n) $t ↪ IShiftF (IShiftF* $n $t)
 with IShiftFN $i $t ↪ IShiftF (IShiftF* $i $t);
 
-// Wrapper for applying a function on interval variables inside a term
-symbol wrap : (DBId → ITerm → ITerm → ITerm) → (DBId → ITerm → FTerm → FTerm) → DBId → ITerm → Term → Term;
-rule wrap _ _ _ _ (tvar $id) ↪ (tvar $id)
-with wrap _ _ _ _ (tuniv $id) ↪ tuniv $id
-with wrap $f $g $i $T (tpi $A $B) ↪ tpi (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
-with wrap $f $g $i $T (tabs $A $t) ↪ tabs (wrap $f $g $i $T $A) (wrap $f $g $i $T $t)
-with wrap $f $g $i $T (tapp $u $v) ↪ tapp (wrap $f $g $i $T $u) (wrap $f $g $i $T $v)
-with wrap _ _ _ _ tnat ↪ tnat
-with wrap _ _ _ _ tzero ↪ tzero
-with wrap $f $g $i $T (tsuc $n) ↪ tsuc (wrap $f $g $i $T $n)
-with wrap $f $g $i $T (trec $P $z $H $n) ↪ trec (wrap $f $g $i $T $P) (wrap $f $g $i $T $z)
-                                                (wrap $f $g $i $T $H) (wrap $f $g $i $T $n)
-with wrap $f $g $i $T (tsig $A $B) ↪ tsig (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
-with wrap $f $g $i $T (tpair $a $b) ↪ tpair (wrap $f $g $i $T $a) (wrap $f $g $i $T $b)
-with wrap $f $g $i $T (tp1 $p) ↪ tp1 (wrap $f $g $i $T $p)
-with wrap $f $g $i $T (tp2 $p) ↪ tp2 (wrap $f $g $i $T $p)
-with wrap $f $g $i $T (tsum $A $B) ↪ tsum (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
-with wrap $f $g $i $T (tinjl $a) ↪ tinjl (wrap $f $g $i $T $a)
-with wrap $f $g $i $T (tinjr $b) ↪ tinjr (wrap $f $g $i $T $b)
-with wrap $f $g $i $T (tcase $A $B $P $a $b $x) ↪ tcase (wrap $f $g $i $T $A) (wrap $f $g $i $T $B)
-                                                        (wrap $f $g $i $T $P) (wrap $f $g $i $T $a)
-                                                        (wrap $f $g $i $T $b) (wrap $f $g $i $T $x)
-with wrap $f $g $i $T (tpath $A $x $y) ↪ tpath (wrap $f $g (dbsucc $i) (IShiftI $T) $A) (wrap $f $g $i $T $x)
-                                               (wrap $f $g $i $T $y)
-with wrap $f $g $i $T (tlamP $t) ↪ tlamP (wrap $f $g (dbsucc $i) (IShiftI $T) $t)
-with wrap $f $g $i $T (tappP $u $v) ↪ tappP (wrap $f $g $i $T $u) ($f $i $T $v)
-with wrap $f $g $i $T (tsys $f1 $f2 $u $v) ↪ tsys ($g $i $T $f1) ($g $i $T $f2) (wrap $f $g $i $T $u)
-                                                  (wrap $f $g $i $T $v)
-with wrap _ _ _ _ temptysys ↪ temptysys
-with wrap $f $g $i $T (ttransp $A $p $u) ↪ ttransp (wrap $f $g (dbsucc $i) (IShiftI $T) $A) ($g $i $T $p)
-                                                   (wrap $f $g $i $T $u)
-with wrap $f $g $i $T (thcomp $A $p $u $u0) ↪ thcomp (wrap $f $g $i $T $A) ($g $i $T $p)
-                                                     (wrap $f $g (dbsucc $i) (IShiftI $T) $u) (wrap $f $g $i $T $u0)
-with wrap $f $g $i $T (tgluety $p $t $w $A) ↪ tgluety ($g $i $T $p) (wrap $f $g $i $T $t) (wrap $f $g $i $T $w)
-                                                      (wrap $f $g $i $T $A)
-with wrap $f $g $i $T (tglue $p $t $a) ↪ tglue ($g $i $T $p) (wrap $f $g $i $T $t) (wrap $f $g $i $T $a)
-with wrap $f $g $i $T (tunglue $p $w $b) ↪ tunglue ($g $i $T $p) (wrap $f $g $i $T $w) (wrap $f $g $i $T $b);
-
-symbol Ishift : DBId → Term → Term ≔ λ i t, wrap (λ i _, IshiftI i) (λ i _, IshiftF i) i it0 t;
+symbol Ishift : DBId → Term → Term;
+rule Ishift _ (tvar $id) ↪ (tvar $id)
+with Ishift _ (tuniv $id) ↪ tuniv $id
+with Ishift $i (tpi $A $B) ↪ tpi (Ishift $i $A) (Ishift $i $B)
+with Ishift $i (tabs $A $t) ↪ tabs (Ishift $i $A) (Ishift $i $t)
+with Ishift $i (tapp $u $v) ↪ tapp (Ishift $i $u) (Ishift $i $v)
+with Ishift _ tnat ↪ tnat
+with Ishift _ tzero ↪ tzero
+with Ishift $i (tsuc $n) ↪ tsuc (Ishift $i $n)
+with Ishift $i (trec $P $z $H $n) ↪ trec (Ishift $i $P) (Ishift $i $z)
+                                         (Ishift $i $H) (Ishift $i $n)
+with Ishift $i (tsig $A $B) ↪ tsig (Ishift $i $A) (Ishift $i $B)
+with Ishift $i (tpair $a $b) ↪ tpair (Ishift $i $a) (Ishift $i $b)
+with Ishift $i (tp1 $p) ↪ tp1 (Ishift $i $p)
+with Ishift $i (tp2 $p) ↪ tp2 (Ishift $i $p)
+with Ishift $i (tsum $A $B) ↪ tsum (Ishift $i $A) (Ishift $i $B)
+with Ishift $i (tinjl $a) ↪ tinjl (Ishift $i $a)
+with Ishift $i (tinjr $b) ↪ tinjr (Ishift $i $b)
+with Ishift $i (tcase $A $B $P $a $b $x) ↪ tcase (Ishift $i $A) (Ishift $i $B)
+                                                 (Ishift $i $P) (Ishift $i $a)
+                                                 (Ishift $i $b) (Ishift $i $x)
+with Ishift $i (tpath $A $x $y) ↪ tpath (Ishift (dbsucc $i) $A) (Ishift $i $x)
+                                        (Ishift $i $y)
+with Ishift $i (tlamP $t) ↪ tlamP (Ishift (dbsucc $i) $t)
+with Ishift $i (tappP $u $v) ↪ tappP (Ishift $i $u) (IshiftI $i $v)
+with Ishift $i (tsys $f1 $f2 $u $v) ↪ tsys (IshiftF $i $f1) (IshiftF $i $f2)
+                                           (Ishift $i $u) (Ishift $i $v)
+with Ishift _ temptysys ↪ temptysys
+with Ishift $i (ttransp $A $p $u) ↪ ttransp (Ishift (dbsucc $i) $A) (IshiftF $i $p)
+                                            (Ishift $i $u)
+with Ishift $i (thcomp $A $p $u $u0) ↪ thcomp (Ishift $i $A) (IshiftF $i $p)
+                                              (Ishift (dbsucc $i) $u) (Ishift $i $u0)
+with Ishift $i (tgluety $p $t $w $A) ↪ tgluety (IshiftF $i $p) (Ishift $i $t) (Ishift $i $w)
+                                               (Ishift $i $A)
+with Ishift $i (tglue $p $t $a) ↪ tglue (IshiftF $i $p) (Ishift $i $t) (Ishift $i $a)
+with Ishift $i (tunglue $p $w $b) ↪ tunglue (IshiftF $i $p) (Ishift $i $w) (Ishift $i $b);
 symbol IShift : Term → Term ≔ Ishift db0;
 symbol IShift1 : Term → Term ≔ Ishift db1;
 symbol IShift* : DBId → Term → Term;
@@ -280,21 +293,61 @@ with IsubstF $i $V (fteq0 $id) ↪ dbselectF $i $id (substeq0 $V) (fteq0 $id) (f
 with IsubstF $i $V (fteq1 $id) ↪ dbselectF $i $id (substeq1 $V) (fteq1 $id) (fteq1 (dbprev $id))
 with IsubstF $i $V (ftmin $a $b) ↪ ftmin (IsubstF $i $V $a) (IsubstF $i $V $b)
 with IsubstF $i $V (ftmax $a $b) ↪ ftmax (IsubstF $i $V $a) (IsubstF $i $V $b);
-symbol Isubst : DBId → ITerm → Term → Term ≔ wrap IsubstI IsubstF;
+symbol Isubst : DBId → ITerm → Term → Term;
+rule Isubst _ _ (tvar $id) ↪ (tvar $id)
+with Isubst _ _ (tuniv $id) ↪ tuniv $id
+with Isubst $i $T (tpi $A $B) ↪ tpi (Isubst $i $T $A) (Isubst $i $T $B)
+with Isubst $i $T (tabs $A $t) ↪ tabs (Isubst $i $T $A) (Isubst $i $T $t)
+with Isubst $i $T (tapp $u $v) ↪ tapp (Isubst $i $T $u) (Isubst $i $T $v)
+with Isubst _ _ tnat ↪ tnat
+with Isubst _ _ tzero ↪ tzero
+with Isubst $i $T (tsuc $n) ↪ tsuc (Isubst $i $T $n)
+with Isubst $i $T (trec $P $z $H $n) ↪ trec (Isubst $i $T $P) (Isubst $i $T $z)
+                                            (Isubst $i $T $H) (Isubst $i $T $n)
+with Isubst $i $T (tsig $A $B) ↪ tsig (Isubst $i $T $A) (Isubst $i $T $B)
+with Isubst $i $T (tpair $a $b) ↪ tpair (Isubst $i $T $a) (Isubst $i $T $b)
+with Isubst $i $T (tp1 $p) ↪ tp1 (Isubst $i $T $p)
+with Isubst $i $T (tp2 $p) ↪ tp2 (Isubst $i $T $p)
+with Isubst $i $T (tsum $A $B) ↪ tsum (Isubst $i $T $A) (Isubst $i $T $B)
+with Isubst $i $T (tinjl $a) ↪ tinjl (Isubst $i $T $a)
+with Isubst $i $T (tinjr $b) ↪ tinjr (Isubst $i $T $b)
+with Isubst $i $T (tcase $A $B $P $a $b $x) ↪ tcase (Isubst $i $T $A) (Isubst $i $T $B)
+                                                    (Isubst $i $T $P) (Isubst $i $T $a)
+                                                    (Isubst $i $T $b) (Isubst $i $T $x)
+with Isubst $i $T (tpath $A $x $y) ↪ tpath (Isubst (dbsucc $i) (IShiftI $T) $A) (Isubst $i $T $x)
+                                           (Isubst $i $T $y)
+with Isubst $i $T (tlamP $t) ↪ tlamP (Isubst (dbsucc $i) (IShiftI $T) $t)
+with Isubst $i $T (tappP $u $v) ↪ tappP (Isubst $i $T $u) (IsubstI $i $T $v)
+with Isubst $i $T (tsys $f1 $f2 $u $v) ↪ tsys (IsubstF $i $T $f1) (IsubstF $i $T $f2) (Isubst $i $T $u)
+                                              (Isubst $i $T $v)
+with Isubst _ _ temptysys ↪ temptysys
+with Isubst $i $T (ttransp $A $p $u) ↪ ttransp (Isubst (dbsucc $i) (IShiftI $T) $A) (IsubstF $i $T $p)
+                                               (Isubst $i $T $u)
+with Isubst $i $T (thcomp $A $p $u $u0) ↪ thcomp (Isubst $i $T $A) (IsubstF $i $T $p)
+                                                 (Isubst (dbsucc $i) (IShiftI $T) $u) (Isubst $i $T $u0)
+with Isubst $i $T (tgluety $p $t $w $A) ↪ tgluety (IsubstF $i $T $p) (Isubst $i $T $t) (Isubst $i $T $w)
+                                                  (Isubst $i $T $A)
+with Isubst $i $T (tglue $p $t $a) ↪ tglue (IsubstF $i $T $p) (Isubst $i $T $t) (Isubst $i $T $a)
+with Isubst $i $T (tunglue $p $w $b) ↪ tunglue (IsubstF $i $T $p) (Isubst $i $T $w) (Isubst $i $T $b);
 
 symbol applyI1 (u : Term) (t : ITerm) ≔ Isubst db0 t u;
+
+// Interval bounds simplification
+rule IShiftI* _ it0 ↪ it0;
+rule IShiftI* _ it1 ↪ it1;
 
 // Interval substitution commutation
 rule IshiftI db0 (IshiftI $i $t) ↪ IshiftI (dbsucc $i) (IShiftI $t);
 rule IshiftF db0 (IshiftF $i $t) ↪ IshiftF (dbsucc $i) (IShiftF $t);
-rule wrap IsubstI IsubstF $id _ (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) $id _ $t) ↪ $t;
+rule Isubst $id _ (Ishift $id $t) ↪ $t;
 rule IsubstI $id _ (IshiftI $id $t) ↪ $t;
 rule IsubstF $id _ (IshiftF $id $t) ↪ $t;
-// rule wrap (λ i _ , IshiftI i) (λ i _, IshiftF i) $id _ (wrap IsubstI IsubstF db0 $u $t) ↪
-//      wrap IsubstI IsubstF db0 (IshiftI $id $u) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) it0 $t);
-rule wrap IsubstI IsubstF $id (itvar $id) (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪ $t;
-rule wrap IsubstI IsubstF $id it0 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪
+// rule Ishift $id (Isubst db0 $u $t) ↪
+//      Isubst db0 (IshiftI $id $u) (Ishift (dbsucc $id) $t);
+rule Isubst $id (itvar $id) (Ishift (dbsucc $id) $t) ↪ $t;
+rule Isubst $id it0 (Ishift (dbsucc $id) $t) ↪
      Ishift $id (Isubst $id it0 $t);
-rule wrap IsubstI IsubstF $id it1 (wrap (λ i _, IshiftI i) (λ i _, IshiftF i) (dbsucc $id) _ $t) ↪
+rule Isubst $id it1 (Ishift (dbsucc $id) $t) ↪
      Ishift $id (Isubst $id it1 $t);
-rule shift $id (wrap IsubstI IsubstF db0 $u $t) ↪ Isubst db0 $u (shift $id $t);
+rule shift $id (Isubst db0 $u $t) ↪ Isubst db0 $u (shift $id $t);
+rule Ishift $id (subst db0 $u $t) ↪ subst db0 (Ishift $id $u) (Ishift $id $t);
