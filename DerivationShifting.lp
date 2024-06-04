@@ -10,18 +10,6 @@ require open ctt.Lemmas;
 symbol der_Ishift_context [Γ : Context] [t T A : Term] [l l' : Lev]
                           (_ : der_context Γ) (_ : der Γ A (tuniv l) (lsuc l))
                           (_ : der (PushI (Push A l Γ)) t T l') : der (Push (IShift A) l (PushI Γ)) t T l';
-symbol der_weakF [Γ : Context] [t T : Term] [f : FTerm] [l : Lev]
-                 (_ : der_context Γ) (_ : der Γ t T l) (_ : der_F Γ f) :
-  der (PushF f Γ) t T l;
-symbol der_weakFF [Γ : Context] [f g : FTerm]
-                 (_ : der_context Γ) (_ : der_F Γ g) (_ : der_F Γ f) :
-  der_F (PushF f Γ) g;
-symbol der_eq_weakF [Γ : Context] [t1 t2 T : Term] [l : Lev] [f : FTerm]
-                    (_ : der_context Γ) (_ : der_eq Γ t1 t2 T l) (_ : der_F Γ f) :
-  der_eq (PushF f Γ) t1 t2 T l;
-symbol der_weakF1 [Γ : Context] [t A T : Term] [f : FTerm] [l l' : Lev]
-                 (_ : der_context Γ) (_ : der Γ A (tuniv l') (lsuc l')) (_ : der (Push A l' Γ) t T l) (_ : der_F Γ f) :
-  der (Push A l' (PushF f Γ)) t T l;
 
 // Generic der_shift
 constant symbol ShiftContext : Context → DBId → TYPE;
@@ -1567,7 +1555,7 @@ symbol Fshiftget_ctx_sctx [Γ : Context] (i : DBId) (sc : FShiftContext Γ) [f :
   TEq (shiftgetΓ (fsc_to_sctx df sc) i) (shiftgetΓ (fsc_to_ctx sc) i);
 rule Fshiftget_ctx_sctx db0 (FSC0 _) _ ↪ TRefl _
 with Fshiftget_ctx_sctx (dbsucc _) (FSC0 _) _ ↪ TRefl _
-with Fshiftget_ctx_sctx db0 (@FSCSucc _ _ $A _ _) _ ↪ TRefl _
+with Fshiftget_ctx_sctx db0 (FSCSucc _ _) _ ↪ TRefl _
 with Fshiftget_ctx_sctx (dbsucc $i) (FSCSucc $sc _) $df ↪
      Jcong Shift (Fshiftget_ctx_sctx $i $sc $df)
 with Fshiftget_ctx_sctx $i (FSCI $sc) $df ↪
@@ -1659,48 +1647,43 @@ with fsc_to_dsctx $df (FSCF $sc $dg) ↪ der_context_PushF _ _ (der_F_Fshift_n $
 
 // der_Fshift_n
 rule der_Fshift_n $sc $df (der_empty_face $d1) ↪ der_empty_face (der_isOne_Fshift_n $sc $df $d1)
-with der_Fshift_n $sc $df (der_union_face $df $dg $d1 $d2 $dfg) ↪
-     der_union_face (der_F_Fshift_n $sc $df $df)
-                    (der_F_Fshift_n $sc $df $dg)
-                    (der_Fshift_n $id (FSCF $sc $df) $d1)
-                    (der_Fshift_n $id (FSCF $sc $dg) $d2)
-                    (der_isOne_Fshift_n $sc $df $dfg)
-with der_Fshift_n $sc $df (@der_var _ $i $le) ↪ der_context_Fshift_n $id $i $sc $le
+with der_Fshift_n $sc $d (der_union_face $df $dg $d1 $d2 $dfg) ↪
+     der_union_face (der_F_Fshift_n $sc $d $df)
+                    (der_F_Fshift_n $sc $d $dg)
+                    (der_Fshift_n (FSCF $sc $df) $d $d1)
+                    (der_Fshift_n (FSCF $sc $dg) $d $d2)
+                    (der_isOne_Fshift_n $sc $d $dfg)
+with der_Fshift_n $sc $df (@der_var _ $i $le) ↪ der_context_Fshift_n $i $sc $df $le
 with der_Fshift_n _   _  der_univ ↪ der_univ
 with der_Fshift_n $sc $df (der_pi $dA $dB) ↪
      der_pi (der_Fshift_n $sc $df $dA)
-            (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+            (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
 with der_Fshift_n $sc $df (der_abs $dA $dB $dt) ↪
-     der_abs (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-             (der_Fshift_n $id (FSCSucc $sc $dA) $dt)
+     der_abs (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
+             (der_Fshift_n (FSCSucc $sc $dA) $df $dt)
 with der_Fshift_n $sc $df (der_app $A $t $u $B $dA $dB $dt $du) ↪
-     JT (aux_teq_subst_Fshift db0 $id $u $B)
-     (der_app (Fshift $id $A) (Fshift $id $t) (Fshift $id $u) (Fshift $id $B)
-             (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-             (der_Fshift_n $sc $df $dt) (der_Fshift_n $sc $df $du))
+     der_app $A $t $u $B
+             (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
+             (der_Fshift_n $sc $df $dt) (der_Fshift_n $sc $df $du)
 with der_Fshift_n $sc $df (der_type_conv $du $deq) ↪
      der_type_conv (der_Fshift_n $sc $df $du) (der_eq_Fshift_n $sc $df $deq)
 with der_Fshift_n _   _  der_nat ↪ der_nat
 with der_Fshift_n _   _  der_zero ↪ der_zero
 with der_Fshift_n $sc $df (der_suc $du) ↪
      der_suc (der_Fshift_n $sc $df $du)
-with der_Fshift_n $sc $df (@der_rec _ _ _ $P _ _ _ $dP $dz $dH $dn) ↪
+with der_Fshift_n $sc $df (der_rec $dP $dz $dH $dn) ↪
      der_rec (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dz)
-             (JT (Jpi (TRefl _) (Jpi (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))
-                                     (Japp (teq_trans (teq_inv (aux_teq_shift_Fshift db0 $id (Shift $P)))
-                                                      (Jcong Shift (teq_inv (aux_teq_shift_Fshift db0 $id $P)))) (TRefl _))))
-                 (der_Fshift_n $sc $df $dH))
-             (der_Fshift_n $sc $df $dn)
+             (der_Fshift_n $sc $df $dH) (der_Fshift_n $sc $df $dn)
 with der_Fshift_n $sc $df (der_sig $dA $dB) ↪
-     der_sig (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+     der_sig (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
 with der_Fshift_n $sc $df (der_pair $dA $dB $du $dv) ↪
-     der_pair (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+     der_pair (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
               (der_Fshift_n $sc $df $du) (der_Fshift_n $sc $df $dv)
 with der_Fshift_n $sc $df (der_p1 $dA $dB $dp) ↪
-     der_p1 (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+     der_p1 (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
             (der_Fshift_n $sc $df $dp)
 with der_Fshift_n $sc $df (der_p2 $dA $dB $dp) ↪
-     der_p2 (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+     der_p2 (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
             (der_Fshift_n $sc $df $dp)
 with der_Fshift_n $sc $df (der_sum $dA $dB) ↪
      der_sum (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB)
@@ -1710,504 +1693,330 @@ with der_Fshift_n $sc $df (der_injl $dA $dB $dp) ↪
 with der_Fshift_n $sc $df (der_injr $dA $dB $dp) ↪
      der_injr (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB)
             (der_Fshift_n $sc $df $dp)
-with der_Fshift_n $sc $df (@der_case _ _ _ _ _ _ $P _ _ _ $dA $dB $dP $dHa $dHb $dx) ↪
+with der_Fshift_n $sc $df (der_case $dA $dB $dP $dHa $dHb $dx) ↪
      der_case (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB)
-              (der_Fshift_n $sc $df $dP)
-              (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHa))
-              (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHb))
-              (der_Fshift_n $sc $df $dx)
-with der_Fshift_n $sc $df (@der_path _ _ $A _ _ $dA $dx $dy) ↪
-     der_path (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-              (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-              (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-with der_Fshift_n $sc $df (@der_lamP _ _ _ $t $dA $dt) ↪
-     JT (teq_inv (Jpath (TRefl _) (teq_Fshift_Isubst $id it0 $t)
-                        (teq_Fshift_Isubst $id it1 $t)))
-        (der_lamP (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dt))
-with der_Fshift_n $sc $df (der_appP $A _ _ _ $i $dA $dx $dy $dt $di) ↪
-     JT (teq_inv (teq_Fshift_Isubst $id $i $A))
-        (der_appP _ _ _ _ _ (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                            (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-                            (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-                            (der_Fshift_n $sc $df $dt) (der_I_Fshift_n $sc $df $di))
-with der_Fshift_n $sc $df (der_sys $dA $df $dg $du $dv $d1fg $deq) ↪
-     der_sys (der_Fshift_n $sc $df $dA) (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-             (der_Fshift_n $id (FSCF $sc $df) $du) (der_Fshift_n $id (FSCF $sc $dg) $dv)
-             (der_isOne_Fshift_n $sc $df $d1fg)
-             (der_eq_Fshift_n $id (FSCF $sc (der_F_min $df $dg)) $deq)
+              (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dHa)
+              (der_Fshift_n $sc $df $dHb) (der_Fshift_n $sc $df $dx)
+with der_Fshift_n $sc $df (der_path $dA $dx $dy) ↪
+     der_path (der_Fshift_n (FSCI $sc) $df $dA)
+              (der_Fshift_n $sc $df $dx) (der_Fshift_n $sc $df $dy)
+with der_Fshift_n $sc $df (der_lamP $dA $dt) ↪
+     der_lamP (der_Fshift_n (FSCI $sc) $df $dA) (der_Fshift_n (FSCI $sc) $df $dt)
+with der_Fshift_n $sc $df (der_appP _ _ _ _ _ $dA $dx $dy $dt $di) ↪
+     der_appP _ _ _ _ _ (der_Fshift_n (FSCI $sc) $df $dA)
+                        (der_Fshift_n $sc $df $dx) (der_Fshift_n $sc $df $dy)
+                        (der_Fshift_n $sc $df $dt) (der_I_Fshift_n $sc $df $di)
+with der_Fshift_n $sc $d (der_sys $dA $df $dg $du $dv $d1fg $deq) ↪
+     der_sys (der_Fshift_n $sc $d $dA) (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+             (der_Fshift_n (FSCF $sc $df) $d $du) (der_Fshift_n (FSCF $sc $dg) $d $dv)
+             (der_isOne_Fshift_n $sc $d $d1fg)
+             (der_eq_Fshift_n (FSCF $sc (der_F_min $df $dg)) $d $deq)
 with der_Fshift_n $sc $df (der_sys_empty $dA $d1) ↪
      der_sys_empty (der_Fshift_n $sc $df $dA) (der_isOne_Fshift_n $sc $df $d1)
-with der_Fshift_n $sc $df (@der_transp _ _ $A _ _ $dA $df $du $deq) ↪
-     JT (teq_inv (teq_Fshift_Isubst $id it1 $A))
-        (der_transp (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_F_Fshift_n $sc $df $df)
-                    (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $du))
-                    (Jeq (TRefl _) (TRefl _) (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                                        (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                         (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deq)))
-with der_Fshift_n $sc $df (@der_hcomp _ _ $A _ $u _ $dA $df $du $du0 $deq) ↪
-     der_hcomp (der_Fshift_n $sc $df $dA) (der_F_Fshift_n $sc $df $df)
-               (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $A (dble_0_n $id)))
-                   (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $du))
-               (der_Fshift_n $sc $df $du0)
-               (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
+with der_Fshift_n $sc $d (der_transp $dA $df $du $deq) ↪
+     der_transp (der_Fshift_n (FSCI $sc) $d $dA) (der_F_Fshift_n $sc $d $df)
+                (der_Fshift_n $sc $d $du)
+                (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deq)
+with der_Fshift_n $sc $d (der_hcomp $dA $df $du $du0 $deq) ↪
+     der_hcomp (der_Fshift_n $sc $d $dA) (der_F_Fshift_n $sc $d $df)
+               (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $du)
+               (der_Fshift_n $sc $d $du0)
+               (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
 // der_eq_Fshift_n
 with der_eq_Fshift_n $sc $df (der_eq_refl _ $s $u $A $du) ↪
-     der_eq_refl _ $s (Fshift $id $u) (Fshift $id $A) (der_Fshift_n $sc $df $du)
+     der_eq_refl _ $s $u $A (der_Fshift_n $sc $df $du)
 with der_eq_Fshift_n $sc $df (der_eq_trans _ $s $u $v $w $A $duv $dvw) ↪
-     der_eq_trans _ $s (Fshift $id $u) (Fshift $id $v) (Fshift $id $w) (Fshift $id $A)
+     der_eq_trans _ $s $u $v $w $A
                        (der_eq_Fshift_n $sc $df $duv) (der_eq_Fshift_n $sc $df $dvw)
 with der_eq_Fshift_n $sc $df (der_eq_sym _ $s $u $v $A $deq) ↪
-     der_eq_sym _ $s (Fshift $id $u) (Fshift $id $v) (Fshift $id $A) (der_eq_Fshift_n $sc $df $deq)
+     der_eq_sym _ $s $u $v $A (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_conv _ $s $t1 $t2 $T1 $T2 $deqt $deqT) ↪
-     der_eq_conv _ $s (Fshift $id $t1) (Fshift $id $t2) (Fshift $id $T1) (Fshift $id $T2)
+     der_eq_conv _ $s $t1 $t2 $T1 $T2
                       (der_eq_Fshift_n $sc $df $deqt) (der_eq_Fshift_n $sc $df $deqT)
 with der_eq_Fshift_n $sc $df (der_eq_isOne_zero _ $s $A $u $v $d1) ↪
-     der_eq_isOne_zero _ $s (Fshift $id $A) (Fshift $id $u) (Fshift $id $v)
+     der_eq_isOne_zero _ $s $A $u $v
                             (der_isOne_Fshift_n $sc $df $d1)
-with der_eq_Fshift_n $sc $df (der_eq_isOne_max _ $s $A $u $v $f $g $df $dg $deqf $deqg $d1) ↪
-     der_eq_isOne_max _ $s (Fshift $id $A) (Fshift $id $u) (Fshift $id $v) (FshiftF $id $f) (FshiftF $id $g)
-                      (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                      (der_eq_Fshift_n $id (FSCF $sc $df) $deqf)
-                      (der_eq_Fshift_n $id (FSCF $sc $dg) $deqg)
-                      (der_isOne_Fshift_n $sc $df $d1)
+with der_eq_Fshift_n $sc $d (der_eq_isOne_max _ $s $A $u $v $f $g $df $dg $deqf $deqg $d1) ↪
+     der_eq_isOne_max _ $s $A $u $v $f $g
+                      (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                      (der_eq_Fshift_n (FSCF $sc $df) $d $deqf)
+                      (der_eq_Fshift_n (FSCF $sc $dg) $d $deqg)
+                      (der_isOne_Fshift_n $sc $d $d1)
 with der_eq_Fshift_n $sc $df (der_eq_beta _ $s $s' $u $A $t $B $dA $dB $dt $du) ↪
-     der_eq_beta _ $s $s' (Fshift $id $u) (Fshift $id $A) (Fshift $id $t) (Fshift $id $B)
-                        (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-                        (der_Fshift_n $id (FSCSucc $sc $dA) $dt) (der_Fshift_n $sc $df $du)
-with der_eq_Fshift_n $sc $df (der_eq_eta _ $s $s' $A $B $f $dA $dB $df) ↪
-     Jeq (TRefl _) (Jabs (TRefl _) (Japp (aux_teq_shift_Fshift db0 $id $f) (TRefl _))) (TRefl _)
-         (der_eq_eta _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $f)
-                     (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-                     (der_Fshift_n $sc $df $df))
+     der_eq_beta _ $s $s' $u $A $t $B
+                        (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
+                        (der_Fshift_n (FSCSucc $sc $dA) $df $dt) (der_Fshift_n $sc $df $du)
+with der_eq_Fshift_n $sc $d (der_eq_eta _ $s $s' $A $B $f $dA $dB $df) ↪
+     der_eq_eta _ $s $s' $A $B $f
+                (der_Fshift_n $sc $d $dA) (der_Fshift_n (FSCSucc $sc $dA) $d $dB)
+                (der_Fshift_n $sc $d $df)
 with der_eq_Fshift_n $sc $df (der_eq_rec_zero _ $s $s' $P $z $H $dP $dz $dH) ↪
-     der_eq_rec_zero _ $s $s' (Fshift $id $P) (Fshift $id $z) (Fshift $id $H)
+     der_eq_rec_zero _ $s $s' $P $z $H
                      (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dz)
-                     (JT (Jpi (TRefl _) (Jpi (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))
-                                             (Japp (teq_inv (teq_trans (Jcong Shift (aux_teq_shift_Fshift db0 $id $P))
-                                                                       (aux_teq_shift_Fshift db0 $id (Shift $P)))) (TRefl _))))
-                         (der_Fshift_n $sc $df $dH))
+                     (der_Fshift_n $sc $df $dH)
 with der_eq_Fshift_n $sc $df (der_eq_rec_suc _ $s $s' $P $z $H $n $dP $dz $dH $dn) ↪
-     der_eq_rec_suc _ $s $s' (Fshift $id $P) (Fshift $id $z) (Fshift $id $H) (Fshift $id $n)
+     der_eq_rec_suc _ $s $s' $P $z $H $n
                      (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dz)
-                     (JT (Jpi (TRefl _) (Jpi (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))
-                                             (Japp (teq_inv (teq_trans (Jcong Shift (aux_teq_shift_Fshift db0 $id $P))
-                                                                       (aux_teq_shift_Fshift db0 $id (Shift $P)))) (TRefl _))))
-                         (der_Fshift_n $sc $df $dH))
-                     (der_Fshift_n $sc $df $dn)
+                     (der_Fshift_n $sc $df $dH) (der_Fshift_n $sc $df $dn)
 with der_eq_Fshift_n $sc $df (der_eq_p1 _ $s $s' $A $u $B $v $dA $du $dB $dv) ↪
-     der_eq_p1 _ $s $s' (Fshift $id $A) (Fshift $id $u) (Fshift $id $B) (Fshift $id $v)
+     der_eq_p1 _ $s $s' $A $u $B $v
                       (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $du)
-                      (der_Fshift_n $id (FSCSucc $sc $dA) $dB) (der_Fshift_n $sc $df $dv)
+                      (der_Fshift_n (FSCSucc $sc $dA) $df $dB) (der_Fshift_n $sc $df $dv)
 with der_eq_Fshift_n $sc $df (der_eq_p2 _ $s $s' $A $u $B $v $dA $du $dB $dv) ↪
-     der_eq_p2 _ $s $s' (Fshift $id $A) (Fshift $id $u) (Fshift $id $B) (Fshift $id $v)
+     der_eq_p2 _ $s $s' $A $u $B $v
                       (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $du)
-                      (der_Fshift_n $id (FSCSucc $sc $dA) $dB) (der_Fshift_n $sc $df $dv)
+                      (der_Fshift_n (FSCSucc $sc $dA) $df $dB) (der_Fshift_n $sc $df $dv)
 with der_eq_Fshift_n $sc $df (der_eq_pair _ $s $s' $A $B $t $u $dA $dB $dt $du $dp1 $dp2) ↪
-     der_eq_pair _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $t) (Fshift $id $u)
-                      (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
+     der_eq_pair _ $s $s' $A $B $t $u
+                      (der_Fshift_n $sc $df $dA) (der_Fshift_n (FSCSucc $sc $dA) $df $dB)
                       (der_Fshift_n $sc $df $dt) (der_Fshift_n $sc $df $du)
                       (der_eq_Fshift_n $sc $df $dp1) (der_eq_Fshift_n $sc $df $dp2)
 with der_eq_Fshift_n $sc $df (der_eq_case_left _ $s $s' $m $A $B $P $Ha $Hb $a $dA $dB $dP $dHa $dHb $da) ↪
-     der_eq_case_left _ $s $s' $m (Fshift $id $A) (Fshift $id $B) (Fshift $id $P)
-                      (Fshift $id $Ha) (Fshift $id $Hb) (Fshift $id $a)
+     der_eq_case_left _ $s $s' $m $A $B $P
+                      $Ha $Hb $a
                       (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB)
-                      (der_Fshift_n $sc $df $dP)
-                      (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHa))
-                      (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHb))
-                      (der_Fshift_n $sc $df $da)
+                      (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dHa)
+                      (der_Fshift_n $sc $df $dHb) (der_Fshift_n $sc $df $da)
 with der_eq_Fshift_n $sc $df (der_eq_case_right _ $s $s' $m $A $B $P $Ha $Hb $a $dA $dB $dP $dHa $dHb $da) ↪
-     der_eq_case_right _ $s $s' $m (Fshift $id $A) (Fshift $id $B) (Fshift $id $P)
-                       (Fshift $id $Ha) (Fshift $id $Hb) (Fshift $id $a)
+     der_eq_case_right _ $s $s' $m $A $B $P
+                       $Ha $Hb $a
                       (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB)
-                      (der_Fshift_n $sc $df $dP)
-                      (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHa))
-                      (JT (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P)) (TRefl _))) (der_Fshift_n $sc $df $dHb))
-                      (der_Fshift_n $sc $df $da)
+                      (der_Fshift_n $sc $df $dP) (der_Fshift_n $sc $df $dHa)
+                      (der_Fshift_n $sc $df $dHb) (der_Fshift_n $sc $df $da)
 with der_eq_Fshift_n $sc $df (der_eq_betaP _ $s $A $t $i $dA $dt $di) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id $i $A)) (TRefl _) (teq_inv (teq_Fshift_Isubst $id $i $t))
-         (der_eq_betaP _ $s (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $t) (FshiftI $id $i)
-                      (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dt)
-                      (der_I_Fshift_n $sc $df $di))
+     der_eq_betaP _ $s $A $t $i
+                  (der_Fshift_n (FSCI $sc) $df $dA) (der_Fshift_n (FSCI $sc) $df $dt)
+                  (der_I_Fshift_n $sc $df $di)
 with der_eq_Fshift_n $sc $df (der_eq_etaP _ $s $A $t $x $y $dA $dx $dy $dt) ↪
-     Jeq (TRefl _) (Jcong tlamP (JappP (aux_teq_Fshift_Fshift db0 $id $t (dble_0_n _)) (ITRefl _))) (TRefl _)
-         (der_eq_etaP _ $s (Fshift (dbsucc $id) $A) (Fshift $id $t) (Fshift $id $x) (Fshift $id $y)
-                           (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                           (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-                           (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-                           (der_Fshift_n $sc $df $dt))
+     der_eq_etaP _ $s $A $t $x $y
+                 (der_Fshift_n (FSCI $sc) $df $dA)
+                 (der_Fshift_n $sc $df $dx)
+                 (der_Fshift_n $sc $df $dy)
+                 (der_Fshift_n $sc $df $dt)
 with der_eq_Fshift_n $sc $df (der_eq_appP_zero _ $s $A $t $x $y $dA $dx $dy $dt) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it0 $A)) (TRefl _) (TRefl _)
-         (der_eq_appP_zero _ $s (Fshift (dbsucc $id) $A) (Fshift $id $t) (Fshift $id $x) (Fshift $id $y)
-                          (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                          (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-                          (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-                          (der_Fshift_n $sc $df $dt))
+     der_eq_appP_zero _ $s $A $t $x $y
+                      (der_Fshift_n (FSCI $sc) $df $dA)
+                      (der_Fshift_n $sc $df $dx)
+                      (der_Fshift_n $sc $df $dy)
+                      (der_Fshift_n $sc $df $dt)
 with der_eq_Fshift_n $sc $df (der_eq_appP_one _ $s $A $t $x $y $dA $dx $dy $dt) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 $A)) (TRefl _) (TRefl _)
-         (der_eq_appP_one _ $s (Fshift (dbsucc $id) $A) (Fshift $id $t) (Fshift $id $x) (Fshift $id $y)
-                          (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                          (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-                          (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-                          (der_Fshift_n $sc $df $dt))
-with der_eq_Fshift_n $sc $df (der_eq_sys_left _ $s $A $f $g $x $y $dA $df $dg $dx $dy $deq $d1) ↪
-     der_eq_sys_left _ $s (Fshift $id $A) (FshiftF $id $f) (FshiftF $id $g) (Fshift $id $x) (Fshift $id $y)
-                     (der_Fshift_n $sc $df $dA)
-                     (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                     (der_Fshift_n $id (FSCF $sc $df) $dx) (der_Fshift_n $id (FSCF $sc $dg) $dy)
-                     (der_eq_Fshift_n $id (FSCF $sc (der_F_min $df $dg)) $deq)
-                     (der_isOne_Fshift_n $sc $df $d1)
-with der_eq_Fshift_n $sc $df (der_eq_sys_right _ $s $A $f $g $x $y $dA $df $dg $dx $dy $deq $d1) ↪
-     der_eq_sys_right _ $s (Fshift $id $A) (FshiftF $id $f) (FshiftF $id $g) (Fshift $id $x) (Fshift $id $y) (der_Fshift_n $sc $df $dA)
-                      (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                      (der_Fshift_n $id (FSCF $sc $df) $dx) (der_Fshift_n $id (FSCF $sc $dg) $dy)
-                      (der_eq_Fshift_n $id (FSCF $sc (der_F_min $df $dg)) $deq)
-                      (der_isOne_Fshift_n $sc $df $d1)
-with der_eq_Fshift_n $sc $df (der_eq_transp _ $s $A $f $u $dA $df $du $deq $d1) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 $A)) (TRefl _) (TRefl _)
-         (der_eq_transp _ $s (Fshift (dbsucc $id) $A) (FshiftF $id $f) (Fshift $id $u)
-                        (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                        (der_F_Fshift_n $sc $df $df)
-                        (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $du))
-                        (Jeq (TRefl _) (TRefl _) (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                                            (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                             (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deq))
-                        (der_isOne_Fshift_n $sc $df $d1))
-with der_eq_Fshift_n $sc $df (der_eq_transp_pi _ $s $s' $A $B $f $u $v $dA $dB $df $deqA $deqB $du $dv) ↪
-     Jeq (teq_trans (Jcong (λ t, apply1 t (Fshift $id $v)) (teq_inv (teq_Fshift_Isubst $id it1 $B)))
-                    (aux_teq_subst_Fshift db0 $id $v (applyI1 $B it1)))
-         (TRefl _)
-         (Jtransp (teq_trans (Jcong (λ t, apply1 (Fshift (dbsucc $id) $B) t)
-                                    (Jtransp (teq_trans (Jcong (λ t, applyI1 t (itmax (itvar db1) (itsym (itvar db0))))
-                                                               (teq_trans (Jcong IShift1 (aux_teq_Fshift_Fshift db1 (dbsucc $id) $A dble_db0))
-                                                                          (aux_teq_Fshift_Fshift db1 (dbsucc (dbsucc $id)) (IShift1 $A) dble_db0)))
-                                                        (teq_inv (teq_Fshift_Isubst (dbsucc (dbsucc $id)) (itmax (itvar db1) (itsym (itvar db0)))
-                                                                                    (IShift1 (IShift1 $A)))))
-                                             (FJmax (aux_teq_FshiftF_FshiftF db0 $id $f (dble_0_n $id)) (FTRefl (fteq0 db0)))
-                                             (aux_teq_Fshift_Fshift db0 $id $v (dble_0_n $id))))
-                             (aux_teq_subst_Fshift db0 (dbsucc $id) (ttransp (applyI1 (IShift1 (IShift1 $A)) (itmax (itvar db1) (itsym (itvar db0))))
-                                                                             (ftmax (IShiftF $f) (fteq0 db0)) (IShift $v)) $B))
-                  (FTRefl _)
-                  (Japp (TRefl _) (Jtransp (teq_trans (Jcong (λ t, applyI1 t (itsym (itvar db0))) (aux_teq_Fshift_Fshift db1 (dbsucc $id) $A dble_db0))
-                                                      (teq_inv (teq_Fshift_Isubst (dbsucc $id) (itsym (itvar db0)) (IShift1 $A))))
-                                           (FTRefl _) (TRefl _))))
-         (der_eq_transp_pi _ $s $s' (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $B) (FshiftF $id $f) (Fshift $id $u) (Fshift $id $v)
-                           (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCSucc (FSCI $sc) $dA) $dB)
-                           (der_F_Fshift_n $sc $df $df)
-                           (Jeq (TRefl _) (TRefl _)
-                                (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                           (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                                (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqA))
-                           (Jeq (TRefl _) (TRefl _)
-                                (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $B it0) (dble_0_n $id)))
-                                           (Jcong IShift (teq_Fshift_Isubst $id it0 $B)))
-                                (der_eq_Fshift_n (dbsucc $id) (FSCSucc (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df))
-                                                                       (der_weakF (pushΓI (fsc_to_dctx $sc)) $dA (der_Fshift0F (fsc_to_dctx $sc) $df)))
-                                                 $deqB))
-                           (JT (teq_Fshift_Isubst $id it0 (tpi $A $B)) (der_Fshift_n $sc $df $du))
-                           (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dv)))
-with der_eq_Fshift_n $sc $df (der_eq_transp_univ _ $s $f $A $df $dA) ↪
-     der_eq_transp_univ _ $s (FshiftF $id $f) (Fshift $id $A)
-                       (der_F_Fshift_n $sc $df $df) (der_Fshift_n $sc $df $dA)
-with der_eq_Fshift_n $sc $df (der_eq_transp_zero _ $s $f $df) ↪
-     der_eq_transp_zero _ $s (FshiftF $id $f) (der_F_Fshift_n $sc $df $df)
-with der_eq_Fshift_n $sc $df (der_eq_transp_suc _ $s $f $n $df $dn) ↪
-     der_eq_transp_suc _ $s (FshiftF $id $f) (Fshift $id $n) (der_F_Fshift_n $sc $df $df) (der_Fshift_n $sc $df $dn)
-with der_eq_Fshift_n $sc $df (der_eq_transp_sig _ $s $s' $A $B $f $u $dA $dB $df $deqA $deqB $du) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 (tsig $A $B)))
-         (TRefl _)
-         (Jpair (TRefl _) (Jtransp (teq_trans (Jcong (λ t, apply1 (Fshift (dbsucc $id) $B) t) (teq_Fshift_transpfill $id $A $f (tp1 $u)))
-                                              (aux_teq_subst_Fshift db0 (dbsucc $id) (ttranspFill $A $f (tp1 $u)) $B))
-                                   (FTRefl (FshiftF $id $f))
-                                   (TRefl (Fshift $id (tp2 $u)))))
-         (der_eq_transp_sig _ $s $s' (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $B) (FshiftF $id $f) (Fshift $id $u)
-                            (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCSucc (FSCI $sc) $dA) $dB)
-                            (der_F_Fshift_n $sc $df $df)
-                            (Jeq (TRefl _) (TRefl _)
-                                 (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                            (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                                 (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqA))
-                            (Jeq (TRefl (tuniv $s')) (TRefl _)
-                                 (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $B it0) (dble_0_n $id)))
-                                            (Jcong IShift (teq_Fshift_Isubst $id it0 $B)))
-                                 (der_eq_Fshift_n (dbsucc $id) (FSCSucc (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df))
-                                                                        (der_weakF (pushΓI (fsc_to_dctx $sc)) $dA (der_Fshift0F (fsc_to_dctx $sc) $df))) $deqB))
-                            (JT (teq_Fshift_Isubst $id it0 (tsig $A $B)) (der_Fshift_n $sc $df $du)))
-with der_eq_Fshift_n $sc $df (der_eq_transp_sum_left _ $s $s' $A $B $f $a $dA $dB $df $da $deqA $deqB) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 (tsum $A $B))) (TRefl _) (TRefl _)
-         (der_eq_transp_sum_left _ $s $s' (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $B) (FshiftF $id $f) (Fshift $id $a)
-                                 (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dB)
-                                 (der_F_Fshift_n $sc $df $df)
-                                 (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $da))
-                                 (Jeq (TRefl _) (TRefl _)
-                                      (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                                 (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                                      (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqA))
-                                 (Jeq (TRefl _) (TRefl _)
-                                      (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $B it0) (dble_0_n $id)))
-                                                 (Jcong IShift (teq_Fshift_Isubst $id it0 $B)))
-                                      (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqB)))
-with der_eq_Fshift_n $sc $df (der_eq_transp_sum_right _ $s $s' $A $B $f $a $dA $dB $df $da $deqA $deqB) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 (tsum $A $B))) (TRefl _) (TRefl _)
-         (der_eq_transp_sum_right _ $s $s' (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $B) (FshiftF $id $f) (Fshift $id $a)
-                                 (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dB)
-                                 (der_F_Fshift_n $sc $df $df)
-                                 (JT (teq_Fshift_Isubst $id it0 $B) (der_Fshift_n $sc $df $da))
-                                 (Jeq (TRefl _) (TRefl _)
-                                      (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A it0) (dble_0_n $id)))
-                                                 (Jcong IShift (teq_Fshift_Isubst $id it0 $A)))
-                                      (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqA))
-                                 (Jeq (TRefl _) (TRefl _)
-                                      (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $B it0) (dble_0_n $id)))
-                                                 (Jcong IShift (teq_Fshift_Isubst $id it0 $B)))
-                                      (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqB)))
-with der_eq_Fshift_n $sc $df (der_eq_transp_path _ $s $A $x $y $f $u $dA $dx $dy $df $du $deqA $deqx $deqy) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 (tpath $A $x $y))) (TRefl _)
-         (Jcong tlamP
-                (teq_trans
-                 (Jcomp (teq_trans
-                         (Jcong (λ t, applyI1 t (itvar db0))
-                                (teq_trans
-                                 (Jcong (λ t, applyI1 t (itvar db2))
-                                        (teq_trans (Jcong (Fshift db2) (aux_teq_Fshift_Fshift db2 (dbsucc (dbsucc $id)) $A
-                                                                                              (dble_n_S (dble_n_S (dble_0_n $id)))))
-                                                   (aux_teq_Fshift_Fshift db2 (dbsucc (dbsucc (dbsucc $id))) (Fshift db2 $A)
-                                                                          (dble_n_S (dble_n_S (dble_0_n (dbsucc $id)))))))
-                                 (teq_inv (teq_Fshift_Isubst (dbsucc (dbsucc (dbsucc $id))) (itvar db2) (Fshift db2 (Fshift db2 $A))))))
-                         (teq_inv (teq_Fshift_Isubst (dbsucc (dbsucc $id)) (itvar db0) (applyI1 (Fshift db2 (Fshift db2 $A)) (itvar db2)))))
-                        (FJmax (aux_teq_FshiftF_FshiftF db0 $id $f (dble_0_n $id)) (FTRefl _))
-                        (Jsys (fteq_trans (FJcong IShiftF (aux_teq_FshiftF_FshiftF db0 $id $f (dble_0_n $id)))
-                                          (aux_teq_FshiftF_FshiftF db0 (dbsucc $id) (IShiftF $f) (dble_0_n (dbsucc $id))))
-                              (FTRefl _)
-                              (JappP (teq_trans (Jcong IShift (aux_teq_Fshift_Fshift db0 $id $u (dble_0_n $id)))
-                                                (aux_teq_Fshift_Fshift db0 (dbsucc $id) (IShift $u) (dble_0_n (dbsucc $id))))
-                                     (ITRefl (FshiftI (dbsucc (dbsucc $id)) (itvar db1))))
-                              (Jsys (FTRefl _) (FTRefl _) (aux_teq_Fshift_Fshift db1 (dbsucc $id) $x dble_db0)
-                                    (aux_teq_Fshift_Fshift db1 (dbsucc $id) $y dble_db0)))
-                        (JappP (aux_teq_Fshift_Fshift db0 $id $u (dble_0_n $id)) (ITRefl (FshiftI (dbsucc $id) (itvar db0)))))
-                 (teq_Fshift_comp (dbsucc $id) (applyI1 (applyI1 (Fshift db2 (Fshift db2 $A)) (itvar db2)) (itvar db0))
-                                  (ftmax (IShiftF $f) (ftmax (fteq0 db0) (fteq1 db0)))
-                                  (tsys (IShiftFN db1 $f) (ftmax (fteq0 db1) (fteq1 db1))
-                                        (tappP (IShift (IShift $u)) (itvar db1))
-                                        (tsys (fteq0 db1) (fteq1 db1) (IShift1 $x) (IShift1 $y)))
-                                  (tappP (IShift $u) (itvar db0)))))
-         (der_eq_transp_path _ $s (Fshift (dbsucc (dbsucc $id)) $A) (Fshift (dbsucc $id) $x) (Fshift (dbsucc $id) $y) (FshiftF $id $f) (Fshift $id $u)
-                             (der_Fshift_n (dbsucc (dbsucc $id)) (FSCI (FSCI $sc)) $dA)
-                             (JT (teq_Fshift_Isubst (dbsucc $id) it0 $A) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dx))
-                             (JT (teq_Fshift_Isubst (dbsucc $id) it1 $A) (der_Fshift_n (dbsucc $id) (FSCI $sc) $dy))
-                             (der_F_Fshift_n $sc $df $df)
-                             (JT (teq_Fshift_Isubst $id it0 (tpath $A $x $y)) (der_Fshift_n $sc $df $du))
-                             (Jeq (TRefl _) (TRefl _)
-                                  (teq_trans (teq_inv (aux_teq_Fshift_Fshift db1 (dbsucc $id) (Isubst db1 it0 $A) dble_db0))
-                                             (Jcong IShift1 (aux_teq_Fshift_Isubst db1 (dbsucc $id) it0 $A dble_db0)))
-                                  (der_eq_Fshift_n (dbsucc (dbsucc $id))
-                                                   (FSCF (FSCI (FSCI $sc)) (der_Fshift0F (fsc_to_dctx (FSCI $sc))
-                                                                                         (der_Fshift0F (fsc_to_dctx $sc) $df)))
-                                                   $deqA))
-                             (Jeq (teq_Fshift_Isubst (dbsucc $id) it0 $A) (TRefl _)
-                                  (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $x it0) (dble_0_n $id)))
-                                             (Jcong IShift (teq_Fshift_Isubst $id it0 $x)))
-                                  (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqx))
-                             (Jeq (teq_Fshift_Isubst (dbsucc $id) it1 $A) (TRefl _)
-                                  (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $y it0) (dble_0_n $id)))
-                                             (Jcong IShift (teq_Fshift_Isubst $id it0 $y)))
-                                  (der_eq_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $deqy)))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp _ $s $A $f $u $u0 $dA $df $du $du0 $deq $d1) ↪
-     Jeq (TRefl _) (TRefl _) (teq_inv (teq_Fshift_Isubst $id it1 $u))
-     (der_eq_hcomp _ $s (Fshift $id $A) (FshiftF $id $f) (Fshift (dbsucc $id) $u) (Fshift $id $u0)
-                  (der_Fshift_n $sc $df $dA) (der_F_Fshift_n $sc $df $df)
-                  (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $A (dble_0_n _)))
-                      (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $du))
-                  (der_Fshift_n $sc $df $du0)
-                  (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-                  (der_isOne_Fshift_n $sc $df $d1))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_pi _ $s $s' $A $B $f $u $u0 $v $dA $dB $df $du $du0 $deq $dv) ↪
-     Jeq (aux_teq_subst_Fshift db0 $id $v $B) (TRefl _)
-         (Jhcomp (aux_teq_subst_Fshift db0 $id $v $B) (FTRefl _)
-                                     (Japp (TRefl _) (aux_teq_Fshift_Fshift db0 $id $v (dble_0_n _))) (TRefl _))
-     (der_eq_hcomp_pi _ $s $s' (Fshift $id $A) (Fshift $id $B) (FshiftF $id $f) (Fshift (dbsucc $id) $u) (Fshift $id $u0) (Fshift $id $v)
-                     (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-                     (der_F_Fshift_n $sc $df $df)
-                     (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id (tpi $A $B) (dble_0_n _)))
-                         (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $du))
-                     (der_Fshift_n $sc $df $du0)
-                     (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-                     (der_Fshift_n $sc $df $dv))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_zero _ $s $f $n $df $dn $deq) ↪
-     der_eq_hcomp_zero _ $s (FshiftF $id $f) (Fshift (dbsucc $id) $n) (der_F_Fshift_n $sc $df $df)
-                       (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $dn)
-                       (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $n) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_suc _ $s $f $n $n0 $df $dn $dn0 $deq) ↪
-     der_eq_hcomp_suc _ $s (FshiftF $id $f) (Fshift (dbsucc $id) $n) (Fshift $id $n0) (der_F_Fshift_n $sc $df $df)
-                       (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $dn)
-                       (der_Fshift_n $sc $df $dn0)
-                       (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $n) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_sig _ $s $s' $A $B $f $u $u0 $dA $dB $df $du $du0 $deq) ↪
-     Jeq (TRefl _) (TRefl _)
-         (Jpair (TRefl _)
-                (teq_trans (Jcomp (teq_trans (teq_trans (Jcong (apply1 (IShift (Fshift $id $B))) (teq_Fshift_hfill $id $A $f (tp1 $u) (tp1 $u0)))
-                                                        (Jcong (λ t, apply1 t (Fshift (dbsucc $id) (thfill $A $f (tp1 $u) (tp1 $u0))))
-                                                               (aux_teq_Fshift_Fshift db0 $id $B (dble_0_n $id))))
-                                             (aux_teq_subst_Fshift db0 (dbsucc $id) (thfill $A $f (tp1 $u) (tp1 $u0)) (IShift $B)))
-                                  (FTRefl _) (TRefl _) (TRefl _))
-                           (teq_Fshift_comp $id (apply1 (IShift $B) (thfill $A $f (tp1 $u) (tp1 $u0))) $f (tp2 $u) (tp2 $u0))))
-         (der_eq_hcomp_sig _ $s $s' (Fshift $id $A) (Fshift $id $B) (FshiftF $id $f) (Fshift (dbsucc $id) $u) (Fshift $id $u0)
-                           (der_Fshift_n $sc $df $dA) (der_Fshift_n $id (FSCSucc $sc $dA) $dB)
-                           (der_F_Fshift_n $sc $df $df)
-                           (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id (tsig $A $B) (dble_0_n $id)))
-                               (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $du))
-                           (der_Fshift_n $sc $df $du0)
-                           (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u) (der_eq_Fshift_n $id (FSCF $sc $df) $deq)))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_sum_left _ $s $s' $A $B $f $a $a0 $dA $dB $df $da $da0 $deq) ↪
-     der_eq_hcomp_sum_left _ $s $s' (Fshift $id $A) (Fshift $id $B) (FshiftF $id $f) (Fshift (dbsucc $id) $a) (Fshift $id $a0)
-                           (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB) (der_F_Fshift_n $sc $df $df)
-                           (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $A (dble_0_n $id)))
-                               (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $da))
-                           (der_Fshift_n $sc $df $da0)
-                           (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $a) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_sum_right _ $s $s' $A $B $f $a $a0 $dA $dB $df $da $da0 $deq) ↪
-     der_eq_hcomp_sum_right _ $s $s' (Fshift $id $A) (Fshift $id $B) (FshiftF $id $f) (Fshift (dbsucc $id) $a) (Fshift $id $a0)
-                           (der_Fshift_n $sc $df $dA) (der_Fshift_n $sc $df $dB) (der_F_Fshift_n $sc $df $df)
-                           (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $B (dble_0_n $id)))
-                               (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $da))
-                           (der_Fshift_n $sc $df $da0)
-                           (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $a) (der_eq_Fshift_n $id (FSCF $sc $df) $deq))
-with der_eq_Fshift_n $sc $df (der_eq_hcomp_path _ $s $A $x $y $f $u $u0 $dA $dx $dy $df $du $du0 $deq) ↪
-     Jeq (TRefl _) (TRefl _)
-         (Jcong tlamP
-                (Jhcomp (TRefl _)
-                        (FJmax (aux_teq_FshiftF_FshiftF db0 $id $f (dble_0_n $id))
-                               (FTRefl _))
-                        (Jsys (FTRefl _) (FTRefl _)
-                              (JappP (aux_teq_Fshift_Fshift db1 (dbsucc $id) $u dble_db0) (ITRefl _))
-                              (Jsys (FTRefl _) (FTRefl _)
-                                    (teq_trans (Jcong IShift (aux_teq_Fshift_Fshift db0 $id $x (dble_0_n $id)))
-                                               (aux_teq_Fshift_Fshift db0 (dbsucc $id) (IShift $x) (dble_0_n (dbsucc $id))))
-                                    (teq_trans (Jcong IShift (aux_teq_Fshift_Fshift db0 $id $y (dble_0_n $id)))
-                                               (aux_teq_Fshift_Fshift db0 (dbsucc $id) (IShift $y) (dble_0_n (dbsucc $id))))))
-                        (JappP (aux_teq_Fshift_Fshift db0 $id $u0 (dble_0_n $id)) (ITRefl _))))
-         (der_eq_hcomp_path _ $s (Fshift (dbsucc $id) $A) (Fshift $id $x) (Fshift $id $y) (FshiftF $id $f) (Fshift (dbsucc $id) $u) (Fshift $id $u0)
-                            (der_Fshift_n (dbsucc $id) (FSCI $sc) $dA)
-                            (JT (teq_Fshift_Isubst $id it0 $A) (der_Fshift_n $sc $df $dx))
-                            (JT (teq_Fshift_Isubst $id it1 $A) (der_Fshift_n $sc $df $dy))
-                            (der_F_Fshift_n $sc $df $df)
-                            (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id (tpath $A $x $y) (dble_0_n $id)))
-                                (der_Fshift_n (dbsucc $id) (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) $df)) $du))
-                            (der_Fshift_n $sc $df $du0)
-                            (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u) (der_eq_Fshift_n $id (FSCF $sc $df) $deq)))
-with der_eq_Fshift_n $sc $df (der_eq_cong_pi _ $s $s' $A1 $A2 $B1 $B2 $deqA $deqB $dB1 $dB2) ↪
-     der_eq_cong_pi _ $s $s' (Fshift $id $A1) (Fshift $id $A2) (Fshift $id $B1) (Fshift $id $B2)
-                    (der_eq_Fshift_n $sc $df $deqA) (der_eq_Fshift_n $id (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $deqB)
-                    (der_Fshift_n _ (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $dB1)
-                    (der_Fshift_n _ (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $dB2)
+     der_eq_appP_one _ $s $A $t $x $y
+                     (der_Fshift_n (FSCI $sc) $df $dA)
+                     (der_Fshift_n $sc $df $dx)
+                     (der_Fshift_n $sc $df $dy)
+                     (der_Fshift_n $sc $df $dt)
+with der_eq_Fshift_n $sc $d (der_eq_sys_left _ $s $A $f $g $x $y $dA $df $dg $dx $dy $deq $d1) ↪
+     der_eq_sys_left _ $s $A $f $g $x $y
+                     (der_Fshift_n $sc $d $dA)
+                     (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                     (der_Fshift_n (FSCF $sc $df) $d $dx) (der_Fshift_n (FSCF $sc $dg) $d $dy)
+                     (der_eq_Fshift_n (FSCF $sc (der_F_min $df $dg)) $d $deq)
+                     (der_isOne_Fshift_n $sc $d $d1)
+with der_eq_Fshift_n $sc $d (der_eq_sys_right _ $s $A $f $g $x $y $dA $df $dg $dx $dy $deq $d1) ↪
+     der_eq_sys_right _ $s $A $f $g $x $y (der_Fshift_n $sc $d $dA)
+                      (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                      (der_Fshift_n (FSCF $sc $df) $d $dx) (der_Fshift_n (FSCF $sc $dg) $d $dy)
+                      (der_eq_Fshift_n (FSCF $sc (der_F_min $df $dg)) $d $deq)
+                      (der_isOne_Fshift_n $sc $d $d1)
+with der_eq_Fshift_n $sc $d (der_eq_transp _ $s $A $f $u $dA $df $du $deq $d1) ↪
+     der_eq_transp _ $s $A $f $u
+                   (der_Fshift_n (FSCI $sc) $d $dA)
+                   (der_F_Fshift_n $sc $d $df)
+                   (der_Fshift_n $sc $d $du)
+                   (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deq)
+                   (der_isOne_Fshift_n $sc $d $d1)
+with der_eq_Fshift_n $sc $d (der_eq_transp_pi _ $s $s' $A $B $f $u $v $dA $dB $df $deqA $deqB $du $dv) ↪
+         der_eq_transp_pi _ $s $s' $A $B $f $u $v
+                           (der_Fshift_n (FSCI $sc) $d $dA) (der_Fshift_n (FSCSucc (FSCI $sc) $dA) $d $dB)
+                           (der_F_Fshift_n $sc $d $df)
+                           (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqA)
+                           (der_eq_Fshift_n (FSCSucc (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df))
+                                                     (der_weakF (pushΓI (fsc_to_dctx $sc)) $dA (der_Ishift0F (fsc_to_dctx $sc) $df)))
+                                            $d $deqB)
+                           (der_Fshift_n $sc $d $du)
+                           (der_Fshift_n $sc $d $dv)
+with der_eq_Fshift_n $sc $d (der_eq_transp_univ _ $s $f $A $df $dA) ↪
+     der_eq_transp_univ _ $s $f $A
+                       (der_F_Fshift_n $sc $d $df) (der_Fshift_n $sc $d $dA)
+with der_eq_Fshift_n $sc $d (der_eq_transp_zero _ $s $f $df) ↪
+     der_eq_transp_zero _ $s $f (der_F_Fshift_n $sc $d $df)
+with der_eq_Fshift_n $sc $d (der_eq_transp_suc _ $s $f $n $df $dn) ↪
+     der_eq_transp_suc _ $s $f $n (der_F_Fshift_n $sc $d $df) (der_Fshift_n $sc $d $dn)
+with der_eq_Fshift_n $sc $d (der_eq_transp_sig _ $s $s' $A $B $f $u $dA $dB $df $deqA $deqB $du) ↪
+     der_eq_transp_sig _ $s $s' $A $B $f $u
+                       (der_Fshift_n (FSCI $sc) $d $dA) (der_Fshift_n (FSCSucc (FSCI $sc) $dA) $d $dB)
+                       (der_F_Fshift_n $sc $d $df)
+                       (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqA)
+                       (der_eq_Fshift_n (FSCSucc (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df))
+                                                 (der_weakF (pushΓI (fsc_to_dctx $sc)) $dA (der_Ishift0F (fsc_to_dctx $sc) $df)))
+                                        $d $deqB)
+                       (der_Fshift_n $sc $d $du)
+with der_eq_Fshift_n $sc $d (der_eq_transp_sum_left _ $s $s' $A $B $f $a $dA $dB $df $da $deqA $deqB) ↪
+     der_eq_transp_sum_left _ $s $s' $A $B $f $a
+                            (der_Fshift_n (FSCI $sc) $d $dA) (der_Fshift_n (FSCI $sc) $d $dB)
+                                 (der_F_Fshift_n $sc $d $df) (der_Fshift_n $sc $d $da)
+                                 (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqA)
+                                 (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqB)
+with der_eq_Fshift_n $sc $d (der_eq_transp_sum_right _ $s $s' $A $B $f $a $dA $dB $df $da $deqA $deqB) ↪
+     der_eq_transp_sum_right _ $s $s' $A $B $f $a
+                                 (der_Fshift_n (FSCI $sc) $d $dA) (der_Fshift_n (FSCI $sc) $d $dB)
+                                 (der_F_Fshift_n $sc $d $df) (der_Fshift_n $sc $d $da)
+                                 (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqA)
+                                 (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqB)
+with der_eq_Fshift_n $sc $d (der_eq_transp_path _ $s $A $x $y $f $u $dA $dx $dy $df $du $deqA $deqx $deqy) ↪
+     der_eq_transp_path _ $s $A $x $y $f $u
+                        (der_Fshift_n (FSCI (FSCI $sc)) $d $dA)
+                        (der_Fshift_n (FSCI $sc) $d $dx) (der_Fshift_n (FSCI $sc) $d $dy)
+                        (der_F_Fshift_n $sc $d $df)
+                        (der_Fshift_n $sc $d $du)
+                        (der_eq_Fshift_n (FSCF (FSCI (FSCI $sc)) (der_Ishift0F (fsc_to_dctx (FSCI $sc))
+                                                                               (der_Ishift0F (fsc_to_dctx $sc) $df)))
+                                         $d $deqA)
+                        (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqx)
+                        (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $deqy)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp _ $s $A $f $u $u0 $dA $df $du $du0 $deq $d1) ↪
+     der_eq_hcomp _ $s $A $f $u $u0
+                  (der_Fshift_n $sc $d $dA) (der_F_Fshift_n $sc $d $df)
+                  (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $du)
+                  (der_Fshift_n $sc $d $du0)
+                  (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+                  (der_isOne_Fshift_n $sc $d $d1)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_pi _ $s $s' $A $B $f $u $u0 $v $dA $dB $df $du $du0 $deq $dv) ↪
+     der_eq_hcomp_pi _ $s $s' $A $B $f $u $u0 $v
+                    (der_Fshift_n $sc $d $dA) (der_Fshift_n (FSCSucc $sc $dA) $d $dB)
+                    (der_F_Fshift_n $sc $d $df)
+                    (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $du)
+                    (der_Fshift_n $sc $d $du0)
+                    (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+                    (der_Fshift_n $sc $d $dv)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_zero _ $s $f $n $df $dn $deq) ↪
+     der_eq_hcomp_zero _ $s $f $n (der_F_Fshift_n $sc $d $df)
+                       (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $dn)
+                       (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_suc _ $s $f $n $n0 $df $dn $dn0 $deq) ↪
+     der_eq_hcomp_suc _ $s $f $n $n0 (der_F_Fshift_n $sc $d $df)
+                       (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $dn)
+                       (der_Fshift_n $sc $d $dn0)
+                       (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_sig _ $s $s' $A $B $f $u $u0 $dA $dB $df $du $du0 $deq) ↪
+     der_eq_hcomp_sig _ $s $s' $A $B $f $u $u0
+                      (der_Fshift_n $sc $d $dA) (der_Fshift_n (FSCSucc $sc $dA) $d $dB)
+                      (der_F_Fshift_n $sc $d $df)
+                      (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $du)
+                      (der_Fshift_n $sc $d $du0)
+                      (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_sum_left _ $s $s' $A $B $f $a $a0 $dA $dB $df $da $da0 $deq) ↪
+     der_eq_hcomp_sum_left _ $s $s' $A $B $f $a $a0
+                           (der_Fshift_n $sc $d $dA) (der_Fshift_n $sc $d $dB) (der_F_Fshift_n $sc $d $df)
+                           (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $da)
+                           (der_Fshift_n $sc $d $da0)
+                           (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_sum_right _ $s $s' $A $B $f $a $a0 $dA $dB $df $da $da0 $deq) ↪
+     der_eq_hcomp_sum_right _ $s $s' $A $B $f $a $a0
+                           (der_Fshift_n $sc $d $dA) (der_Fshift_n $sc $d $dB) (der_F_Fshift_n $sc $d $df)
+                           (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $da)
+                           (der_Fshift_n $sc $d $da0)
+                           (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_hcomp_path _ $s $A $x $y $f $u $u0 $dA $dx $dy $df $du $du0 $deq) ↪
+     der_eq_hcomp_path _ $s $A $x $y $f $u $u0
+                       (der_Fshift_n (FSCI $sc) $d $dA)
+                       (der_Fshift_n $sc $d $dx) (der_Fshift_n $sc $d $dy)
+                       (der_F_Fshift_n $sc $d $df)
+                       (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) $df)) $d $du)
+                       (der_Fshift_n $sc $d $du0)
+                       (der_eq_Fshift_n (FSCF $sc $df) $d $deq)
+with der_eq_Fshift_n $sc $d (der_eq_cong_pi _ $s $s' $A1 $A2 $B1 $B2 $deqA $deqB $dB1 $dB2) ↪
+     der_eq_cong_pi _ $s $s' $A1 $A2 $B1 $B2
+                    (der_eq_Fshift_n $sc $d $deqA) (der_eq_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $d $deqB)
+                    (der_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $d $dB1)
+                    (der_Fshift_n (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $d $dB2)
 with der_eq_Fshift_n $sc $df (der_eq_cong_abs _ $s $s' $A1 $A2 $B $t1 $t2 $deqA $deqt $dB1 $dB2) ↪
-     der_eq_cong_abs _ $s $s' (Fshift $id $A1) (Fshift $id $A2) (Fshift $id $B) (Fshift $id $t1) (Fshift $id $t2)
-                     (der_eq_Fshift_n _ $sc $deqA) (der_eq_Fshift_n _ (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $deqt)
-                     (der_Fshift_n _ (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $dB1)
-                     (der_Fshift_n _ (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $dB2)
+     der_eq_cong_abs _ $s $s' $A1 $A2 $B $t1 $t2
+                     (der_eq_Fshift_n $sc $df $deqA) (der_eq_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $df $deqt)
+                     (der_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $df $dB1)
+                     (der_Fshift_n (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $df $dB2)
 with der_eq_Fshift_n $sc $df (der_eq_cong_app _ $s $s' $A $B $f1 $f2 $a1 $a2 $deqf $deqa) ↪
-     der_eq_cong_app _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $f1) (Fshift $id $f2) (Fshift $id $a1) (Fshift $id $a2)
-                            (der_eq_Fshift_n _ $sc $deqf) (der_eq_Fshift_n _ $sc $deqa)
+     der_eq_cong_app _ $s $s' $A $B $f1 $f2 $a1 $a2
+                            (der_eq_Fshift_n $sc $df $deqf) (der_eq_Fshift_n $sc $df $deqa)
 with der_eq_Fshift_n $sc $df (der_eq_cong_suc _ $s $n $n' $deq) ↪
-     der_eq_cong_suc _ $s (Fshift $id $n) (Fshift $id $n') (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_suc _ $s $n $n' (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_rec _ $s $s' $P1 $P2 $z1 $z2 $H1 $H2 $n1 $n2 $deqP $deqz $deqH $deqn) ↪
-     der_eq_cong_rec _ $s $s' (Fshift $id $P1) (Fshift $id $P2) (Fshift $id $z1) (Fshift $id $z2)
-                     (Fshift $id $H1) (Fshift $id $H2) (Fshift $id $n1) (Fshift $id $n2)
-                     (der_eq_Fshift_n _ $sc $deqP) (der_eq_Fshift_n _ $sc $deqz)
-                     (Jeq (Jpi (TRefl _) (Jpi (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P1)) (TRefl _))
-                                             (Japp (teq_inv (teq_trans (Jcong Shift (aux_teq_shift_Fshift db0 $id $P1))
-                                                                       (aux_teq_shift_Fshift db0 $id (Shift $P1)))) (TRefl _))))
-                          (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqH))
-                     (der_eq_Fshift_n _ $sc $deqn)
+     der_eq_cong_rec _ $s $s' $P1 $P2 $z1 $z2
+                     $H1 $H2 $n1 $n2
+                     (der_eq_Fshift_n $sc $df $deqP) (der_eq_Fshift_n $sc $df $deqz)
+                     (der_eq_Fshift_n $sc $df $deqH) (der_eq_Fshift_n $sc $df $deqn)
 with der_eq_Fshift_n $sc $df (der_eq_cong_sig _ $s $s' $A1 $A2 $B1 $B2 $deqA $deqB $dB1 $dB2) ↪
-     der_eq_cong_sig _ $s $s' (Fshift $id $A1) (Fshift $id $A2) (Fshift $id $B1) (Fshift $id $B2)
-                            (der_eq_Fshift_n _ $sc $deqA) (der_eq_Fshift_n _ (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $deqB)
-                            (der_Fshift_n _ (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $dB1)
-                            (der_Fshift_n _ (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $dB2)
+     der_eq_cong_sig _ $s $s' $A1 $A2 $B1 $B2
+                     (der_eq_Fshift_n $sc $df $deqA) (der_eq_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $df $deqB)
+                     (der_Fshift_n (FSCSucc $sc (inv_eq_t1 (fsc_to_dctx $sc) $deqA)) $df $dB1)
+                     (der_Fshift_n (FSCSucc $sc (inv_eq_t2 (fsc_to_dctx $sc) $deqA)) $df $dB2)
 with der_eq_Fshift_n $sc $df (der_eq_cong_pair _ $s $s' $A $B $a1 $a2 $b1 $b2 $deqa $deqb) ↪
-     der_eq_cong_pair _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $a1) (Fshift $id $a2) (Fshift $id $b1) (Fshift $id $b2)
-                      (der_eq_Fshift_n _ $sc $deqa) (der_eq_Fshift_n _ $sc $deqb)
+     der_eq_cong_pair _ $s $s' $A $B $a1 $a2 $b1 $b2
+                      (der_eq_Fshift_n $sc $df $deqa) (der_eq_Fshift_n $sc $df $deqb)
 with der_eq_Fshift_n $sc $df (der_eq_cong_p1 _ $s $s' $A $B $p1 $p2 $deq) ↪
-     der_eq_cong_p1 _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $p1) (Fshift $id $p2)
-       (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_p1 _ $s $s' $A $B $p1 $p2
+       (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_p2 _ $s $s' $A $B $p1 $p2 $deq) ↪
-     der_eq_cong_p2 _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $p1) (Fshift $id $p2)
-       (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_p2 _ $s $s' $A $B $p1 $p2
+       (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_sum _ $s $s' $A1 $A2 $B1 $B2 $deqA $deqB) ↪
-     der_eq_cong_sum _ $s $s' (Fshift $id $A1) (Fshift $id $A2) (Fshift $id $B1) (Fshift $id $B2)
-                            (der_eq_Fshift_n _ $sc $deqA) (der_eq_Fshift_n _ $sc $deqB)
+     der_eq_cong_sum _ $s $s' $A1 $A2 $B1 $B2
+                            (der_eq_Fshift_n $sc $df $deqA) (der_eq_Fshift_n $sc $df $deqB)
 with der_eq_Fshift_n $sc $df (der_eq_cong_injl _ $s $s' $A $B $p1 $p2 $deq) ↪
-     der_eq_cong_injl _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $p1) (Fshift $id $p2)
-       (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_injl _ $s $s' $A $B $p1 $p2
+       (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_injr _ $s $s' $A $B $p1 $p2 $deq) ↪
-     der_eq_cong_injr _ $s $s' (Fshift $id $A) (Fshift $id $B) (Fshift $id $p1) (Fshift $id $p2)
-       (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_injr _ $s $s' $A $B $p1 $p2
+       (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_case _ $s $s' $m $A1 $A2 $B1 $B2 $P1 $P2 $Ha1 $Ha2 $Hb1 $Hb2 $u $v $deqA $deqB $deqP $deqHa $deqHb $deq) ↪
-     der_eq_cong_case _ $s $s' $m (Fshift $id $A1) (Fshift $id $A2) (Fshift $id $B1) (Fshift $id $B2) (Fshift $id $P1) (Fshift $id $P2)
-                      (Fshift $id $Ha1) (Fshift $id $Ha2) (Fshift $id $Hb1) (Fshift $id $Hb2) (Fshift $id $u) (Fshift $id $v)
-                      (der_eq_Fshift_n _ $sc $deqA) (der_eq_Fshift_n _ $sc $deqB) (der_eq_Fshift_n _ $sc $deqP)
-                      (Jeq (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P1)) (TRefl _)))
-                           (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqHa))
-                      (Jeq (Jpi (TRefl _) (Japp (teq_inv (aux_teq_shift_Fshift db0 $id $P1)) (TRefl _)))
-                           (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqHb))
-                      (der_eq_Fshift_n _ $sc $deq)
+     der_eq_cong_case _ $s $s' $m $A1 $A2 $B1 $B2 $P1 $P2 $Ha1 $Ha2 $Hb1 $Hb2 $u $v
+                      (der_eq_Fshift_n $sc $df $deqA) (der_eq_Fshift_n $sc $df $deqB) (der_eq_Fshift_n $sc $df $deqP)
+                      (der_eq_Fshift_n $sc $df $deqHa)
+                      (der_eq_Fshift_n $sc $df $deqHb)
+                      (der_eq_Fshift_n $sc $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_path _ $s $A1 $A2 $a1 $a2 $b1 $b2 $deqA $deqa $deqb) ↪
-     der_eq_cong_path _ $s (Fshift (dbsucc $id) $A1) (Fshift (dbsucc $id) $A2) (Fshift $id $a1) (Fshift $id $a2) (Fshift $id $b1) (Fshift $id $b2)
-                           (der_eq_Fshift_n _ (FSCI $sc) $deqA)
-                           (Jeq (teq_Fshift_Isubst $id it0 $A1) (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqa))
-                           (Jeq (teq_Fshift_Isubst $id it1 $A1) (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqb))
+     der_eq_cong_path _ $s $A1 $A2 $a1 $a2 $b1 $b2
+                           (der_eq_Fshift_n (FSCI $sc) $df $deqA)
+                           (der_eq_Fshift_n $sc $df $deqa)
+                           (der_eq_Fshift_n $sc $df $deqb)
 with der_eq_Fshift_n $sc $df (der_eq_cong_lamP _ $s $A $a1 $a2 $deq) ↪
-     Jeq (Jpath (TRefl _) (teq_inv (teq_Fshift_Isubst $id it0 $a1)) (teq_inv (teq_Fshift_Isubst $id it1 $a1))) (TRefl _) (TRefl _)
-         (der_eq_cong_lamP _ $s (Fshift (dbsucc $id) $A) (Fshift (dbsucc $id) $a1) (Fshift (dbsucc $id) $a2)
-                           (der_eq_Fshift_n _ (FSCI $sc) $deq))
+     der_eq_cong_lamP _ $s $A $a1 $a2
+                      (der_eq_Fshift_n (FSCI $sc) $df $deq)
 with der_eq_Fshift_n $sc $df (der_eq_cong_appP _ $s $A $x $y $a1 $a2 $i1 $i2 $deq $deqi) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id $i1 $A)) (TRefl _) (TRefl _)
-         (der_eq_cong_appP _ $s (Fshift (dbsucc $id) $A) (Fshift $id $x) (Fshift $id $y)
-                           (Fshift $id $a1) (Fshift $id $a2) (FshiftI $id $i1) (FshiftI $id $i2)
-                           (der_eq_Fshift_n _ $sc $deq) (der_eq_I_Fshift_n _ $sc $deqi))
+     der_eq_cong_appP _ $s $A $x $y $a1 $a2 $i1 $i2
+                      (der_eq_Fshift_n $sc $df $deq) (der_eq_I_Fshift_n $sc $df $deqi)
 with der_eq_Fshift_n $sc $df (der_eq_cong_sys _ $s $A $f1 $f2 $g1 $g2 $u1 $u2 $v1 $v2
                                                 $deqf $deqg $dequ $deqv $du1 $du2 $dv1 $dv2 $done1 $done2 $deq1 $deq2) ↪
-     der_eq_cong_sys _ $s (Fshift $id $A) (FshiftF $id $f1) (FshiftF $id $f2) (FshiftF $id $g1) (FshiftF $id $g2)
-                     (Fshift $id $u1) (Fshift $id $u2) (Fshift $id $v1) (Fshift $id $v2)
+     der_eq_cong_sys _ $s $A $f1 $f2 $g1 $g2 $u1 $u2 $v1 $v2
                      (der_eq_F_Fshift_n $sc $df $deqf) (der_eq_F_Fshift_n $sc $df $deqg)
-                     (der_eq_Fshift_n $id (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $dequ)
-                     (der_eq_Fshift_n $id (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg)) $deqv)
-                     (der_Fshift_n $id (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $du1)
-                     (der_Fshift_n $id (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf)) $du2)
-                     (der_Fshift_n $id (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg)) $dv1)
-                     (der_Fshift_n $id (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqg)) $dv2)
+                     (der_eq_Fshift_n (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $df $dequ)
+                     (der_eq_Fshift_n (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg)) $df $deqv)
+                     (der_Fshift_n (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $df $du1)
+                     (der_Fshift_n (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf)) $df $du2)
+                     (der_Fshift_n (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg)) $df $dv1)
+                     (der_Fshift_n (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqg)) $df $dv2)
                      (der_isOne_Fshift_n $sc $df $done1) (der_isOne_Fshift_n $sc $df $done2)
-                     (der_eq_Fshift_n $id (FSCF $sc (der_F_min (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg))) $deq1)
-                     (der_eq_Fshift_n $id (FSCF $sc (der_F_min (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf) (inv_eq_F_t2 (fsc_to_dctx $sc) $deqg))) $deq2)
+                     (der_eq_Fshift_n (FSCF $sc (der_F_min (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqg))) $df $deq1)
+                     (der_eq_Fshift_n (FSCF $sc (der_F_min (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf) (inv_eq_F_t2 (fsc_to_dctx $sc) $deqg))) $df $deq2)
 with der_eq_Fshift_n $sc $df (der_eq_cong_transp _ $s $A1 $A2 $f1 $f2 $a1 $a2 $deqA $deqf $deqa $deqA1 $deqA2) ↪
-     Jeq (teq_inv (teq_Fshift_Isubst $id it1 $A1)) (TRefl _) (TRefl _)
-     (der_eq_cong_transp _ $s (Fshift (dbsucc $id) $A1) (Fshift (dbsucc $id) $A2) (FshiftF $id $f1) (FshiftF $id $f2) (Fshift $id $a1) (Fshift $id $a2)
-                        (der_eq_Fshift_n _ (FSCI $sc) $deqA) (der_eq_F_Fshift_n _ $sc $deqf)
-                        (Jeq (teq_Fshift_Isubst $id it0 $A1)  (TRefl _) (TRefl _) (der_eq_Fshift_n _ $sc $deqa))
-                        (Jeq (TRefl _) (TRefl _) (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A1 it0) (dble_0_n _)))
-                                                            (Jcong IShift (teq_Fshift_Isubst $id it0 $A1)))
-                             (der_eq_Fshift_n _ (FSCI $sc) $deqA1))
-                        (Jeq (TRefl _) (TRefl _) (teq_trans (teq_inv (aux_teq_Fshift_Fshift db0 $id (applyI1 $A2 it0) (dble_0_n _)))
-                                                            (Jcong IShift (teq_Fshift_Isubst $id it0 $A2)))
-                             (der_eq_Fshift_n _ (FSCI $sc) $deqA2)))
+     der_eq_cong_transp _ $s $A1 $A2 $f1 $f2 $a1 $a2
+                        (der_eq_Fshift_n (FSCI $sc) $df $deqA) (der_eq_F_Fshift_n $sc $df $deqf)
+                        (der_eq_Fshift_n $sc $df $deqa)
+                        (der_eq_Fshift_n (FSCI $sc) $df $deqA1)
+                        (der_eq_Fshift_n (FSCI $sc) $df $deqA2)
 with der_eq_Fshift_n $sc $df (der_eq_cong_hcomp _ $s $A1 $A2 $f1 $f2 $u1 $u2 $v1 $v2 $deqA $deqf $dequ $deqv $du1 $du2 $dequv1 $dequv2) ↪
-     der_eq_cong_hcomp _ $s (Fshift $id $A1) (Fshift $id $A2) (FshiftF $id $f1) (FshiftF $id $f2)
-                            (Fshift (dbsucc $id) $u1) (Fshift (dbsucc $id) $u2) (Fshift $id $v1) (Fshift $id $v2)
-                       (der_eq_Fshift_n _ $sc $deqA) (der_eq_F_Fshift_n _ $sc $deqf)
-                       (Jeq (teq_inv (aux_teq_Fshift_Fshift db0 $id $A1 (dble_0_n _))) (TRefl _) (TRefl _)
-                            (der_eq_Fshift_n _ (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf))) $dequ))
-                       (der_eq_Fshift_n _ $sc $deqv)
-                       (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $A1 (dble_0_n _)))
-                           (der_Fshift_n _ (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf))) $du1))
-                       (JT (teq_inv (aux_teq_Fshift_Fshift db0 $id $A2 (dble_0_n _)))
-                           (der_Fshift_n _ (FSCF (FSCI $sc) (der_Fshift0F (fsc_to_dctx $sc) (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf))) $du2))
-                       (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u1)
-                            (der_eq_Fshift_n _ (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $dequv1))
-                       (Jeq (TRefl _) (TRefl _) (teq_Fshift_Isubst $id it0 $u2)
-                            (der_eq_Fshift_n _ (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf)) $dequv2))
+     der_eq_cong_hcomp _ $s $A1 $A2 $f1 $f2 $u1 $u2 $v1 $v2
+                       (der_eq_Fshift_n $sc $df $deqA) (der_eq_F_Fshift_n $sc $df $deqf)
+                       (der_eq_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf))) $df $dequ)
+                       (der_eq_Fshift_n $sc $df $deqv)
+                       (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf))) $df $du1)
+                       (der_Fshift_n (FSCF (FSCI $sc) (der_Ishift0F (fsc_to_dctx $sc) (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf))) $df $du2)
+                       (der_eq_Fshift_n (FSCF $sc (inv_eq_F_t1 (fsc_to_dctx $sc) $deqf)) $df $dequv1)
+                       (der_eq_Fshift_n (FSCF $sc (inv_eq_F_t2 (fsc_to_dctx $sc) $deqf)) $df $dequv2)
 // der_I_Fshift_n
 with der_I_Fshift_n _ _ der_I_0 ↪ der_I_0
 with der_I_Fshift_n _ _ der_I_1 ↪ der_I_1
-with der_I_Fshift_n _ $sc (@der_I_var _ $i $le) ↪ der_I_var (lenI_fsc_ctx_sctx $i $sc $le)
+with der_I_Fshift_n $sc $df (@der_I_var _ $i $le) ↪ der_I_var (lenI_fsc_ctx_sctx $i $sc $df $le)
 with der_I_Fshift_n $sc $df (der_I_sym $di) ↪ der_I_sym (der_I_Fshift_n $sc $df $di)
 with der_I_Fshift_n $sc $df (der_I_min $da $db) ↪
      der_I_min (der_I_Fshift_n $sc $df $da) (der_I_Fshift_n $sc $df $db)
@@ -2220,10 +2029,10 @@ with der_eq_I_Fshift_n $sc $df (der_eq_I_trans _ _ _ _ $deq1 $deq2) ↪
      der_eq_I_trans _ _ _ _ (der_eq_I_Fshift_n $sc $df $deq1) (der_eq_I_Fshift_n $sc $df $deq2)
 with der_eq_I_Fshift_n $sc $df (der_eq_I_isOne_zero _ _ _ $done) ↪
      der_eq_I_isOne_zero _ _ _ (der_isOne_Fshift_n $sc $df $done)
-with der_eq_I_Fshift_n $sc $df (der_eq_I_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
-     der_eq_I_isOne_max _ _ _ _ _ (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                        (der_eq_I_Fshift_n $id (FSCF $sc $df) $dif) (der_eq_I_Fshift_n $id (FSCF $sc $dg) $dig)
-                        (der_isOne_Fshift_n $sc $df $done)
+with der_eq_I_Fshift_n $sc $d (der_eq_I_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
+     der_eq_I_isOne_max _ _ _ _ _ (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                        (der_eq_I_Fshift_n (FSCF $sc $df) $d $dif) (der_eq_I_Fshift_n (FSCF $sc $dg) $d $dig)
+                        (der_isOne_Fshift_n $sc $d $done)
 with der_eq_I_Fshift_n $sc $df (der_eq_I_isOne_eq0 _ _ $done) ↪
      der_eq_I_isOne_eq0 _ _ (der_isOne_Fshift_n $sc $df $done)
 with der_eq_I_Fshift_n $sc $df (der_eq_I_isOne_eq1 _ _ $done) ↪
@@ -2254,27 +2063,27 @@ with der_eq_I_Fshift_n $sc $df (der_eq_I_cong_max _ _ _ _ _ $di $dj) ↪
 // der_F_Fshift_n
 with der_F_Fshift_n _ _ der_F_0 ↪ der_F_0
 with der_F_Fshift_n _ _ der_F_1 ↪ der_F_1
-with der_F_Fshift_n _ $sc (@der_F_eq0 _ $i $le)  ↪ der_F_eq0 (lenI_fsc_ctx_sctx $i $sc $le)
-with der_F_Fshift_n _ $sc (@der_F_eq1 _ $i $le)  ↪ der_F_eq1 (lenI_fsc_ctx_sctx $i $sc $le)
-with der_F_Fshift_n $sc $df (der_F_min $df $dg) ↪
-     der_F_min (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-with der_F_Fshift_n $sc $df (der_F_max $df $dg) ↪
-     der_F_max (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
+with der_F_Fshift_n $sc $d (@der_F_eq0 _ $i $le)  ↪ der_F_eq0 (lenI_fsc_ctx_sctx $i $sc $d $le)
+with der_F_Fshift_n $sc $d (@der_F_eq1 _ $i $le)  ↪ der_F_eq1 (lenI_fsc_ctx_sctx $i $sc $d $le)
+with der_F_Fshift_n $sc $d (der_F_min $df $dg) ↪
+     der_F_min (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+with der_F_Fshift_n $sc $d (der_F_max $df $dg) ↪
+     der_F_max (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
 // der_eq_F_Fshift_n
-with der_eq_F_Fshift_n $sc $df (der_eq_F_refl _ _ $df) ↪
-     der_eq_F_refl _ _ (der_F_Fshift_n $sc $df $df)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_sym _ _ _ $df) ↪
-     der_eq_F_sym _ _ _ (der_eq_F_Fshift_n $sc $df $df)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_trans _ _ _ _ $df $dg) ↪
-     der_eq_F_trans _ _ _ _ (der_eq_F_Fshift_n $sc $df $df) (der_eq_F_Fshift_n $sc $df $dg)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_isOne_zero _ _ _ $done) ↪
-     der_eq_F_isOne_zero _ _ _ (der_isOne_Fshift_n $sc $df $done)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
-     der_eq_F_isOne_max _ _ _ _ _ (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                        (der_eq_F_Fshift_n $id (FSCF $sc $df) $dif) (der_eq_F_Fshift_n $id (FSCF $sc $dg) $dig)
-                        (der_isOne_Fshift_n $sc $df $done)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_isOne_one _ _ $done) ↪
-     der_eq_F_isOne_one _ _ (der_isOne_Fshift_n $sc $df $done)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_refl _ _ $df) ↪
+     der_eq_F_refl _ _ (der_F_Fshift_n $sc $d $df)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_sym _ _ _ $df) ↪
+     der_eq_F_sym _ _ _ (der_eq_F_Fshift_n $sc $d $df)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_trans _ _ _ _ $df $dg) ↪
+     der_eq_F_trans _ _ _ _ (der_eq_F_Fshift_n $sc $d $df) (der_eq_F_Fshift_n $sc $d $dg)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_isOne_zero _ _ _ $done) ↪
+     der_eq_F_isOne_zero _ _ _ (der_isOne_Fshift_n $sc $d $done)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
+     der_eq_F_isOne_max _ _ _ _ _ (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                        (der_eq_F_Fshift_n (FSCF $sc $df) $d $dif) (der_eq_F_Fshift_n (FSCF $sc $dg) $d $dig)
+                        (der_isOne_Fshift_n $sc $d $done)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_isOne_one _ _ $done) ↪
+     der_eq_F_isOne_one _ _ (der_isOne_Fshift_n $sc $d $done)
 with der_eq_F_Fshift_n _ _ (der_eq_F_min_assoc _ _ _ _) ↪ der_eq_F_min_assoc _ _ _ _
 with der_eq_F_Fshift_n _ _ (der_eq_F_min_comm _ _ _) ↪ der_eq_F_min_comm _ _ _
 with der_eq_F_Fshift_n _ _ (der_eq_F_max_assoc _ _ _ _) ↪ der_eq_F_max_assoc _ _ _ _
@@ -2284,57 +2093,47 @@ with der_eq_F_Fshift_n _ _ (der_eq_F_min_distrib _ _ _ _) ↪
 with der_eq_F_Fshift_n _ _ (der_eq_F_max_distrib _ _ _ _) ↪
      der_eq_F_max_distrib _ _ _ _
 with der_eq_F_Fshift_n _ _ (der_eq_F_empty _ _) ↪ der_eq_F_empty _ _
-with der_eq_F_Fshift_n $sc $df (der_eq_F_cong_eq0 _ $id' $i $deq) ↪
-     FJeq (FTRefl _) (fteq_trans (fteq_trans (aux_dbselectF_spec_eq (dbshift $id $id') (dbshift $id $id')
-                                                                    (substeq0 (FshiftI $id $i)) (fteq0 (dbshift $id $id'))
-                                                                    (fteq0 (dbprev (dbshift $id $id'))) (DBRefl (dbshift $id $id')))
-                                             (fteq_trans (fteq_trans (FTRefl (substeq0 (FshiftI $id $i)))
-                                                                     (aux_teq_Fshift_substeq0 $id $i))
-                                                         (fteq_inv (aux_dbselectF_spec_eq $id' $id' (FshiftF $id (substeq0 $i)) (FshiftF $id (fteq0 $id'))
-                                                                                          (FshiftF $id (fteq0 (dbprev $id'))) (DBRefl $id')))))
-                                 (fteq_inv (aux_teq_shift_dbselectF $id $id' $id' (substeq0 $i) (fteq0 $id') (fteq0 (dbprev $id')))))
-          (der_eq_F_cong_eq0 (fsc_to_sctx $sc) (dbshift $id $id') (FshiftI $id $i) (der_eq_I_Fshift_n $sc $df $deq))
-with der_eq_F_Fshift_n $sc $df (der_eq_F_cong_eq1 _ $id' $i $deq) ↪
-     FJeq (FTRefl _) (fteq_trans (fteq_trans (aux_dbselectF_spec_eq (dbshift $id $id') (dbshift $id $id')
-                                                                    (substeq1 (FshiftI $id $i)) (fteq1 (dbshift $id $id'))
-                                                                    (fteq1 (dbprev (dbshift $id $id'))) (DBRefl (dbshift $id $id')))
-                                             (fteq_trans (fteq_trans (FTRefl (substeq1 (FshiftI $id $i)))
-                                                                     (aux_teq_Fshift_substeq1 $id $i))
-                                                         (fteq_inv (aux_dbselectF_spec_eq $id' $id' (FshiftF $id (substeq1 $i)) (FshiftF $id (fteq1 $id'))
-                                                                                          (FshiftF $id (fteq1 (dbprev $id'))) (DBRefl $id')))))
-                                 (fteq_inv (aux_teq_shift_dbselectF $id $id' $id' (substeq1 $i) (fteq1 $id') (fteq1 (dbprev $id')))))
-          (der_eq_F_cong_eq1 (fsc_to_sctx $sc) (dbshift $id $id') (FshiftI $id $i) (der_eq_I_Fshift_n $sc $df $deq))
-with der_eq_F_Fshift_n $sc $df (der_eq_F_cong_min _ _ _ _ _ $deq1 $deq2) ↪
-     der_eq_F_cong_min _ _ _ _ _ (der_eq_F_Fshift_n $sc $df $deq1) (der_eq_F_Fshift_n $sc $df $deq2)
-with der_eq_F_Fshift_n $sc $df (der_eq_F_cong_max _ _ _ _ _ $deq1 $deq2) ↪
-     der_eq_F_cong_max _ _ _ _ _ (der_eq_F_Fshift_n $sc $df $deq1) (der_eq_F_Fshift_n $sc $df $deq2)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_cong_eq0 _ $id' $i $deq) ↪
+     der_eq_F_cong_eq0 (fsc_to_sctx $d $sc) $id' $i (der_eq_I_Fshift_n $sc $d $deq)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_cong_eq1 _ $id' $i $deq) ↪
+     der_eq_F_cong_eq1 (fsc_to_sctx $d $sc) $id' $i (der_eq_I_Fshift_n $sc $d $deq)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_cong_min _ _ _ _ _ $deq1 $deq2) ↪
+     der_eq_F_cong_min _ _ _ _ _ (der_eq_F_Fshift_n $sc $d $deq1) (der_eq_F_Fshift_n $sc $d $deq2)
+with der_eq_F_Fshift_n $sc $d (der_eq_F_cong_max _ _ _ _ _ $deq1 $deq2) ↪
+     der_eq_F_cong_max _ _ _ _ _ (der_eq_F_Fshift_n $sc $d $deq1) (der_eq_F_Fshift_n $sc $d $deq2)
 // der_isOne_Fshift_n
 with der_isOne_Fshift_n _ _ (der_isOne_one _) ↪ der_isOne_one _
-with der_isOne_Fshift_n $sc $df (der_isOne_zero _ _ $d0) ↪
-     der_isOne_zero _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_empty _ _ $d0) ↪
-     der_isOne_empty _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_min_intro _ _ _ $df $dg) ↪
-     der_isOne_min_intro _ _ _ (der_isOne_Fshift_n $sc $df $df) (der_isOne_Fshift_n $sc $df $dg)
-with der_isOne_Fshift_n $sc $df (der_isOne_min_elim_left _ _ _ $d0) ↪
-     der_isOne_min_elim_left _ _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_min_elim_right _ _ _ $d0) ↪
-     der_isOne_min_elim_right _ _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_max_intro_left _ _ _ $d0) ↪
-     der_isOne_max_intro_left _ _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_max_intro_right _ _ _ $d0) ↪
-     der_isOne_max_intro_right _ _ _ (der_isOne_Fshift_n $sc $df $d0)
-with der_isOne_Fshift_n $sc $df (der_isOne_max_elim _ _ _ _ $df $dg $dl $dr $d1) ↪
-     der_isOne_max_elim _ _ _ _ (der_F_Fshift_n $sc $df $df) (der_F_Fshift_n $sc $df $dg)
-                                (der_isOne_Fshift_n $id (FSCF $sc $df) $dl) (der_isOne_Fshift_n $id (FSCF $sc $dg) $dr)
-                                (der_isOne_Fshift_n $sc $df $d1)
-with der_isOne_Fshift_n $id (FSCF $sc _) (der_isOne_axiom _ _ $df) ↪
-     der_isOne_axiom _ _ (der_F_Fshift_n $sc $df $df)
-with der_isOne_Fshift_n _ (FSCSucc $sc _) (der_isOne_weak _ _ _ _ $dt $df) ↪
-     der_isOne_weak _ _ _ _ (der_Fshift_n _ $sc $dt) (der_isOne_Fshift_n _ $sc $df)
-with der_isOne_Fshift_n _ (FSCI $sc) (der_isOne_weakI _ _ $df) ↪
-     der_isOne_weakI _ _ (der_isOne_Fshift_n _ $sc $df)
-with der_isOne_Fshift_n _ (FSCF $sc _) (der_isOne_weakF _ _ _ $dg $df) ↪
-     der_isOne_weakF _ _ _ (der_F_Fshift_n _ $sc $dg) (der_isOne_Fshift_n _ $sc $df)
-with der_isOne_Fshift_n _ $sc (der_isOne_cong _ _ _ $df $deq) ↪
-     der_isOne_cong _ _ _ (der_isOne_Fshift_n _ $sc $df) (der_eq_F_Fshift_n _ $sc $deq);
+with der_isOne_Fshift_n $sc $d (der_isOne_zero _ _ $d0) ↪
+     der_isOne_zero _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_empty _ _ $d0) ↪
+     der_isOne_empty _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_min_intro _ _ _ $df $dg) ↪
+     der_isOne_min_intro _ _ _ (der_isOne_Fshift_n $sc $d $df) (der_isOne_Fshift_n $sc $d $dg)
+with der_isOne_Fshift_n $sc $d (der_isOne_min_elim_left _ _ _ $d0) ↪
+     der_isOne_min_elim_left _ _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_min_elim_right _ _ _ $d0) ↪
+     der_isOne_min_elim_right _ _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_max_intro_left _ _ _ $d0) ↪
+     der_isOne_max_intro_left _ _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_max_intro_right _ _ _ $d0) ↪
+     der_isOne_max_intro_right _ _ _ (der_isOne_Fshift_n $sc $d $d0)
+with der_isOne_Fshift_n $sc $d (der_isOne_max_elim _ _ _ _ $df $dg $dl $dr $d1) ↪
+     der_isOne_max_elim _ _ _ _ (der_F_Fshift_n $sc $d $df) (der_F_Fshift_n $sc $d $dg)
+                                (der_isOne_Fshift_n (FSCF $sc $df) $d $dl) (der_isOne_Fshift_n (FSCF $sc $dg) $d $dr)
+                                (der_isOne_Fshift_n $sc $d $d1)
+with der_isOne_Fshift_n (FSCF $sc _) $d (der_isOne_axiom _ _ $df) ↪
+     der_isOne_axiom _ _ (der_F_Fshift_n $sc $d $df)
+with der_isOne_Fshift_n (FSCSucc $sc _) $d (der_isOne_weak _ _ _ _ $dt $df) ↪
+     der_isOne_weak _ _ _ _ (der_Fshift_n $sc $d $dt) (der_isOne_Fshift_n $sc $d $df)
+with der_isOne_Fshift_n (FSCI $sc) $d (der_isOne_weakI _ _ $df) ↪
+     der_isOne_weakI _ _ (der_isOne_Fshift_n $sc $d $df)
+with der_isOne_Fshift_n (FSCF $sc _) $d (der_isOne_weakF _ _ _ $dg $df) ↪
+     der_isOne_weakF _ _ _ (der_F_Fshift_n $sc $d $dg) (der_isOne_Fshift_n $sc $d $df)
+with der_isOne_Fshift_n $sc $d (der_isOne_cong _ _ _ $df $deq) ↪
+     der_isOne_cong _ _ _ (der_isOne_Fshift_n $sc $d $df) (der_eq_F_Fshift_n $sc $d $deq);
+
+// Definition of exported lemmas
+rule der_weakF $dΓ $d $df ↪ der_Fshift_n (FSC0 $dΓ) $df $d
+with der_weakFF $dΓ $dg $df ↪ der_F_Fshift_n (FSC0 $dΓ) $df $dg
+with der_eq_weakF $dΓ $deq $df ↪ der_eq_Fshift_n (FSC0 $dΓ) $df $deq
+with der_weakF1 $dΓ $dA $dt $df ↪ der_Fshift_n (FSCSucc (FSC0 $dΓ) $dA) $df $dt;
