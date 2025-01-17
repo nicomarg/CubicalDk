@@ -1593,20 +1593,17 @@ with aux_teq_IshiftF_IsubstF $i $j $u (ftmax $x $y) $h ↪
 
 // teq_subst_Ishift
 symbol aux_teq_subst_Ishift (i j : DBId) (u t : Term) :
-  TEq (subst i (Ishift j (Shift* i u)) (Ishift j t))
-      (Ishift j (subst i (Shift* i u) t));
+  TEq (subst i (Ishift j u) (Ishift j t))
+      (Ishift j (subst i u t));
 symbol aux_teq_subst_Ishift_rec (i j : DBId) (u t : Term) ≔
-  teq_trans (Jcong (λ v, subst (dbsucc i) v (Ishift j t)) (aux_teq_shift_Ishift db0 j (Shift* i u)))
-            (aux_teq_subst_Ishift (dbsucc i) j u t);
+  teq_trans (Jcong (λ v, subst (dbsucc i) v (Ishift j t)) (aux_teq_shift_Ishift db0 j u))
+            (aux_teq_subst_Ishift (dbsucc i) j (Shift u) t);
 symbol aux_teq_subst_Ishift_Irec (i j : DBId) (u t : Term) ≔
-  teq_trans (Jcong (λ v, subst i v (Ishift (dbsucc j) t)) (aux_teq_Ishift_Ishift0 j (Shift* i u)))
-            (teq_trans (Jcong (λ v, subst i (Ishift (dbsucc j) v) (Ishift (dbsucc j) t))
-                              (teq_inv (aux_teq_Shift*_Ishift i db0 u)))
-                       (teq_trans (aux_teq_subst_Ishift i (dbsucc j) (IShift u) t)
-                                  (Jcong (λ v, Ishift (dbsucc j) (subst i v t)) (aux_teq_Shift*_Ishift i db0 u))));
+  teq_trans (Jcong (λ v, subst i v (Ishift (dbsucc j) t)) (aux_teq_Ishift_Ishift0 j u))
+            (aux_teq_subst_Ishift i (dbsucc j) (IShift u) t);
 
 rule aux_teq_subst_Ishift $i $j $u (tvar $n) ↪
-      teq_inv (aux_teq_Ishift_dbselect $j $i $n (Shift* $i $u) (tvar $n) (tvar (dbprev $n)))
+      teq_inv (aux_teq_Ishift_dbselect $j $i $n $u (tvar $n) (tvar (dbprev $n)))
 with aux_teq_subst_Ishift _ _ _ (tuniv _) ↪ TRefl _
 with aux_teq_subst_Ishift $i $j $u (tpi $A $B) ↪
       Jpi (aux_teq_subst_Ishift $i $j $u $A)
@@ -2169,7 +2166,7 @@ symbol aux_teq_subst_subst_Irec (i j : DBId) (u t1 t2 : Term) (h : DBLe j i) ≔
                                               (subst (dbsucc i) (IShift (Shift* (dbsucc i) u)) t2))
                                   (aux_teq_Shift*_Ishift i db0 u)))
                          (Jcong (λ v, subst j v (subst (dbsucc i) (IShift (Shift* (dbsucc i) u)) t2))
-                                (aux_teq_subst_Ishift i db0 u (Shift* j t1)))));
+                                (aux_teq_subst_Ishift i db0 (Shift* i u) (Shift* j t1)))));
 
 // aux_teq_subst_subst_var
 symbol aux_teq_subst_subst_var (i j : DBId) (u t : Term) (n : DBId) :

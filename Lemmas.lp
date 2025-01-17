@@ -126,3 +126,17 @@ symbol inv_eq_F_t1 [Γ : Context] [t1 t2 : FTerm] : der_context Γ → der_eq_F 
 symbol inv_eq_F_t2 [Γ : Context] [t1 t2 : FTerm] : der_context Γ → der_eq_F Γ t1 t2 → der_F Γ t2;
 
 symbol inv_isOne [Γ : Context] [t1 : FTerm] : der_context Γ → der_isOne Γ t1 → der_F Γ t1;
+
+// Helpers
+symbol pushIΓ [Γ : Context] [l : Lev] [t T : Term] (dΓ : der_context Γ) (d: der Γ t T l)
+              : der_context (Push T l Γ) ≔
+  pushΓ (inv_type dΓ d) dΓ;
+symbol pushEΓ [Γ : Context] [l : Lev] [t1 t2 T : Term] (dΓ : der_context Γ) (deq: der_eq Γ t1 t2 T l)
+              : der_context (Push T l Γ) ≔
+  pushΓ (inv_eq_type dΓ deq) dΓ;
+symbol push1Γ [Γ : Context] [l : Lev] [T1 T2 : Term] (dΓ : der_context Γ) (deq: der_eq Γ T1 T2 (tuniv l) (lsuc l))
+              : der_context (Push T1 l Γ) ≔
+  pushΓ (inv_eq_t1 dΓ deq) dΓ;
+symbol push2Γ [Γ : Context] [l : Lev] [T1 T2 : Term] (dΓ : der_context Γ) (deq: der_eq Γ T1 T2 (tuniv l) (lsuc l))
+              : der_context (Push T2 l Γ) ≔
+  pushΓ (inv_eq_t2 dΓ deq) dΓ;
