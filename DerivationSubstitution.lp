@@ -273,87 +273,114 @@ rule der_eq_cong_apply $dΓ $deqA $deqB $deqt _ _ $dt1 $dt2
        (deq_subst_convert db0 _ _ $dΓ $deqA $dt1 $dt2 (ESC0 $dΓ (inv_type $dΓ $dt1) (inv_type $dΓ $dt2) $deqA) (inv_eq_t2 (pushIΓ $dΓ $dt1) $deqB) $deqt);
 symbol test
        [Γ : Context] (id : DBId)
-       [s l l': Lev] [A' u' A B u v : Term] [f : FTerm]
+       [s l l': Lev] [A' u' A x y u : Term] [f : FTerm]
        (dΓ : der_context Γ) (d : der Γ u' A' s) (sc : SubstContext (inv_type dΓ d) id)
-       (dA : der (PushI (sc_to_ctx sc)) A (tuniv l) (lsuc l)) (dB : der (Push A l (PushI (sc_to_ctx sc))) B (tuniv l') (lsuc l'))
-       (df : der_F (sc_to_ctx sc) f) (deqA : der_eq (PushF (IShiftF f) (PushI (sc_to_ctx sc))) A (IShift (applyI1 A it0)) (tuniv l) (lsuc l))
-       (deqB : der_eq (Push A l (PushF (IShiftF f) (PushI (sc_to_ctx sc)))) B (IShift (applyI1 B it0)) (tuniv l') (lsuc l'))
-       (du : der (sc_to_ctx sc) u (applyI1 (tpi A B) it0) (lmax l l')) (dv : der (sc_to_ctx sc) v (applyI1 A it1) l) :
-  der_eq (sc_to_sctx d dΓ sc) (subst id (shift_sctx sc u') (tapp (ttransp (tpi A B) f u) v))
-         (subst id (shift_sctx sc u') (ttransp (apply1 B (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))))
-                                                                  (ftmax (IShiftF f) (fteq0 db0)) (IShift v)))
-                                               f (tapp u (ttransp (applyI1 (IShift1 A) (itsym (itvar db0))) f v))))
-         (subst id (shift_sctx sc u') (apply1 (applyI1 B it1) v)) l' ≔
+       (dA : der (PushI (PushI (sc_to_ctx sc))) A (tuniv l) (lsuc l))
+       (dx : der (PushI (sc_to_ctx sc)) x (applyI1 A it0) l) (dy : der (PushI (sc_to_ctx sc)) y (applyI1 A it1) l)
+       (df : der_F (sc_to_ctx sc) f) (du : der (sc_to_ctx sc) u (applyI1 (tpath A x y) it0) l)
+       (deqA : der_eq (PushF (IShiftF (IShiftF f)) (PushI (PushI (sc_to_ctx sc)))) A (IShift1 (Isubst db1 it0 A)) (tuniv l) (lsuc l))
+       (deqx : der_eq (PushF (IShiftF f) (PushI (sc_to_ctx sc))) x (IShift (applyI1 x it0)) (applyI1 A it0) l)
+       (deqy : der_eq (PushF (IShiftF f) (PushI (sc_to_ctx sc))) y (IShift (applyI1 y it0)) (applyI1 A it1) l) :
+  der_eq (sc_to_sctx d dΓ sc) (subst id (shift_sctx sc u') (ttransp (tpath A x y) f u))
+         (subst id (shift_sctx sc u') (tlamP (tcomp (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))
+                       (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0)))
+                       (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1))
+                             (tappP (IShift (IShift u)) (itvar db1))
+                             (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y)))
+                       (tappP (IShift u) (itvar db0))))) (subst id (shift_sctx sc u') (applyI1 (tpath A x y) it1)) l ≔
 begin
-  assume Γ id s l l'  A' u' A B u v f dΓ d sc dA dB df deqA deqB du dv;
-  refine Jeq _ (TRefl _) _ (der_eq_transp_pi _ _ _ _ _ _ _ _
-                    (der_subst id dΓ d (SCI sc) dA)
-                    (der_subst (dbsucc id) dΓ d (SCPush (SCI sc) dA) dB)
+  assume Γ id s l l'  A' u' A x y u f dΓ d sc dA dx dy df du deqA deqx deqy;
+  refine Jeq _ (TRefl _) _ (der_eq_transp_path _ _ _ _ _ _ _
+                    (der_subst id dΓ d (SCI (SCI sc)) dA)
+                    (JT _ (der_subst id dΓ d (SCI sc) dx))
+                    (JT _ (der_subst id dΓ d (SCI sc) dy))
                     (der_F_subst id dΓ d sc df)
-                    (Jeq (TRefl _) (TRefl _) _ (der_eq_subst id u' dΓ d (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) deqA))
-                    (Jeq (TRefl _) (TRefl _) _ (der_eq_subst (dbsucc id) u' dΓ d
-                                                (SCPush (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df))
-                                                        (der_weakF (pushΓI (sc_to_dctx sc)) dA
-                                                                   (der_Ishift0F (sc_to_dctx sc) df)))
-                                                             deqB))
-                    (JT _ (der_subst id dΓ d sc du)) (JT _ (der_subst id dΓ d sc dv)))
+                    (JT _ (der_subst id dΓ d sc du))
+                    (Jeq (TRefl _) (TRefl _) _ (der_eq_subst id u' dΓ d (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc))
+                                                                                                          (der_Ishift0F (sc_to_dctx sc) df))) deqA))
+                    (Jeq _ (TRefl _) _ (der_eq_subst id u' dΓ d (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) deqx))
+                    (Jeq _ (TRefl _) _ (der_eq_subst id u' dΓ d (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) deqy)))
 {
     simplify;
-    refine teq_trans _ (der_subst_apply id dΓ d sc (applyI1 B it1) v);
-    refine Jcong [(Isubst db0 it1 (subst (dbsucc id) (shift db0 (Ishift db0 (shift_sctx sc u'))) B))]
-                 [(subst (dbsucc id) (Shift (shift_sctx sc u')) (applyI1 B it1))] (λ v', apply1 v' (subst id (shift_sctx sc u') v)) _;
-    refine teq_trans _ (der_subst_Iapply (dbsucc id) dΓ d (SCPush sc (Isubstitution (sc_to_dctx sc) dA der_I_1)) B it1);
-    refine Jcong (λ v, applyI1 (subst (dbsucc id) v B) it1) (aux_teq_shift_Ishift db0 db0 (shift_sctx sc u'))
+    refine der_subst_Iapply id dΓ d sc (tpath A x y) it1;
 }
 {
-    refine Jtransp _ (FTRefl _) _
+    refine Jcong tlamP _;
+    refine teq_trans _ (Jcong (λ t, subst id (IShift t) (tcomp (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0)) (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0))) (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1)) (tappP (IShift (IShift u)) (itvar db1)) (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y))) (tappP (IShift u) (itvar db0)))) (teq_inv (shift_sctx_ss_compat sc u')));
+    refine teq_trans _ (teq_subst_comp id (sctx_to_ss (SCI sc)) u' (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))
+                       (ftmax (IShiftF f) (ftmax (fteq0 db0) (fteq1 db0))) (tsys (IShiftFN db1 f) (ftmax (fteq0 db1) (fteq1 db1)) (tappP (IShift (IShift u)) (itvar db1)) (tsys (fteq0 db1) (fteq1 db1) (IShift1 x) (IShift1 y)))
+                       (tappP (IShift u) (itvar db0)));
+    refine Jcomp [applyI1 (applyI1 (Ishift db2 (Ishift db2 (subst id (shift_sctx (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc)) (der_Ishift0F (sc_to_dctx sc) df))) u') A))) (itvar db2)) (itvar db0)]
+           [subst id (shift_seq (SSI (sctx_to_ss (SCI sc))) u') (applyI1 (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2)) (itvar db0))] _ (FTRefl _) _ _
     {
-        refine teq_trans _ (der_subst_apply id dΓ d (SCI sc) B (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0)))) (ftmax (IShiftF f) (fteq0 db0)) (IShift v)));
-        refine Jcong [ttransp (applyI1 (IShift1 (IShift1 (subst id (shift_sctx (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) u') A))) (itmax (itvar db1) (itsym (itvar db0)))) (ftmax (IShiftF f) (fteq0 db0)) (IShift (subst id (shift_sctx sc u') v))]
-[subst id (shift_sctx (SCI sc) u') (ttransp (applyI1 (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0)))) (ftmax (IShiftF f) (fteq0 db0)) (IShift v))]
-                     (λ w, (apply1 (subst (dbsucc id) (Shift (shift_sctx (SCI sc) u')) B) w)) _;
-        refine Jtransp _ _ _
+        refine teq_trans _ (teq_inv (teq_subst_Iapply id (SSI (SSI (sctx_to_ss sc))) (itvar db0) u' (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2))));
+        refine Jcong [applyI1 (Ishift db2 (Ishift db2 (subst id (shift_sctx (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc)) (der_Ishift0F (sc_to_dctx sc) df))) u') A))) (itvar db2)]
+                     [subst id (IShift (shift_seq (SSI (SSI (sctx_to_ss sc))) u')) (applyI1 (Ishift db2 (Ishift db2 A)) (itvar db2))]
+                     (λ t, applyI1 t (itvar db0)) _;
+        refine teq_trans _ (teq_inv (teq_subst_Iapply id (SSI (SSI (SSI (sctx_to_ss sc)))) (itvar db2) u' (Ishift db2 (Ishift db2 A))));
+        refine Jcong [(Ishift db2 (Ishift db2 (subst id (shift_sctx (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc)) (der_Ishift0F (sc_to_dctx sc) df))) u') A)))]
+                     [subst id (IShift (shift_seq (SSI (SSI (SSI (sctx_to_ss sc)))) u')) ((Ishift db2 (Ishift db2 A)))]
+                     (λ t, applyI1 t (itvar db2)) _;
+        refine teq_trans (Jcong (Ishift db2) (teq_inv (aux_teq_subst_Ishift id db2 (shift_sctx (SCI (SCI sc)) u') A))) _;
+        refine teq_trans (teq_inv (aux_teq_subst_Ishift id db2 (Ishift db2 (shift_sctx (SCI (SCI sc)) u')) (Ishift db2 A))) _;
+        refine Jcong [Ishift db2 (Ishift db2 (shift_sctx (SCI (SCI sc)) u'))] [IShift (IShift (IShift (IShift (shift_seq (sctx_to_ss sc) u'))))]
+                     (λ t, subst id t (Ishift db2 (Ishift db2 A))) _;
+        refine teq_trans _ (Jcong (λ t, IShift (IShift (IShift (IShift t)))) (shift_sctx_ss_compat sc u'));
+        refine teq_trans (Jcong (Ishift db2) (teq_trans (teq_inv (aux_teq_Ishift_Ishift0 db1 (IShift (shift_sctx sc u')))) (Jcong IShift (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u')))))) _;
+        refine (teq_trans (teq_inv (aux_teq_Ishift_Ishift0 db1 (IShift (IShift (shift_sctx sc u')))))
+                          (Jcong IShift (teq_inv (aux_teq_Ishift_Ishift0 db0 (IShift (shift_sctx sc u'))))))
+    }
+    {
+        refine Jsys (FTRefl _) (FTRefl _) _ _
         {
-            refine teq_trans _ (der_subst_Iapply id dΓ d (SCI (SCI sc)) (IShift1 (IShift1 A)) (itmax (itvar db1) (itsym (itvar db0))));
-            refine Jcong [IShift1 (IShift1 (subst id (shift_sctx (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) u') A))]
-                         [subst id (IShift (shift_sctx (SCI (SCI sc)) u')) (IShift1 (IShift1 A))]
-                         (λ w, applyI1 w (itmax (itvar db1) (itsym (itvar db0)))) _;
-            refine teq_trans _ (Jcong (λ w, subst id w (IShift1 (IShift1 A))) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx (SCI sc) u'))));
-            refine teq_trans _ (teq_inv (aux_teq_subst_Ishift id db1 (shift_sctx (SCI (SCI sc)) u') (IShift1 A)));
-            refine Jcong [IShift1 (subst id (shift_sctx (SCI sc) u') A)] [subst id (shift_sctx (SCI (SCI sc)) u') (IShift1 A)] IShift1 _;
-            refine teq_trans _ (Jcong (λ w, subst id w (IShift1 A)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u'))));
-            refine teq_inv (aux_teq_subst_Ishift id db1 (shift_sctx (SCI sc) u') A)
+            refine JappP _ (ITRefl _);
+            refine teq_trans (Jcong IShift (teq_inv (aux_teq_subst_Ishift id db0 (shift_sctx sc u') u))) _;
+            refine teq_trans _ (Jcong (λ t, subst id (IShift t) (IShift (IShift u))) (shift_sctx_ss_compat (SCI sc) u')) ;
+            refine teq_inv (aux_teq_subst_Ishift id db0 (IShift (shift_sctx sc u')) (IShift u))
         }
-        { refine FTRefl _ }
-        { refine teq_inv (der_subst_Ishift id dΓ d sc v) }
+        {
+            refine Jsys (FTRefl _) (FTRefl _) _ _
+            {
+                refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (shift_sctx (SCI sc) u') x)) _;
+                refine teq_trans _ (Jcong (λ t, subst id (IShift t) (IShift1 x)) (shift_sctx_ss_compat (SCI sc) u')) ;
+                refine Jcong (λ t, subst id t (IShift1 x)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u')))
+            }
+            {
+                refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (shift_sctx (SCI sc) u') y)) _;
+                refine teq_trans _ (Jcong (λ t, subst id (IShift t) (IShift1 y)) (shift_sctx_ss_compat (SCI sc) u')) ;
+                refine Jcong (λ t, subst id t (IShift1 y)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u')))
+            }
+        }
     }
     {
-        refine Japp (TRefl _) _;
-        refine Jtransp _ (FTRefl _) (TRefl _);
-        refine teq_trans _ (der_subst_Iapply id dΓ d (SCI sc) (IShift1 A) (itsym (itvar db0)));
-        refine Jcong [IShift1 (subst id (shift_sctx (SCI sc) u') A)] [subst id (shift_sctx (SCI (SCI sc)) u') (IShift1 A)]
-                     (λ w, applyI1 w (itsym (itvar db0))) _;
-        refine teq_trans _ (Jcong (λ w, subst id w (IShift1 A)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u'))));
-        refine teq_inv (aux_teq_subst_Ishift id db1 (shift_sctx (SCI sc) u') A)
+        refine JappP _ (ITRefl _);
+        refine teq_trans _ (Jcong (λ t, subst id t (IShift u)) (shift_sctx_ss_compat (SCI sc) u')) ;
+        refine teq_inv (aux_teq_subst_Ishift id db0 (shift_sctx sc u') u)
     }
 }
 {
-    refine teq_trans (der_subst_Ishift id dΓ d sc (applyI1 A it0)) _;
-    refine Jcong IShift (teq_inv (der_subst_Iapply id dΓ d sc A it0));
+    refine (teq_inv (der_subst_Iapply id dΓ d (SCI sc) A it0));
 }
+{ refine (teq_inv (der_subst_Iapply id dΓ d (SCI sc) A it1)) }
+{ refine (teq_inv (der_subst_Iapply id dΓ d sc (tpath A x y) it0)) }
 {
-    refine teq_trans (Jcong (λ w, subst (dbsucc id) w (IShift (applyI1 B it0))) (aux_teq_shift_Ishift db0 db0 (shift_sctx sc u'))) _;
-    refine teq_trans (der_subst_Ishift (dbsucc id) dΓ d (SCPush sc (Isubstitution (sc_to_dctx sc) dA der_I_0)) (applyI1 B it0)) _;
-    refine Jcong [subst (dbsucc id) (shift_sctx (SCPush sc (Isubstitution (sc_to_dctx sc) dA der_I_0)) u') (applyI1 B it0)]
-                 [applyI1 (subst (dbsucc id) (shift_sctx (SCPush (SCF (SCI sc) (der_Ishift0F (sc_to_dctx sc) df)) (der_weakF (pushΓI (sc_to_dctx sc)) dA (der_Ishift0F (sc_to_dctx sc) df))) u') B) it0] IShift _;
-    refine teq_trans (teq_inv (der_subst_Iapply (dbsucc id) dΓ d (SCPush sc (Isubstitution (sc_to_dctx sc) dA der_I_0)) B it0)) _;
-    refine Jcong (λ w, applyI1 (subst (dbsucc id) w B) it0) (teq_inv (aux_teq_shift_Ishift db0 db0 (shift_sctx sc u')))
+    refine teq_trans (Jcong (λ t, subst id t (IShift1 (Isubst db1 it0 A))) (aux_teq_Ishift_Ishift0 db0 (shift_sctx sc u'))) _;
+    refine teq_trans (aux_teq_subst_Ishift id db1 (shift_sctx (SCI sc) u') (Isubst db1 it0 A)) _;
+    refine Jcong [subst id (shift_sctx (SCI sc) u') (Isubst db1 it0 A)] [Isubst db1 it0 (subst id (shift_sctx (SCF (SCI (SCI sc)) (der_Ishift0F (sc_to_dctx (SCI sc)) (der_Ishift0F (sc_to_dctx sc) df))) u') A)] IShift1 _;
+    refine teq_trans (Jcong (λ v, subst id v (Isubst db1 it0 A)) (shift_sctx_ss_compat (SCI sc) u')) _;
+    refine teq_trans _ (Jcong (λ v, Isubst db1 it0 (subst id (IShift (IShift v)) A)) (teq_inv (shift_sctx_ss_compat sc u')));
+    refine teq_trans (aux_teq_subst_Isubst' (IMI (IM0 (sctx_to_ss sc))) it0 u' A) _;
+    refine Jcong (λ t, Isubst db1 it0 (subst id t A)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq (sctx_to_ss sc) u')));
 }
+{ refine (teq_inv (der_subst_Iapply id dΓ d (SCI sc) A it0)) }
 {
-    refine teq_inv (der_subst_Iapply id dΓ d sc (tpi A B) it0)
+    refine teq_trans (der_subst_Ishift id dΓ d sc (applyI1 x it0)) _;
+    refine Jcong IShift (teq_inv (der_subst_Iapply id dΓ d sc x it0))
 }
+{ refine (teq_inv (der_subst_Iapply id dΓ d (SCI sc) A it1)) }
 {
-    refine teq_inv (der_subst_Iapply id dΓ d sc A it1)
+    refine teq_trans (der_subst_Ishift id dΓ d sc (applyI1 y it0)) _;
+    refine Jcong IShift (teq_inv (der_subst_Iapply id dΓ d sc y it0))
 }
 end;
 print test;
@@ -668,4 +695,126 @@ with der_eq_subst $id $u $dΓ $d $sc (der_eq_transp_pi _ _ _ $A $B $f _ $v $dA $
                                                                              (der_weakF (pushΓI (sc_to_dctx $sc)) $dA (der_Ishift0F (sc_to_dctx $sc) $df))) $deqB))
                            (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc (tpi $A $B) it0)) (der_subst $id $dΓ $d $sc $du))
                            (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc $A it1)) (der_subst $id $dΓ $d $sc $dv)))
+with der_eq_subst $id _ $dΓ $d $sc (der_eq_transp_univ _ _ _ _ $df $dA) ↪ der_eq_transp_univ _ _ _ _ (der_F_subst $id $dΓ $d $sc $df)
+                                                                                                      (der_subst $id $dΓ $d $sc $dA)
+with der_eq_subst $id _ $dΓ $d $sc (der_eq_transp_zero _ _ _ $df) ↪ der_eq_transp_zero _ _ _ (der_F_subst $id $dΓ $d $sc $df)
+with der_eq_subst $id _ $dΓ $d $sc (der_eq_transp_suc _ _ _ _ $df $dn) ↪ der_eq_transp_suc _ _ _ _ (der_F_subst $id $dΓ $d $sc $df)
+                                                                                                   (der_subst $id $dΓ $d $sc $dn)
+with der_eq_subst $id $u $dΓ $d $sc (der_eq_transp_sig _ _ _ $A $B $f $v $dA $dB $df $deqA $deqB $du) ↪
+     Jeq (der_subst_Iapply $id $dΓ $d $sc (tsig $A $B) it1) (TRefl _)
+         (Jpair (TRefl _) (Jtransp (teq_trans (Jcong (λ t, apply1 (subst (dbsucc $id) (Shift (shift_sctx (SCI $sc) $u)) $B) t)
+                                                     (teq_trans (Jcong (λ v1, ttranspFill (subst $id (IShift v1) $A) $f (tp1 (subst $id v1 $v)))
+                                                                       (shift_sctx_ss_compat $sc $u))
+                                                                (teq_trans (teq_subst_transpFill $id (sctx_to_ss $sc) $u $A $f (tp1 $v))
+                                                                           (Jcong (λ v1, subst $id (IShift v1) (ttranspFill $A $f (tp1 $v)))
+                                                                                  (teq_inv (shift_sctx_ss_compat $sc $u))))))
+                                              (der_subst_apply $id $dΓ $d (SCI $sc) $B (ttranspFill $A $f (tp1 $v)))) (FTRefl _) (TRefl _)))
+         (der_eq_transp_sig _ _ _ _ _ _ _
+          (der_subst $id $dΓ $d (SCI $sc) $dA)
+          (der_subst (dbsucc $id) $dΓ $d (SCPush (SCI $sc) $dA) $dB)
+          (der_F_subst $id $dΓ $d $sc $df)
+          (Jeq (TRefl _) (TRefl _) (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $A it0))
+                                              (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $A it0))))
+               (der_eq_subst $id $u $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqA))
+          (Jeq (TRefl _) (TRefl _)
+               (teq_trans (Jcong (λ w, subst (dbsucc $id) w (IShift (applyI1 $B it0))) (aux_teq_shift_Ishift db0 db0 (shift_sctx $sc $u)))
+                          (teq_trans (der_subst_Ishift (dbsucc $id) $dΓ $d (SCPush $sc (Isubstitution (sc_to_dctx $sc) $dA der_I_0)) (applyI1 $B it0))
+                                     (Jcong IShift (teq_trans (teq_inv (der_subst_Iapply (dbsucc $id) $dΓ $d (SCPush $sc (Isubstitution (sc_to_dctx $sc) $dA der_I_0)) $B it0))
+                                                              (Jcong (λ w, applyI1 (subst (dbsucc $id) w $B) it0)
+                                                                     (teq_inv (aux_teq_shift_Ishift db0 db0 (shift_sctx $sc $u))))))))
+               (der_eq_subst (dbsucc $id) $u $dΓ $d (SCPush (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df))
+                                                            (der_weakF (pushΓI (sc_to_dctx $sc)) $dA (der_Ishift0F (sc_to_dctx $sc) $df))) $deqB))
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc (tsig $A $B) it0)) (der_subst $id $dΓ $d $sc $du)))
+with der_eq_subst $id $u $dΓ $d $sc (der_eq_transp_sum_left _ _ _ $A $B _ _ $dA $dB $df $du $deqA $deqB) ↪
+     Jeq (der_subst_Iapply $id $dΓ $d $sc (tsum $A $B) it1) (TRefl _) (TRefl _)
+         (der_eq_transp_sum_left _ _ _ _ _ _ _
+          (der_subst $id $dΓ $d (SCI $sc) $dA)
+          (der_subst $id $dΓ $d (SCI $sc) $dB)
+          (der_F_subst $id $dΓ $d $sc $df)
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc $A it0)) (der_subst $id $dΓ $d $sc $du))
+          (Jeq (TRefl _) (TRefl _) (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $A it0))
+                                              (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $A it0))))
+               (der_eq_subst $id $u $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqA))
+          (Jeq (TRefl _) (TRefl _) (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $B it0))
+                                              (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $B it0))))
+               (der_eq_subst $id $u $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqB)))
+with der_eq_subst $id $u $dΓ $d $sc (der_eq_transp_sum_right _ _ _ $A $B _ _ $dA $dB $df $du $deqA $deqB) ↪
+     Jeq (der_subst_Iapply $id $dΓ $d $sc (tsum $A $B) it1) (TRefl _) (TRefl _)
+         (der_eq_transp_sum_right _ _ _ _ _ _ _
+          (der_subst $id $dΓ $d (SCI $sc) $dA)
+          (der_subst $id $dΓ $d (SCI $sc) $dB)
+          (der_F_subst $id $dΓ $d $sc $df)
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc $B it0)) (der_subst $id $dΓ $d $sc $du))
+          (Jeq (TRefl _) (TRefl _) (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $A it0))
+                                              (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $A it0))))
+               (der_eq_subst $id $u $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqA))
+          (Jeq (TRefl _) (TRefl _) (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $B it0))
+                                              (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $B it0))))
+               (der_eq_subst $id $u $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqB)))
+with der_eq_subst $id $u' $dΓ $d $sc (der_eq_transp_path _ _ $A $x $y $f $u $dA $dx $dy $df $du $deqA $deqx $deqy) ↪
+     Jeq (der_subst_Iapply $id $dΓ $d $sc (tpath $A $x $y) it1) (TRefl _)
+         (Jcong tlamP (teq_trans (teq_trans (Jcomp (teq_trans (Jcong (λ t, applyI1 t (itvar db0)) (teq_trans (Jcong (λ t, applyI1 t (itvar db2)) (teq_trans //
+                       (Jcong (Ishift db2) (teq_inv (aux_teq_subst_Ishift $id db2 (shift_sctx (SCI (SCI $sc)) $u') $A)))
+                       (teq_trans (teq_inv (aux_teq_subst_Ishift $id db2 (Ishift db2 (shift_sctx (SCI (SCI $sc)) $u')) (Ishift db2 $A)))
+                                  (Jcong (λ t, subst $id t (Ishift db2 (Ishift db2 $A))) (teq_trans (teq_trans (Jcong (Ishift db2) (teq_trans //
+                                   (teq_inv (aux_teq_Ishift_Ishift0 db1 (IShift (shift_sctx $sc $u'))))
+                                   (Jcong IShift (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx $sc $u'))))))
+                                   (teq_trans (teq_inv (aux_teq_Ishift_Ishift0 db1 (IShift (IShift (shift_sctx $sc $u')))))
+                                              (Jcong IShift (teq_inv (aux_teq_Ishift_Ishift0 db0 (IShift (shift_sctx $sc $u')))))))
+                                   (Jcong (λ t, IShift (IShift (IShift (IShift t)))) (shift_sctx_ss_compat $sc $u')))))))
+                       (teq_inv (teq_subst_Iapply $id (SSI (SSI (SSI (sctx_to_ss $sc)))) (itvar db2) $u' (Ishift db2 (Ishift db2 $A))))))
+                       (teq_inv (teq_subst_Iapply $id (SSI (SSI (sctx_to_ss $sc))) (itvar db0) $u' (applyI1 (Ishift db2 (Ishift db2 $A)) (itvar db2)))))
+                         (FTRefl _)
+                         (Jsys (FTRefl _) (FTRefl _)
+                               (JappP (teq_trans (Jcong IShift (teq_inv (aux_teq_subst_Ishift $id db0 (shift_sctx $sc $u') $u)))
+                                                 (teq_trans (teq_inv (aux_teq_subst_Ishift $id db0 (IShift (shift_sctx $sc $u')) (IShift $u)))
+                                                            (Jcong (λ t, subst $id (IShift t) (IShift (IShift $u))) (shift_sctx_ss_compat (SCI $sc) $u'))))
+                                      (ITRefl (itvar db1)))
+                               (Jsys (FTRefl (fteq0 db1)) (FTRefl (fteq1 db1))
+                                     (teq_trans (teq_inv (aux_teq_subst_Ishift $id db1 (shift_sctx (SCI $sc) $u') $x))
+                                                (teq_trans (Jcong (λ t, subst $id t (IShift1 $x)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx $sc $u'))))
+                                                           (Jcong (λ t, subst $id (IShift t) (IShift1 $x)) (shift_sctx_ss_compat (SCI $sc) $u'))))
+                                     (teq_trans (teq_inv (aux_teq_subst_Ishift $id db1 (shift_sctx (SCI $sc) $u') $y))
+                                                (teq_trans (Jcong (λ t, subst $id t (IShift1 $y)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_sctx $sc $u'))))
+                                                           (Jcong (λ t, subst $id (IShift t) (IShift1 $y)) (shift_sctx_ss_compat (SCI $sc) $u'))))))
+                         (JappP (teq_trans (teq_inv (aux_teq_subst_Ishift $id db0 (shift_sctx $sc $u') $u))
+                                           (Jcong (λ t, subst $id t (IShift $u)) (shift_sctx_ss_compat (SCI $sc) $u')))
+                                (ITRefl (itvar db0))))
+                  (teq_subst_comp $id (sctx_to_ss (SCI $sc)) $u' (applyI1 (applyI1 (Ishift db2 (Ishift db2 $A)) (itvar db2)) (itvar db0))
+                                  (ftmax (IShiftF $f) (ftmax (fteq0 db0) (fteq1 db0)))
+                                  (tsys (IShiftFN db1 $f) (ftmax (fteq0 db1) (fteq1 db1))
+                                        (tappP (IShift (IShift $u)) (itvar db1)) (tsys (fteq0 db1) (fteq1 db1) (IShift1 $x) (IShift1 $y)))
+                                  (tappP (IShift $u) (itvar db0))))
+                 (Jcong (λ t, subst $id (IShift t) (tcomp (applyI1 (applyI1 (Ishift db2 (Ishift db2 $A)) (itvar db2)) (itvar db0))
+                                                          (ftmax (IShiftF $f) (ftmax (fteq0 db0) (fteq1 db0)))
+                                                          (tsys (IShiftFN db1 $f) (ftmax (fteq0 db1) (fteq1 db1))
+                                                                (tappP (IShift (IShift $u)) (itvar db1))
+                                                                (tsys (fteq0 db1) (fteq1 db1) (IShift1 $x) (IShift1 $y)))
+                                                          (tappP (IShift $u) (itvar db0))))
+                        (teq_inv (shift_sctx_ss_compat $sc $u')))))
+         (der_eq_transp_path _ _ _ _ _ _ _
+          (der_subst $id $dΓ $d (SCI (SCI $sc)) $dA)
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d (SCI $sc) $A it0)) (der_subst $id $dΓ $d (SCI $sc) $dx))
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d (SCI $sc) $A it1)) (der_subst $id $dΓ $d (SCI $sc) $dy))
+          (der_F_subst $id $dΓ $d $sc $df)
+          (JT (teq_inv (der_subst_Iapply $id $dΓ $d $sc (tpath $A $x $y) it0)) (der_subst $id $dΓ $d $sc $du))
+          (Jeq (TRefl _) (TRefl _)
+               (teq_trans (Jcong (λ t, subst $id t (IShift1 (Isubst db1 it0 $A))) (aux_teq_Ishift_Ishift0 db0 (shift_sctx $sc $u')))
+                          (teq_trans (aux_teq_subst_Ishift $id db1 (shift_sctx (SCI $sc) $u') (Isubst db1 it0 $A))
+                                     (Jcong IShift1 (teq_trans (Jcong (λ v, subst $id v (Isubst db1 it0 $A)) (shift_sctx_ss_compat (SCI $sc) $u'))
+                                                               (teq_trans (teq_trans
+                                                                           (aux_teq_subst_Isubst' (IMI (IM0 (sctx_to_ss $sc))) it0 $u' $A)
+                                                                           (Jcong (λ t, Isubst db1 it0 (subst $id t $A))
+                                                                                  (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq (sctx_to_ss $sc) $u')))))
+                                                                          (Jcong (λ v, Isubst db1 it0 (subst $id (IShift (IShift v)) $A))
+                                                                                 (teq_inv (shift_sctx_ss_compat $sc $u'))))))))
+               (der_eq_subst $id $u' $dΓ $d (SCF (SCI (SCI $sc)) (der_Ishift0F (sc_to_dctx (SCI $sc)) (der_Ishift0F (sc_to_dctx $sc) $df))) $deqA))
+          (Jeq (teq_inv (der_subst_Iapply $id $dΓ $d (SCI $sc) $A it0)) (TRefl _)
+               (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $x it0))
+                          (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $x it0))))
+               (der_eq_subst $id $u' $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqx))
+          (Jeq (teq_inv (der_subst_Iapply $id $dΓ $d (SCI $sc) $A it1)) (TRefl _)
+               (teq_trans (der_subst_Ishift $id $dΓ $d $sc (applyI1 $y it0))
+                          (Jcong IShift (teq_inv (der_subst_Iapply $id $dΓ $d $sc $y it0))))
+               (der_eq_subst $id $u' $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deqy)))
 ;

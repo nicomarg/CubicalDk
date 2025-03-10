@@ -3701,6 +3701,24 @@ begin
     }
 end;
 
+symbol teq_subst_transpFill (id : DBId) (is : ShiftSequence id) (v : Term) (A : Term) (f : FTerm) (u : Term) :
+  TEq (ttranspFill (subst id (shift_seq (SSI is) v) A) f (subst id (shift_seq is v) u)) (subst id (shift_seq (SSI is) v) (ttranspFill A f u)) ≔
+begin
+  assume id is v A f u;
+  refine Jtransp _ (FTRefl _) _
+  {
+    refine teq_trans _ (teq_inv (teq_subst_Iapply id (SSI (SSI is)) (itmin (itvar db0) (itvar db1)) v (IShift1 (IShift1 A))));
+    refine Jcong [IShift1 (IShift1 (subst id (shift_seq (SSI is) v) A))] [subst id (shift_seq (SSI (SSI (SSI is))) v) (IShift1 (IShift1 A))]
+                 (λ t, applyI1 t (itmin (itvar db0) (itvar db1))) _;
+    refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_subst_Ishift id db1 (shift_seq (SSI is) v) A))) _;
+    refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (IShift1 (shift_seq (SSI is) v)) (IShift1 A))) _;
+    refine Jcong [(Ishift db1 (IShift1 (shift_seq (SSI is) v)))] [(shift_seq (SSI (SSI (SSI is))) v)] (λ t, subst id t (IShift1 (IShift1 A))) _;
+    refine teq_trans _ (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq (SSI is) v)));
+    refine Jcong IShift1 (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq is v)))
+  }
+   { refine teq_inv (aux_teq_subst_Ishift id db0 (shift_seq is v) u) }
+end;
+
 symbol teq_shift_forward (id : DBId) (A : Term) (r : ITerm) (a : Term) :
   TEq (forward (shift id A) r (shift id a)) (shift id (forward A r a)) ≔
 begin
@@ -3725,6 +3743,18 @@ begin
   {
     refine fteq_inv (aux_teq_IshiftF_IsubstF db0 id r (fteq1 db0) (dble_0_n _))
   }
+end;
+
+symbol teq_subst_forward (id : DBId) (is : ShiftSequence id) (v A : Term) (r : ITerm) (a : Term) :
+  TEq (forward (subst id (shift_seq (SSI is) v) A) r (subst id (shift_seq is v) a)) (subst id (shift_seq is v) (forward A r a)) ≔
+begin
+  assume id is v A r a;
+  refine Jtransp _ (FTRefl _) (TRefl _);
+  refine teq_trans _ (teq_inv (teq_subst_Iapply id (SSI is) (itmax (itvar db0) (IShiftI r)) v (IShift1 A)));
+  refine Jcong [(IShift1 (subst id (shift_seq (SSI is) v) A))] [(subst id (IShift (shift_seq (SSI is) v)) (IShift1 A))]
+               (λ t, applyI1 t (itmax (itvar db0) (IShiftI r))) _;
+  refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (shift_seq (SSI is) v) A)) _;
+  refine Jcong (λ t, subst id t (IShift1 A)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq is v)));
 end;
 
 symbol teq_shift_hfill (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
@@ -3799,4 +3829,21 @@ begin
   {
     refine teq_Ishift_forward id A it0 u0
   }
+end;
+
+symbol teq_subst_comp (id : DBId) (is : ShiftSequence id) (v : Term) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (tcomp (subst id (shift_seq (SSI is) v) A) f (subst id (shift_seq (SSI is) v) u) (subst id (shift_seq is v) u0))
+      (subst id (shift_seq is v) (tcomp A f u u0)) ≔
+begin
+  assume id is v A f u u0;
+  refine Jhcomp _ (FTRefl _) _ _
+  { refine teq_inv (teq_subst_Iapply id is it1 v A) }
+  {
+    refine teq_trans _ (teq_subst_forward id (SSI is) v (IShift1 A) (itvar db0) u);
+    refine Jcong [IShift1 (subst id (shift_seq (SSI is) v) A)] [subst id (shift_seq (SSI (SSI is)) v) (IShift1 A)]
+                 (λ t, forward t (itvar db0) (subst id (shift_seq (SSI is) v) u)) _;
+    refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (shift_seq (SSI is) v) A)) _;
+    refine Jcong (λ t, subst id t (IShift1 A)) (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq is v)))
+  }
+  { refine teq_subst_forward id is v A it0 u0 }
 end;
