@@ -3804,6 +3804,39 @@ begin
   { refine aux_teq_Ishift_Ishift db0 id u0 (dble_0_n _) }
 end;
 
+symbol teq_subst_hfill (id : DBId) (is : ShiftSequence id) (v : Term) (A : Term) (f : FTerm) (u u0 : Term) :
+  TEq (thfill (subst id (shift_seq is v) A) f (subst id (shift_seq (SSI is) v) u) (subst id (shift_seq is v) u0))
+      (subst id (shift_seq (SSI is) v) (thfill A f u u0)) ≔
+begin
+  assume id is v A f u u0;
+  refine Jhcomp _ (FTRefl _) _ _
+  { refine teq_inv (aux_teq_subst_Ishift id db0 (shift_seq is v) A) }
+  {
+    refine Jsys (FTRefl _) (FTRefl _) _ _
+    {
+      refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_subst_Ishift id db0 (shift_seq is v) u0))) _;
+      refine teq_trans (teq_inv (aux_teq_subst_Ishift id db1 (shift_seq (SSI is) v) (IShift u0))) _;
+      refine Jcong [Ishift db1 (shift_seq (SSI is) v)] [IShift (shift_seq (SSI is) v)] (λ t, subst id t (IShift1 (IShift u0))) _;
+      refine teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq is v))
+    }
+    {
+      refine teq_trans _ (teq_inv (teq_subst_Iapply id (SSI (SSI is)) (itmax (itvar db0) (itvar db1)) v (IShift1 (IShift1 u))));
+      refine Jcong [IShift1 (IShift1 (subst id (shift_seq (SSI is) v) u))] [subst id (IShift (shift_seq (SSI (SSI is)) v)) (IShift1 (IShift1 u))]
+                   (λ t, applyI1 t (itmax (itvar db0) (itvar db1))) _;
+      refine teq_trans _ (Jcong [IShift1 (IShift1 (shift_seq (SSI is) v))] [shift_seq (SSI (SSI (SSI is))) v] (λ t, subst id t (IShift1 (IShift1 u))) _)
+      {
+        refine teq_trans _ (teq_inv (aux_teq_subst_Ishift id db1 (IShift1 (shift_seq (SSI is) v)) (IShift1 u)));
+        refine Jcong IShift1 (teq_inv (aux_teq_subst_Ishift id db1 (shift_seq (SSI is) v) u))
+      }
+      {
+        refine teq_trans (Jcong IShift1 (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq is v)))) _;
+        refine (teq_inv (aux_teq_Ishift_Ishift0 db0 (shift_seq (SSI is) v)))
+      }
+    }
+  }
+  { refine teq_inv (aux_teq_subst_Ishift id db0 (shift_seq is v) u0) }
+end;
+
 symbol teq_shift_comp (id : DBId) (A : Term) (f : FTerm) (u u0 : Term) :
   TEq (tcomp (shift id A) f (shift id u) (shift id u0)) (shift id (tcomp A f u u0)) ≔
 begin

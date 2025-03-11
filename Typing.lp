@@ -300,6 +300,7 @@ constant symbol der_eq_hcomp_pi : Π (Γ : Context) (l l' : Lev) (A B : Term) (f
   der (PushF (IShiftF f) (PushI Γ)) u (IShift (tpi A B)) (lmax l l') → der Γ u0 (tpi A B) (lmax l l') →
   der_eq (PushF f Γ) u0 (applyI1 u it0) (tpi A B) (lmax l l') → der Γ v A l →
   der_eq Γ (tapp (thcomp A f u u0) v) (thcomp (apply1 B v) f (tapp u (IShift v)) (tapp u0 v)) (apply1 B v) l';
+// TODO : universe hcomp
 // hcomp (U l) [φ ↦ E] A = Glue [φ ↦ (E(i/1), (equivⁱ E(i/1-i)))] A
 constant symbol der_eq_hcomp_zero : Π (Γ : Context) (l : Lev) (f : FTerm) (n : Term),
   der_F Γ f → der (PushF (IShiftF f) (PushI Γ)) n tnat l → der_eq (PushF f Γ) tzero (applyI1 n it0) tnat l →
