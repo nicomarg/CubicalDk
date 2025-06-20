@@ -984,4 +984,121 @@ with der_eq_subst $id $u' $dΓ $d $sc (der_eq_cong_hcomp _ $s $A1 $A2 $f1 $f2 $u
                             (der_eq_subst _ _ $dΓ $d (SCF $sc (inv_eq_F_t1 (sc_to_dctx $sc) $deqf)) $dequv1))
                        (Jeq (TRefl _) (TRefl _) (teq_inv (der_subst_Iapply $id $dΓ $d $sc $u2 it0))
                             (der_eq_subst _ _ $dΓ $d (SCF $sc (inv_eq_F_t2 (sc_to_dctx $sc) $deqf)) $dequv2))
-;
+// der_I_subst
+with der_I_subst _ _ _ _ der_I_0 ↪ der_I_0
+with der_I_subst _ _ _ _ der_I_1 ↪ der_I_1
+with der_I_subst _ $dΓ $d $sc (@der_I_var _ $i $le) ↪ der_I_var (lenI_ctx_sctx $d $dΓ $sc (dbsucc $i) $le)
+with der_I_subst $id $dΓ $d $sc (der_I_sym $di) ↪ der_I_sym (der_I_subst $id $dΓ $d $sc $di)
+with der_I_subst $id $dΓ $d $sc (der_I_min $da $db) ↪
+     der_I_min (der_I_subst $id $dΓ $d $sc $da) (der_I_subst $id $dΓ $d $sc $db)
+with der_I_subst $id $dΓ $d $sc (der_I_max $da $db) ↪
+     der_I_max (der_I_subst $id $dΓ $d $sc $da) (der_I_subst $id $dΓ $d $sc $db)
+// der_eq_I_subst
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_refl _ _ $di) ↪ der_eq_I_refl _ _ (der_I_subst $id $dΓ $d $sc $di)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_sym _ _ _ $di) ↪ der_eq_I_sym _ _ _ (der_eq_I_subst $id $dΓ $d $sc $di)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_trans _ _ _ _ $deq1 $deq2) ↪
+     der_eq_I_trans _ _ _ _ (der_eq_I_subst $id $dΓ $d $sc $deq1) (der_eq_I_subst $id $dΓ $d $sc $deq2)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_isOne_zero _ _ _ $done) ↪
+     der_eq_I_isOne_zero _ _ _ (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
+     der_eq_I_isOne_max _ _ _ _ _ (der_F_subst $id $dΓ $d $sc $df) (der_F_subst $id $dΓ $d $sc $dg)
+                        (der_eq_I_subst $id $dΓ $d (SCF $sc $df) $dif) (der_eq_I_subst $id $dΓ $d (SCF $sc $dg) $dig)
+                        (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_isOne_eq0 _ _ $done) ↪
+     der_eq_I_isOne_eq0 _ _ (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_isOne_eq1 _ _ $done) ↪
+     der_eq_I_isOne_eq1 _ _ (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_I_subst _ _ _ _ (der_eq_I_sym_sym _ _) ↪ der_eq_I_sym_sym _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_sym_zero _) ↪ der_eq_I_sym_zero _
+with der_eq_I_subst _ _ _ _ (der_eq_I_sym_one _) ↪ der_eq_I_sym_one _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_assoc _ _ _ _) ↪ der_eq_I_min_assoc _ _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_comm _ _ _) ↪ der_eq_I_min_comm _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_zero _ _) ↪ der_eq_I_min_zero _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_one _ _) ↪ der_eq_I_min_one _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_assoc _ _ _ _) ↪ der_eq_I_max_assoc _ _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_comm _ _ _) ↪ der_eq_I_max_comm _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_zero _ _) ↪ der_eq_I_max_zero _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_one _ _) ↪ der_eq_I_max_one _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_sym _ _ _) ↪ der_eq_I_min_sym _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_sym _ _ _) ↪ der_eq_I_max_sym _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_min_distrib _ _ _ _) ↪
+     der_eq_I_min_distrib _ _ _ _
+with der_eq_I_subst _ _ _ _ (der_eq_I_max_distrib _ _ _ _) ↪
+     der_eq_I_max_distrib _ _ _ _
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_cong_sym _ _ _ $di) ↪
+     der_eq_I_cong_sym _ _ _ (der_eq_I_subst $id $dΓ $d $sc $di)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_cong_min _ _ _ _ _ $di $dj) ↪
+     der_eq_I_cong_min _ _ _ _ _ (der_eq_I_subst $id $dΓ $d $sc $di) (der_eq_I_subst $id $dΓ $d $sc $dj)
+with der_eq_I_subst $id $dΓ $d $sc (der_eq_I_cong_max _ _ _ _ _ $di $dj) ↪
+     der_eq_I_cong_max _ _ _ _ _ (der_eq_I_subst $id $dΓ $d $sc $di) (der_eq_I_subst $id $dΓ $d $sc $dj)
+// der_F_subst
+with der_F_subst _ _ _ _ der_F_0 ↪ der_F_0
+with der_F_subst _ _ _ _ der_F_1 ↪ der_F_1
+with der_F_subst _ $dΓ $d $sc (@der_F_eq0 _ $i $le)  ↪ der_F_eq0 (lenI_ctx_sctx $d $dΓ $sc (dbsucc $i) $le)
+with der_F_subst _ $dΓ $d $sc (@der_F_eq1 _ $i $le)  ↪ der_F_eq1 (lenI_ctx_sctx $d $dΓ $sc (dbsucc $i) $le)
+with der_F_subst $id $dΓ $d $sc (der_F_min $df $dg) ↪
+     der_F_min (der_F_subst $id $dΓ $d $sc $df) (der_F_subst $id $dΓ $d $sc $dg)
+with der_F_subst $id $dΓ $d $sc (der_F_max $df $dg) ↪
+     der_F_max (der_F_subst $id $dΓ $d $sc $df) (der_F_subst $id $dΓ $d $sc $dg)
+// der_eq_F_subst
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_refl _ _ $df) ↪
+     der_eq_F_refl _ _ (der_F_subst $id $dΓ $d $sc $df)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_sym _ _ _ $df) ↪
+     der_eq_F_sym _ _ _ (der_eq_F_subst $id $dΓ $d $sc $df)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_trans _ _ _ _ $df $dg) ↪
+     der_eq_F_trans _ _ _ _ (der_eq_F_subst $id $dΓ $d $sc $df) (der_eq_F_subst $id $dΓ $d $sc $dg)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_isOne_zero _ _ _ $done) ↪
+     der_eq_F_isOne_zero _ _ _ (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_isOne_max _ _ _ _ _ $df $dg $dif $dig $done) ↪
+     der_eq_F_isOne_max _ _ _ _ _ (der_F_subst $id $dΓ $d $sc $df) (der_F_subst $id $dΓ $d $sc $dg)
+                        (der_eq_F_subst $id $dΓ $d (SCF $sc $df) $dif) (der_eq_F_subst $id $dΓ $d (SCF $sc $dg) $dig)
+                        (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_isOne_one _ _ $done) ↪
+     der_eq_F_isOne_one _ _ (der_isOne_subst $id $dΓ $d $sc $done)
+with der_eq_F_subst _ _ _ _ (der_eq_F_min_assoc _ _ _ _) ↪ der_eq_F_min_assoc _ _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_min_comm _ _ _) ↪ der_eq_F_min_comm _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_max_assoc _ _ _ _) ↪ der_eq_F_max_assoc _ _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_max_comm _ _ _) ↪ der_eq_F_max_comm _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_min_distrib _ _ _ _) ↪
+     der_eq_F_min_distrib _ _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_max_distrib _ _ _ _) ↪
+     der_eq_F_max_distrib _ _ _ _
+with der_eq_F_subst _ _ _ _ (der_eq_F_empty _ _) ↪ der_eq_F_empty _ _
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_cong_eq0 _ _ _ $deq) ↪
+     der_eq_F_cong_eq0 _ _ _ (der_eq_I_subst $id $dΓ $d $sc $deq)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_cong_eq1 _ _ _ $deq) ↪
+     der_eq_F_cong_eq1 _ _ _ (der_eq_I_subst $id $dΓ $d $sc $deq)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_cong_min _ _ _ _ _ $deq1 $deq2) ↪
+     der_eq_F_cong_min _ _ _ _ _ (der_eq_F_subst $id $dΓ $d $sc $deq1) (der_eq_F_subst $id $dΓ $d $sc $deq2)
+with der_eq_F_subst $id $dΓ $d $sc (der_eq_F_cong_max _ _ _ _ _ $deq1 $deq2) ↪
+     der_eq_F_cong_max _ _ _ _ _ (der_eq_F_subst $id $dΓ $d $sc $deq1) (der_eq_F_subst $id $dΓ $d $sc $deq2)
+// der_isOne_subst
+with der_isOne_subst _ _ _ _ (der_isOne_one _) ↪ der_isOne_one _
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_zero _ _ $d0) ↪
+     der_isOne_zero _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_empty _ _ $d0) ↪
+     der_isOne_empty _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_min_intro _ _ _ $df $dg) ↪
+     der_isOne_min_intro _ _ _ (der_isOne_subst $id $dΓ $d $sc $df) (der_isOne_subst $id $dΓ $d $sc $dg)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_min_elim_left _ _ _ $d0) ↪
+     der_isOne_min_elim_left _ _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_min_elim_right _ _ _ $d0) ↪
+     der_isOne_min_elim_right _ _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_max_intro_left _ _ _ $d0) ↪
+     der_isOne_max_intro_left _ _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_max_intro_right _ _ _ $d0) ↪
+     der_isOne_max_intro_right _ _ _ (der_isOne_subst $id $dΓ $d $sc $d0)
+with der_isOne_subst $id $dΓ $d $sc (der_isOne_max_elim _ _ _ _ $df $dg $dl $dr $d1) ↪
+     der_isOne_max_elim _ _ _ _ (der_F_subst $id $dΓ $d $sc $df) (der_F_subst $id $dΓ $d $sc $dg)
+                                (der_isOne_subst $id $dΓ $d (SCF $sc $df) $dl) (der_isOne_subst $id $dΓ $d (SCF $sc $dg) $dr)
+                                (der_isOne_subst $id $dΓ $d $sc $d1)
+with der_isOne_subst $id $dΓ $d (SCF $sc _) (der_isOne_axiom _ _ $df) ↪
+     der_isOne_axiom _ _ (der_F_subst $id $dΓ $d $sc $df)
+with der_isOne_subst _ $dΓ $d (SCPush $sc _) (der_isOne_weak _ _ _ _ $dt $df) ↪
+     der_isOne_weak _ _ _ _ (der_subst _ $dΓ $d $sc $dt) (der_isOne_subst _ $dΓ $d $sc $df)
+with der_isOne_subst _ $dΓ $d (SCI $sc) (der_isOne_weakI _ _ $df) ↪
+     der_isOne_weakI _ _ (der_isOne_subst _ $dΓ $d $sc $df)
+with der_isOne_subst _ $dΓ $d (SCF $sc _) (der_isOne_weakF _ _ _ $dg $df) ↪
+     der_isOne_weakF _ _ _ (der_F_subst _ $dΓ $d $sc $dg) (der_isOne_subst _ $dΓ $d $sc $df)
+with der_isOne_subst _ $dΓ $d $sc (der_isOne_cong _ _ _ $df $deq) ↪
+     der_isOne_cong _ _ _ (der_isOne_subst _ $dΓ $d $sc $df) (der_eq_F_subst _ $dΓ $d $sc $deq);
