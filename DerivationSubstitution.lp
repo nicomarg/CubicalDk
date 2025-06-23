@@ -7,14 +7,6 @@ require open ctt.Lemmas;
 
 // exported lemmas, TODO define them
 // Congruence for replacement
-symbol der_eq_cong_apply [Γ : Context] [l l' : Lev] [A1 A2 B1 B2 t1 t2 : Term]
-                         (_ : der_context Γ)
-                         (_ : der_eq Γ A1 A2 (tuniv l) (lsuc l)) (_ : der_eq (Push A1 l Γ) B1 B2 (tuniv l') (lsuc l'))
-                         (_ : der_eq Γ t1 t2 A1 l)
-                         (_ : der (Push A1 l Γ) B1 (tuniv l') (lsuc l'))
-                         (_ : der (Push A2 l Γ) B2 (tuniv l') (lsuc l'))
-                         (_ : der Γ t1 A1 l) (_ : der Γ t2 A2 l)
-                         : der_eq Γ (apply1 B1 t1) (apply1 B2 t2) (tuniv l') (lsuc l');
 symbol der_eq_cong_Iapply [Γ : Context] [l' : Lev] [B1 B2 : Term] [t1 t2 : ITerm]
                          (_ : der_context Γ)
                          (_ : der_eq (PushI Γ) B1 B2 (tuniv l') (lsuc l'))
@@ -171,6 +163,7 @@ symbol deq_convert_var [Γ : Context] (id : DBId)
                        (dt1 : der Γ t1 A1 s) (dt2 : der Γ t2 A2 s)
                        (esc : EqSubstContext (inv_type dΓ dt1) (inv_type dΓ dt2) id)
                        (i : DBId) (_ : der_eq Γ t1 t2 A1 s)
+                       (h : DBLe (dbsucc i) (len (sc_to_ctx (esc_to_sc1 esc))))
                        : der_eq (sc_to_sctx dt1 dΓ (esc_to_sc1 esc))
                                 (dbselect id i (shift_sctx (esc_to_sc1 esc) t1) (tvar i) (tvar (dbprev i)))
                                 (dbselect id i (shift_sctx (esc_to_sc2 esc) t2) (tvar i) (tvar (dbprev i)))
@@ -1102,3 +1095,154 @@ with der_isOne_subst _ $dΓ $d (SCF $sc _) (der_isOne_weakF _ _ _ $dg $df) ↪
      der_isOne_weakF _ _ _ (der_F_subst _ $dΓ $d $sc $dg) (der_isOne_subst _ $dΓ $d $sc $df)
 with der_isOne_subst _ $dΓ $d $sc (der_isOne_cong _ _ _ $df $deq) ↪
      der_isOne_cong _ _ _ (der_isOne_subst _ $dΓ $d $sc $df) (der_eq_F_subst _ $dΓ $d $sc $deq);
+
+// deq_convert_var
+rule deq_convert_var db0 _ _ _ _ _ _ (ESC0 _ _ _ _) db0 $deqr _ ↪ $deqr
+with deq_convert_var db0 _ _ _ _ _ _ (ESC0 _ _ _ _) (dbsucc _) _ $h ↪
+     (der_eq_refl _ _ _ _ (der_var (dble_S_n $h)))
+with deq_convert_var (dbsucc $id) $r1 _ _ _ _ _ (@ESCPush _ _ _ $B _ _ _ _ _ $esc _ _) db0 _ _ ↪
+     Jeq (teq_inv (teq_subst_shift $id (shift_sctx (esc_to_sc1 $esc) $r1) $B))
+         (TRefl _)
+         (TRefl _)
+         (der_eq_refl _ _ _ _ (der_var dble_db0))
+with deq_convert_var (dbsucc $id) $r1 $r2 $dΓ $deqR $dr1 $dr2 (ESCPush $esc $d1 _) (dbsucc $i) $deqr $h ↪
+     Jeq (teq_inv (teq_subst_shift $id (shift_sctx (esc_to_sc1 $esc) $r1) (shiftgetΓ (sc_to_ctx (esc_to_sc1 $esc)) $i)))
+         (teq_inv (teq_select_shift $id $i (shift_sctx (esc_to_sc1 $esc) $r1)))
+         (teq_inv (teq_select_shift $id $i (shift_sctx (esc_to_sc2 $esc) $r2)))
+         (der_eq_shift0
+           (der_subst _ $dΓ $dr1 (esc_to_sc1 $esc) $d1)
+           (sc_to_dsctx $dr1 $dΓ (esc_to_sc1 $esc))
+           (deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $i $deqr (dble_S_n $h)))
+with deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 (ESCPushI $esc) $i $deqr $h ↪
+     Jeq (teq_inv (aux_teq_subst_Ishift $id db0 (shift_sctx (esc_to_sc1 $esc) $r1) (shiftgetΓ (sc_to_ctx (esc_to_sc1 $esc)) $i)))
+         (teq_inv (teq_select_Ishift $id $i (shift_sctx (esc_to_sc1 $esc) $r1)))
+         (teq_inv (teq_select_Ishift $id $i (shift_sctx (esc_to_sc2 $esc) $r2)))
+         (der_eq_Ishift0 (sc_to_dsctx $dr1 $dΓ (esc_to_sc1 $esc))
+                         (deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $i $deqr $h))
+with deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 (ESCPushF $esc $df _) $i $deqr $h ↪
+     der_eq_weakF (sc_to_dsctx $dr1 $dΓ (esc_to_sc1 $esc))
+                  (deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $i $deqr $h)
+                  (der_F_subst _ $dΓ $dr1 (esc_to_sc1 $esc) $df);
+
+// deq_subst_convert
+rule deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_var _ $i $h) $deqr ↪
+     deq_convert_var $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $i $deqr $h
+// Structural
+with deq_subst_convert $id _ _ $dΓ _ $dr1 _ $esc (der_empty_face $done) _ ↪
+     der_eq_isOne_zero _ _ _ _ _ (der_isOne_subst $id $dΓ $dr1 (esc_to_sc1 $esc) $done)
+with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_union_face $df $dg $dtf $dtg $done) $deqr ↪
+     der_eq_isOne_max _ _ _ _ _ _ _
+                      (der_F_subst $id $dΓ $dr1 (esc_to_sc1 $esc) $df)
+                      (der_F_subst $id $dΓ $dr1 (esc_to_sc1 $esc) $dg)
+                      (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 (ESCPushF $esc $df $df) $dtf $deqr)
+                      (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 (ESCPushF $esc $dg $dg) $dtg $deqr)
+                      (der_isOne_subst $id $dΓ $dr1 (esc_to_sc1 $esc) $done)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_var _ $i $h) ↪ der_context_subst $id $dΓ $d $sc $i $h
+// with deq_subst_convert _ _ _ _ (der_univ) ↪ der_univ
+// with deq_subst_convert _ $dΓ $d $sc (der_type_conv $du $deq) ↪
+//      der_type_conv (deq_subst_convert _ $dΓ $d $sc $du)
+//                    (der_eq_subst _ _ $dΓ $d $sc $deq)
+
+// // Pi-types
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_pi $dA $dB) ↪
+//      der_pi (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//             (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_abs $dA $dB $dt) ↪
+//      der_abs (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+//              (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dt)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_app _ _ $u $B $dA $dB $dt $du) ↪
+//       JT (deq_subst_convert_apply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $B $u)
+//          (der_app _ _ _ _ (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA) (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+//                           (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dt) (deq_subst_convert $id $dΓ $d $sc $du))
+// // integers
+// with deq_subst_convert _ _ _ _ (der_nat) ↪ der_nat
+// with deq_subst_convert _ _ _ _ (der_zero) ↪ der_zero
+// with deq_subst_convert $id $sc $d $dΓ (der_suc $dn) ↪ der_suc (deq_subst_convert $id $sc $d $dΓ $dn)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_rec _ $s _ $P _ _ _ $dP $dz $dH $dn) ↪
+//       der_rec (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dP) (deq_subst_convert $id $dΓ $d $sc $dz)
+//               (JT (Jcong (tpi tnat) (Jpi (Jcong (λ v, tapp v (tvar db0)) (deq_subst_convert_shift $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $P))
+//                                          (Jcong (λ v, tapp v (tsuc (tvar db1)))
+//                                                 (teq_trans (deq_subst_convert_shift (dbsucc $id) $dΓ $d (SCPush $sc (@der_nat _ $s)) (Shift $P))
+//                                                            (Jcong Shift (deq_subst_convert_shift $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $P ))))))
+//                   (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dH))
+//               (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dn)
+// // Sigma types
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_sig $dA $dB) ↪
+//      der_sig (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_pair _ _ _ _ $B $a _ $dA $dB $da $db) ↪
+//       der_pair (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA) (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+//                (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $da) (JT (teq_inv (deq_subst_convert_apply $id $dΓ $d $sc $B $a)) (deq_subst_convert $id $dΓ $d $sc $db))
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_p1 $dA $dB $dp) ↪
+//       der_p1 (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA) (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+//                (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dp)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_p2 _ _ _ _ $B $p $dA $dB $dp) ↪
+//       JT (deq_subst_convert_apply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $B (tp1 $p))
+//          (der_p2 (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA) (deq_subst_convert (dbsucc $id) $dΓ $d (SCPush $sc $dA) $dB)
+//                  (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dp))
+// // Sum types
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_sum $dA $dB) ↪
+//      der_sum (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dB)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_injl $dA $dB $da) ↪
+//      der_injl (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dB)
+//              (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $da)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_injr $dA $dB $da) ↪
+//      der_injr (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dB)
+//              (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $da)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_case _ _ _ _ _ _ $P _ _ _ $dA $dB $dP $dHa $dHb $dx) ↪
+//      der_case (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//               (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dB)
+//               (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dP)
+//               (JT (Jpi (TRefl _) (Japp (deq_subst_convert_shift $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $P) (TRefl _))) (deq_subst_convert $id $dΓ $d $sc $dHa))
+//               (JT (Jpi (TRefl _) (Japp (deq_subst_convert_shift $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $P) (TRefl _))) (deq_subst_convert $id $dΓ $d $sc $dHb))
+//               (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dx)
+// // Path types
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_path _ _ $A _ _ $dA $dx $dy) ↪
+//      der_path (deq_subst_convert $id $dΓ $d (SCI $sc) $dA)
+//               (JT (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it0)) (deq_subst_convert $id $dΓ $d $sc $dx))
+//               (JT (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it1)) (deq_subst_convert $id $dΓ $d $sc $dy))
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (@der_lamP _ _ _ $t $dA $dt) ↪
+//      JT (Jpath (TRefl _) (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $t it0) (deq_subst_convert_Iapply $id $dΓ $d $sc $t it1))
+//         (der_lamP (deq_subst_convert $id $dΓ $d (SCI $sc) $dA)
+//                   (deq_subst_convert $id $dΓ $d (SCI $sc) $dt))
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_appP $A _ _ _ $i $dA $dx $dy $dt $di) ↪
+//      JT (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A $i)
+//         (der_appP _ _ _ _ _ (deq_subst_convert $id $dΓ $d (SCI $sc) $dA)
+//               (JT (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it0)) (deq_subst_convert $id $dΓ $d $sc $dx))
+//               (JT (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it1)) (deq_subst_convert $id $dΓ $d $sc $dy))
+//                   (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dt)
+//                   (der_I_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $di))
+// // Systems
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_sys $dA $df $dg $du $dv $done $deq) ↪
+//      der_sys (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//              (der_F_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $df)
+//              (der_F_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dg)
+//              (deq_subst_convert $id $dΓ $d (SCF $sc $df) $du)
+//              (deq_subst_convert $id $dΓ $d (SCF $sc $dg) $dv)
+//              (der_isOne_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $done)
+//              (der_eq_subst $id _ $dΓ $d (SCF $sc (der_F_min $df $dg)) $deq)
+// with deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc (der_sys_empty $dA $done) ↪
+//      der_sys_empty (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//                    (der_isOne_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $done)
+// // Transport
+// with @deq_subst_convert _ $id _ _ _ _ _ $u $dΓ $d $sc (@der_transp _ _ $A _ _ $dA $df $du $deq) ↪
+//      JT (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it1)
+//         (der_transp (deq_subst_convert $id $dΓ $d (SCI $sc) $dA)
+//                     (der_F_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $df)
+//                     (JT (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it0)) (deq_subst_convert $id $dΓ $d $sc $du))
+//                     (Jeq (TRefl _) (TRefl _)
+//                          (teq_trans (aux_teq_subst_Ishift $id db0 (shift_sctx $sc $u) (applyI1 $A it0))
+//                                     (Jcong IShift (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $A it0))))
+//                          (der_eq_subst $id _ $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $deq)))
+// // hcomp
+// with @deq_subst_convert _ $id _ _ _ _ _ $u $dΓ $d $sc (@der_hcomp _ _ $A _ $u' _ $dA $df $du $du0 $deq) ↪
+//      der_hcomp (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $dA)
+//                (der_F_subst $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $df)
+//                (JT (aux_teq_subst_Ishift $id db0 (shift_sctx $sc $u) $A) (deq_subst_convert $id $dΓ $d (SCF (SCI $sc) (der_Ishift0F (sc_to_dctx $sc) $df)) $du))
+//                (deq_subst_convert $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $du0)
+//                (Jeq (TRefl _) (TRefl _) (teq_inv (deq_subst_convert_Iapply $id $r1 $r2 $dΓ $deqR $dr1 $dr2 $esc $u' it0)) (der_eq_subst $id _ $dΓ $d (SCF $sc $df) $deq))
+;

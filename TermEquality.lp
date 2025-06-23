@@ -1870,6 +1870,10 @@ symbol teq_select_shift (i id : DBId) (V : Term) :
   teq_trans
     (aux_teq_dbselect_Sn i id (Shift V) (tvar (dbsucc id)))
     (teq_inv (aux_teq_shift_dbselect0 i id V (tvar id) (tvar (dbprev id))));
+symbol teq_select_Ishift (i id : DBId) (V : Term) :
+  TEq (dbselect (dbsucc i) (dbsucc id) (IShift V) (tvar id) (tvar (dbprev id)))
+      (IShift (dbselect i id V (tvar id) (tvar (dbprev id)))) ≔
+    (teq_inv (aux_teq_Ishift_dbselect0 i id V (tvar id) (tvar (dbprev id))));
 symbol teq_select_IshiftI (i id : DBId) (V : ITerm) :
   ITEq (dbselectI (dbsucc i) (dbsucc id) (IShiftI V) (itvar (dbsucc id)) (itvar id))
        (IShiftI (dbselectI i id V (itvar id) (itvar (dbprev id)))) ≔
@@ -3205,7 +3209,6 @@ symbol aux_teq_Isubst_subst_Irec' (i j : DBId) (ms : MixedSequence j i) (u : ITe
       (subst j (IShift (Isubst i (Ishift_mseq ms u) (shift_mseq ms t1))) (Isubst (dbsucc i) (IShiftI (Ishift_mseq ms u)) t2)) ≔
 begin
   assume i j ms u t1 t2;
-  type aux_teq_Isubst_subst' (dbsucc i) j (MSI ms) u t1 t2;
   refine teq_trans (aux_teq_Isubst_subst' (dbsucc i) j (MSI ms) u t1 t2) _;
   refine Jcong (λ v, subst j v (Isubst (dbsucc i) (Ishift_mseq (MSI ms) u) t2))
                (teq_Isubst_Ishift i (Ishift_mseq ms u) (shift_mseq ms t1));
