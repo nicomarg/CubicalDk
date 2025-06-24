@@ -2,7 +2,7 @@ require open ctt.ast;
 require open ctt.DeBruijn;
 require open ctt.Typing;
 require open ctt.Lemmas;
-require open ctt.Inversions;
+// require open ctt.Inversions;
 
 // Pair of contexts with equalities
 // Extensional equivalent of PContext
@@ -296,90 +296,186 @@ with convert_der_eq $ec (der_eq_sys_right _ _ _ _ _ _ _ $dA $df $dg $du $dv $deq
                  (convert_der_F $ec $dg) (convert_der (pushFEC $ec $df) $du)
                  (convert_der (pushFEC $ec $dg) $dv) (convert_der_eq (pushFEC $ec (der_F_min $df $dg)) $deq)
                  (convert_der_isOne $ec $done)
-// with convert_der_eq $ec (der_eq_conversion _ $s $t1 $t2 $T1 $T2 $deqt $deqT)
-//   ↪ der_eq_conversion _ $s $t1 $t2 $T1 $T2
-//                        (convert_der_eq $ec $deqt)
-//                        (convert_der_eq $ec $deqT)
-// with convert_der_eq $ec (der_eq_lift _ $s $e $u $v $A $de)
-//   ↪ der_eq_lift _ $s $e $u $v $A
-//                  (convert_der $ec $de)
-// with convert_der_eq $ec (der_eq_cong_tfun _ _ _ _ _ _ _ $deqA $deqB $dB1 $dB2)
-//   ↪ der_eq_cong_tfun _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-// with convert_der_eq $ec (der_eq_cong_tabs _ _ _ _ _ _ _ _ _ $deqA $deqB $deqt $dB1 $dB2 $dt1 $dt2)
-//   ↪ der_eq_cong_tabs _ _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqt)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dt1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dt2)
-// with convert_der_eq $ec (der_eq_cong_tapp _ _ _ _ _ _ _ _ _ _ _ $deqA $deqB $deqf $deqa $dB1 $dB2 $df1 $df2 $da1 $da2)
-//   ↪ der_eq_cong_tapp _ _ _ _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der_eq $ec $deqf)
-//        (convert_der_eq $ec $deqa)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-//        (convert_der $ec $df1) (convert_der $ec $df2)
-//        (convert_der $ec $da1) (convert_der $ec $da2)
-// with convert_der_eq $ec (der_eq_cong_tsum _ _ _ _ _ _ _ $deqA $deqB $dB1 $dB2)
-//   ↪ der_eq_cong_tsum _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-// with convert_der_eq $ec (der_eq_cong_tpair _ _ _ _ _ _ _ _ _ _ _ $deqA $deqB $deqa $deqb $dB1 $dB2 $da1 $da2 $db1 $db2)
-//   ↪ der_eq_cong_tpair _ _ _ _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der_eq $ec $deqa)
-//        (convert_der_eq $ec $deqb)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-//        (convert_der $ec $da1) (convert_der $ec $da2)
-//        (convert_der $ec $db1) (convert_der $ec $db2)
-// with convert_der_eq $ec (der_eq_cong_π1 _ _ _ _ _ _ _ _ _ $deqA $deqB $deqp $dB1 $dB2 $dp1 $dp2)
-//   ↪ der_eq_cong_π1 _ _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der_eq $ec $deqp)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-//        (convert_der $ec $dp1) (convert_der $ec $dp2)
-// with convert_der_eq $ec (der_eq_cong_π2 _ _ _ _ _ _ _ _ _ $deqA $deqB $deqp $dB1 $dB2 $dp1 $dp2)
-//   ↪ der_eq_cong_π2 _ _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
-//        (convert_der_eq $ec $deqp)
-//        (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
-//        (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
-//        (convert_der $ec $dp1) (convert_der $ec $dp2)
-// with convert_der_eq $ec (der_eq_cong_teq _ _ _ _ _ _ _ _ $deqA $deqa $deqb $da1 $da2 $db1 $db2)
-//   ↪ der_eq_cong_teq _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq $ec $deqa)
-//        (convert_der_eq $ec $deqb)
-//        (convert_der $ec $da1) (convert_der $ec $da2)
-//        (convert_der $ec $db1) (convert_der $ec $db2)
-// with convert_der_eq $ec (der_eq_cong_trefl _ _ _ _ _ _ $deqA $deqa $da1 $da2)
-//   ↪ der_eq_cong_trefl _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq $ec $deqa)
-//        (convert_der $ec $da1) (convert_der $ec $da2)
-// with convert_der_eq $ec (der_eq_cong_tK _ _ _ _ _ _ _ _ $deqA $deqa $deqp $da1 $da2 $dp1 $dp2)
-//   ↪ der_eq_cong_tK _ _ _ _ _ _ _ _
-//        (convert_der_eq $ec $deqA)
-//        (convert_der_eq $ec $deqa)
-//        (convert_der_eq $ec $deqp)
-//        (convert_der $ec $da1) (convert_der $ec $da2)
-//        (convert_der $ec $dp1) (convert_der $ec $dp2)
-// ;
+with convert_der_eq $ec (der_eq_transp _ _ _ _ _ $dA $df $du $deq $done) ↪
+     der_eq_transp _ _ _ _ _
+                 (convert_der (ECI $ec) $dA) (convert_der_F $ec $df)
+                 (convert_der $ec $du)
+                 (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deq)
+                 (convert_der_isOne $ec $done)
+with convert_der_eq $ec (der_eq_transp_pi _ _ _ _ _ _ _ _ $dA $dB $df $deqA $deqB $du $dv) ↪
+     der_eq_transp_pi _ _ _ _ _ _ _ _
+                      (convert_der (ECI $ec) $dA) (convert_der (pushEC (ECI $ec) $dA) $dB) (convert_der_F $ec $df)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqA)
+                      (convert_der_eq (pushEC (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df))
+                                              (der_weakF (pushΓI (ec_to_dctx1 $ec)) $dA
+                                                    (der_Ishift0F (ec_to_dctx1 $ec) $df))) $deqB)
+                      (convert_der $ec $du) (convert_der $ec $dv)
+with convert_der_eq $ec (der_eq_transp_univ _ _ _ _ $df $dA) ↪
+    der_eq_transp_univ _ _ _ _ (convert_der_F $ec $df) (convert_der $ec $dA)
+with convert_der_eq $ec (der_eq_transp_zero _ _ _ $df) ↪
+    der_eq_transp_zero _ _ _ (convert_der_F $ec $df)
+with convert_der_eq $ec (der_eq_transp_suc _ _ _ _ $df $dA) ↪
+    der_eq_transp_suc _ _ _ _ (convert_der_F $ec $df) (convert_der $ec $dA)
+with convert_der_eq $ec (der_eq_transp_sig _ _ _ _ _ _ _ $dA $dB $df $deqA $deqB $du) ↪
+     der_eq_transp_sig _ _ _ _ _ _ _
+                      (convert_der (ECI $ec) $dA) (convert_der (pushEC (ECI $ec) $dA) $dB) (convert_der_F $ec $df)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqA)
+                      (convert_der_eq (pushEC (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df))
+                                              (der_weakF (pushΓI (ec_to_dctx1 $ec)) $dA
+                                                    (der_Ishift0F (ec_to_dctx1 $ec) $df))) $deqB)
+                      (convert_der $ec $du)
+with convert_der_eq $ec (der_eq_transp_sum_left _ _ _ _ _ _ _ $dA $dB $df $du $deqA $deqB) ↪
+     der_eq_transp_sum_left _ _ _ _ _ _ _
+                      (convert_der (ECI $ec) $dA) (convert_der (ECI $ec) $dB) (convert_der_F $ec $df)
+                      (convert_der $ec $du)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqA)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqB)
+with convert_der_eq $ec (der_eq_transp_sum_right _ _ _ _ _ _ _ $dA $dB $df $du $deqA $deqB) ↪
+     der_eq_transp_sum_right _ _ _ _ _ _ _
+                      (convert_der (ECI $ec) $dA) (convert_der (ECI $ec) $dB) (convert_der_F $ec $df)
+                      (convert_der $ec $du)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqA)
+                      (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqB)
+with convert_der_eq $ec (der_eq_transp_path _ _ _ _ _ _ _ $dA $dx $dy $df $du $deqA $deqx $deqy) ↪
+    der_eq_transp_path _ _ _ _ _ _ _
+                       (convert_der (ECI (ECI $ec)) $dA) (convert_der (ECI $ec) $dx) (convert_der (ECI $ec) $dy)
+                       (convert_der_F $ec $df) (convert_der $ec $du)
+                       (convert_der_eq (pushFEC (ECI (ECI $ec)) (der_Ishift0F (ec_to_dctx1 (ECI $ec)) (der_Ishift0F (ec_to_dctx1 $ec) $df))) $deqA)
+                       (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqx)
+                       (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $deqy)
+with convert_der_eq $ec (der_eq_hcomp _ _ _ _ _ _ $dA $df $du $du0 $deq $done) ↪
+     der_eq_hcomp _ _ _ _ _ _
+                  (convert_der $ec $dA) (convert_der_F $ec $df)
+                  (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                  (convert_der $ec $du0)
+                  (convert_der_eq (pushFEC $ec $df) $deq)
+                  (convert_der_isOne $ec $done)
+with convert_der_eq $ec (der_eq_hcomp_pi _ _ _ _ _ _ _ _ _ $dA $dB $df $du $du0 $deq $dv) ↪
+     der_eq_hcomp_pi _ _ _ _ _ _ _ _ _
+                     (convert_der $ec $dA) (convert_der (pushEC $ec $dA) $dB) (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                     (convert_der $ec $du0)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+                     (convert_der $ec $dv)
+with convert_der_eq $ec (der_eq_hcomp_zero _ _ _ _ $df $dn $deq) ↪
+     der_eq_hcomp_zero _ _ _ _
+                     (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $dn)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_hcomp_suc _ _ _ _ _ $df $dn $dn0 $deq) ↪
+     der_eq_hcomp_suc _ _ _ _ _
+                     (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $dn)
+                     (convert_der $ec $dn0)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_hcomp_sig _ _ _ _ _ _ _ _ $dA $dB $df $du $du0 $deq) ↪
+     der_eq_hcomp_sig _ _ _ _ _ _ _ _
+                     (convert_der $ec $dA) (convert_der (pushEC $ec $dA) $dB) (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                     (convert_der $ec $du0)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_hcomp_sum_left _ _ _ _ _ _ _ _ $dA $dB $df $du $du0 $deq) ↪
+     der_eq_hcomp_sum_left _ _ _ _ _ _ _ _
+                     (convert_der $ec $dA) (convert_der $ec $dB) (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                     (convert_der $ec $du0)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_hcomp_sum_right _ _ _ _ _ _ _ _ $dA $dB $df $du $du0 $deq) ↪
+     der_eq_hcomp_sum_right _ _ _ _ _ _ _ _
+                     (convert_der $ec $dA) (convert_der $ec $dB) (convert_der_F $ec $df)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                     (convert_der $ec $du0)
+                     (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_hcomp_path _ _ _ _ _ _ _ _ $dA $dx $dy $df $du $du0 $deq) ↪
+     der_eq_hcomp_path _ _ _ _ _ _ _ _
+                      (convert_der (ECI $ec) $dA) (convert_der $ec $dx) (convert_der $ec $dy) (convert_der_F $ec $df)
+                      (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) $df)) $du)
+                      (convert_der $ec $du0)
+                      (convert_der_eq (pushFEC $ec $df) $deq)
+with convert_der_eq $ec (der_eq_cong_pi _ _ _ _ _ _ _ $deqA $deqB $dB1 $dB2) ↪
+     der_eq_cong_pi _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
+                     (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
+                     (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
+with convert_der_eq $ec (der_eq_cong_abs _ _ _ _ _ _ _ _ $deqA $deqt $dt1 $dt2) ↪
+     der_eq_cong_abs _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqt)
+                     (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dt1)
+                     (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dt2)
+with convert_der_eq $ec (der_eq_cong_app _ _ _ _ _ _ _ _ _ $deqA $deqB) ↪
+     der_eq_cong_app _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq $ec $deqB)
+with convert_der_eq $ec (der_eq_cong_suc _ _ _ _ $deqA) ↪
+     der_eq_cong_suc _ _ _ _ (convert_der_eq $ec $deqA)
+with convert_der_eq $ec (der_eq_cong_rec _ _ _ _ _ _ _ _ _ _ _ $deqP $deqz $deqH $deqn) ↪
+     der_eq_cong_rec _ _ _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqP) (convert_der_eq $ec $deqz)
+                     (convert_der_eq $ec $deqH) (convert_der_eq $ec $deqn)
+with convert_der_eq $ec (der_eq_cong_sig _ _ _ _ _ _ _ $deqA $deqB $dB1 $dB2) ↪
+     der_eq_cong_sig _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $deqB)
+                     (convert_der (pushEC $ec (inv_eq_t1 (ec_to_dctx1 $ec) $deqA)) $dB1)
+                     (convert_der (pushEC $ec (inv_eq_t2 (ec_to_dctx1 $ec) $deqA)) $dB2)
+with convert_der_eq $ec (der_eq_cong_pair _ _ _ _ _ _ _ _ _ $deqA $deqB) ↪
+     der_eq_cong_pair _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq $ec $deqB)
+with convert_der_eq $ec (der_eq_cong_p1 _ _ $s' _ _ _ _ $deqt) ↪
+     der_eq_cong_p1 _ _ $s' _ _ _ _
+                     (convert_der_eq $ec $deqt)
+with convert_der_eq $ec (der_eq_cong_p2 _ $s _ _ _ _ _ $deqt) ↪
+     der_eq_cong_p2 _ $s _ _ _ _ _
+                     (convert_der_eq $ec $deqt)
+with convert_der_eq $ec (der_eq_cong_sum _ _ _ _ _ _ _ $deqA $deqB) ↪
+     der_eq_cong_sum _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq $ec $deqB)
+with convert_der_eq $ec (der_eq_cong_injl _ _ $s' _ _ _ _ $deqt) ↪
+     der_eq_cong_injl _ _ $s' _ _ _ _
+                     (convert_der_eq $ec $deqt)
+with convert_der_eq $ec (der_eq_cong_injr _ $s _ _ _ _ _ $deqt) ↪
+     der_eq_cong_injr _ $s _ _ _ _ _
+                     (convert_der_eq $ec $deqt)
+with convert_der_eq $ec (der_eq_cong_case _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ $deqA $deqB $deqP $deqHa $deqHb $deqn) ↪
+    der_eq_cong_case _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq $ec $deqB)
+                     (convert_der_eq $ec $deqP) (convert_der_eq $ec $deqHa)
+                     (convert_der_eq $ec $deqHb) (convert_der_eq $ec $deqn)
+with convert_der_eq $ec (der_eq_cong_path _ _ _ _ _ _ _ _ $deqA $deqx $deqy) ↪
+    der_eq_cong_path _ _ _ _ _ _ _ _
+                     (convert_der_eq (ECI $ec) $deqA) (convert_der_eq $ec $deqx)
+                     (convert_der_eq $ec $deqy)
+with convert_der_eq $ec (der_eq_cong_lamP _ _ _ _ _ $deqt) ↪
+    der_eq_cong_lamP _ _ _ _ _
+                     (convert_der_eq (ECI $ec) $deqt)
+with convert_der_eq $ec (der_eq_cong_appP _ _ _ _ _ _ _ _ _ $deqA $deqB) ↪
+     der_eq_cong_appP _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq_I $ec $deqB)
+with convert_der_eq $ec (der_eq_cong_sys _ _ _ _ _ _ _ _ _ _ _ $deqf $deqg $dequ $deqv $du1 $du2 $dv1 $dv2 $done1 $done2 $deq1 $deq2) ↪
+     der_eq_cong_sys _ _ _ _ _ _ _ _ _ _ _
+                     (convert_der_eq_F $ec $deqf) (convert_der_eq_F $ec $deqg)
+                     (convert_der_eq (pushFEC $ec (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf)) $dequ)
+                     (convert_der_eq (pushFEC $ec (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqg)) $deqv)
+                     (convert_der (pushFEC $ec (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf)) $du1)
+                     (convert_der (pushFEC $ec (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqf)) $du2)
+                     (convert_der (pushFEC $ec (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqg)) $dv1)
+                     (convert_der (pushFEC $ec (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqg)) $dv2)
+                     (convert_der_isOne $ec $done1) (convert_der_isOne $ec $done2)
+                     (convert_der_eq (pushFEC $ec (der_F_min (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf) (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqg))) $deq1)
+                     (convert_der_eq (pushFEC $ec (der_F_min (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqf) (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqg))) $deq2)
+with convert_der_eq $ec (der_eq_cong_transp _ _ _ _ _ _ _ _ $deqA $deqf $deqa $deqA1 $deqA2) ↪
+     der_eq_cong_transp _ _ _ _ _ _ _ _
+                     (convert_der_eq (ECI $ec) $deqA) (convert_der_eq_F $ec $deqf)
+                                                        (convert_der_eq $ec $deqa)
+                     (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf))) $deqA1)
+                     (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqf))) $deqA2)
+with convert_der_eq $ec (der_eq_cong_hcomp _ _ _ _ _ _ _ _ _ _ $deqA $deqf $dequ $deqv $du1 $du2 $deq1 $deq2) ↪
+     der_eq_cong_hcomp _ _ _ _ _ _ _ _ _ _
+                     (convert_der_eq $ec $deqA) (convert_der_eq_F $ec $deqf)
+                     (convert_der_eq (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf))) $dequ)
+                     (convert_der_eq $ec $deqv)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf))) $du1)
+                     (convert_der (pushFEC (ECI $ec) (der_Ishift0F (ec_to_dctx1 $ec) (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqf))) $du2)
+                     (convert_der_eq (pushFEC $ec (inv_eq_F_t1 (ec_to_dctx1 $ec) $deqf)) $deq1)
+                     (convert_der_eq (pushFEC $ec (inv_eq_F_t2 (ec_to_dctx1 $ec) $deqf)) $deq2)
 ;
 
 rule convert'_der $ec (der_empty_face $done) ↪ der_empty_face (convert'_der_isOne $ec $done)

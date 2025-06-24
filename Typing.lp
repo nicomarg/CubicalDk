@@ -404,8 +404,8 @@ constant symbol der_eq_cong_sys : Π (Γ : Context) (l : Lev) (A : Term) (f1 f2 
   der_eq (PushF (ftmin f2 g2) Γ) u2 v2 A l → der_eq Γ (tsys f1 g1 u1 v1) (tsys f2 g2 u2 v2) A l;
 constant symbol der_eq_cong_transp : Π (Γ : Context) (l : Lev) (A1 A2 : Term) (f1 f2 : FTerm) (a1 a2 : Term),
   der_eq (PushI Γ) A1 A2 (tuniv l) (lsuc l) → der_eq_F Γ f1 f2 → der_eq Γ a1 a2 (applyI1 A1 it0) l →
-  der_eq (PushI Γ) A1 (IShift (applyI1 A1 it0)) (tuniv l) (lsuc l) →
-  der_eq (PushI Γ) A2 (IShift (applyI1 A2 it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f1) (PushI Γ)) A1 (IShift (applyI1 A1 it0)) (tuniv l) (lsuc l) →
+  der_eq (PushF (IShiftF f2) (PushI Γ)) A2 (IShift (applyI1 A2 it0)) (tuniv l) (lsuc l) →
   der_eq Γ (ttransp A1 f1 a1) (ttransp A2 f2 a2) (applyI1 A1 it1) l;
 constant symbol der_eq_cong_hcomp : Π (Γ : Context) (l : Lev) (A1 A2 : Term) (f1 f2 : FTerm) (u1 u2 v1 v2 : Term),
   der_eq Γ A1 A2 (tuniv l) (lsuc l) → der_eq_F Γ f1 f2 → der_eq (PushF (IShiftF f1) (PushI Γ)) u1 u2 (IShift A1) l →
