@@ -71,6 +71,15 @@ rule xeps (xPi $A $B) ↪ Π (x : xeps $A), xeps ($B x);
 symbol xndPi ≔ λ (A : xT) (B : xT), xPi A (λ _, B);
 symbol xtndPi ≔ λ (A : xT) (B : xT), xeps (xndPi A B);
 
+// Sigma Types for the extra universe
+constant symbol xSig (A : xT) : (xeps A → xT) → xT;
+symbol xtSig (A : xT) (B : xeps A → xT) ≔ xeps (xSig A B);
+constant symbol xpair [A : xT] [B : xeps A → xT] (x : xeps A) : xeps (B x) → xtSig A B;
+symbol xp1 [A : xT] [B : xeps A → xT] : xtSig A B → xeps A;
+symbol xp2 [A : xT] [B : xeps A → xT] (a : xtSig A B) : xeps (B (xp1 a));
+rule xp1 (xpair $a _) ↪ $a;
+rule xp2 (xpair _ $b) ↪ $b;
+
 // Some datatypes in the external layer needed later
 constant symbol xFalse : xT;
 symbol xtFalse ≔ xeps xFalse;
@@ -82,13 +91,10 @@ constant symbol xtt : xtTrue;
 symbol xelimTrue : Π (tau : (xtTrue → xT)), xeps (tau xtt) → Π (p : xtTrue), xeps (tau p);
 rule xelimTrue _ $e xtt ↪ $e;
 
-constant symbol xProd : xT → xT → xT;
+symbol xProd (A : xT) (B : xT) : xT ≔ xSig A (λ _, B);
 symbol xtProd ≔ λ (A : xT) (B : xT), xeps (xProd A B);
-constant symbol xpair [A B] : xeps A → xeps B → xtProd A B;
-symbol xfst [A B] : xtProd A B → xeps A;
-symbol xsnd [A B] : xtProd A B → xeps B;
-rule xfst (xpair $a _) ↪ $a;
-rule xsnd (xpair _ $b) ↪ $b;
+symbol xfst [A B] ≔ @xp1 A (λ _, B);
+symbol xsnd [A B] ≔ @xp2 A (λ _, B);
 
 constant symbol xSum : xT → xT → xT;
 symbol xtSum ≔ λ (A B : xT), xeps (xSum A B);
