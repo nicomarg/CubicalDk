@@ -2,7 +2,10 @@
 
 ## TODOs
 
+- Be clear about which lemma is needed for which feature
 - Replace tH being injective by the proper unif_rule on transport
+- Remove the need for universes to define well-formedness of types
+- Make translation not depend on a specific typing derivation of the considered term
 
 ## New stuff
 * Symbols (definition of syntax and typing types)
