@@ -5,13 +5,13 @@ require open ctt.Lemmas.Commutations;
 // Generic der_shift
 constant symbol ShiftContext : Context → DBId → TYPE;
 symbol sc_to_ctx [Γ : Context] [id : DBId] : ShiftContext Γ id → Context;
-symbol sc_to_sctx [Γ : Context] [id : DBId] [s : tLev] [A : Term] :
+symbol sc_to_sctx [Γ : Context] [id : DBId] [s : Sort] [A : Term] :
   der Γ A (tuniv s) (tlsuc s) → ShiftContext Γ id → Context;
 symbol sc_to_dctx [Γ : Context] [id : DBId] (sc : ShiftContext Γ id) : der_context (sc_to_ctx sc);
-symbol sc_to_dsctx [Γ : Context] [id : DBId] [s : tLev] [A : Term] (dA : der Γ A (tuniv s) (tlsuc s))
+symbol sc_to_dsctx [Γ : Context] [id : DBId] [s : Sort] [A : Term] (dA : der Γ A (tuniv s) (tlsuc s))
                    (sc : ShiftContext Γ id) : der_context (sc_to_sctx dA sc);
 constant symbol SC0 [Γ : Context] : der_context Γ → ShiftContext Γ db0;
-constant symbol SCSucc [Γ : Context] [s : tLev] [A : Term] [id : DBId] (sc : ShiftContext Γ id) :
+constant symbol SCSucc [Γ : Context] [s : Sort] [A : Term] [id : DBId] (sc : ShiftContext Γ id) :
   der (sc_to_ctx sc) A (tuniv s) (tlsuc s) → ShiftContext Γ (dbsucc id);
 constant symbol SCI [Γ : Context] [id : DBId] (sc : ShiftContext Γ id) : ShiftContext Γ id;
 constant symbol SCF [Γ : Context] [f : FTerm] [id : DBId] (sc : ShiftContext Γ id) :
@@ -29,7 +29,7 @@ with sc_to_dctx (SCSucc $sc $d) ↪ der_context_Push _ _ _ $d (sc_to_dctx $sc)
 with sc_to_dctx (SCI $sc) ↪ der_context_PushI _ (sc_to_dctx $sc)
 with sc_to_dctx (SCF $sc $d) ↪ der_context_PushF _ _ $d (sc_to_dctx $sc);
 
-symbol shiftget_ctx_sctx [Γ : Context] [id : DBId] (i : DBId) (sc : ShiftContext Γ id) [l : tLev] [A : Term]
+symbol shiftget_ctx_sctx [Γ : Context] [id : DBId] (i : DBId) (sc : ShiftContext Γ id) [l : Sort] [A : Term]
                          (dA : der Γ A (tuniv l) (tlsuc l)) :
   TEq (shiftgetΓ (sc_to_sctx dA sc) (dbshift id i)) (shift id (shiftgetΓ (sc_to_ctx sc) i));
 rule shiftget_ctx_sctx db0 (SC0 _) _ ↪ TRefl _
@@ -44,7 +44,7 @@ with @shiftget_ctx_sctx _ $id $i (SCI $sc) _ _ $dA ↪
 with shiftget_ctx_sctx $i (SCF $sc _) $dA ↪ shiftget_ctx_sctx $i $sc $dA;
 
 symbol getS_ctx_sctx [Γ : Context] [id : DBId] (i : DBId) (sc : ShiftContext Γ id)
-                     [l : tLev] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
+                     [l : Sort] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
   LEq (getS (sc_to_sctx dA sc) (dbshift id i)) (getS (sc_to_ctx sc) i);
 rule getS_ctx_sctx _ (SC0 _) _ ↪ LRefl _
 with getS_ctx_sctx db0 (SCSucc _ _) _ ↪ LRefl _
@@ -53,7 +53,7 @@ with getS_ctx_sctx $i (SCI $sc) $dA ↪ getS_ctx_sctx $i $sc $dA
 with getS_ctx_sctx $i (SCF $sc _) $dA ↪ getS_ctx_sctx $i $sc $dA;
 
 symbol len_ctx_sctx [Γ : Context] [id : DBId] (i : DBId) (sc : ShiftContext Γ id)
-                    [l : tLev] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
+                    [l : Sort] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
   DBLe (dbsucc i) (len (sc_to_ctx sc)) → DBLe (dbsucc (dbshift id i)) (len (sc_to_sctx dA sc));
 rule len_ctx_sctx _ (SC0 _) _ $h ↪ dble_n_S $h
 with len_ctx_sctx db0 (SCSucc _ _) _ _ ↪ dble_n_S (dble_0_n _)
@@ -62,7 +62,7 @@ with len_ctx_sctx $i (SCI $sc) $dA $h ↪ len_ctx_sctx $i $sc $dA $h
 with len_ctx_sctx $i (SCF $sc _) $dA $h ↪ len_ctx_sctx $i $sc $dA $h;
 
 symbol lenI_ctx_sctx [Γ : Context] [id : DBId] (i : DBId) (sc : ShiftContext Γ id)
-                     [l : tLev] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
+                     [l : Sort] [A : Term] (dA : der Γ A (tuniv l) (tlsuc l)) :
   DBLe (dbsucc i) (lenI (sc_to_ctx sc)) → DBLe (dbsucc i) (lenI (sc_to_sctx dA sc));
 rule lenI_ctx_sctx _ (SC0 _) _ $h ↪ $h
 with lenI_ctx_sctx $id (SCSucc $sc _) $d $h ↪ lenI_ctx_sctx $id $sc $d $h
@@ -70,31 +70,31 @@ with lenI_ctx_sctx db0 (SCI _) _ _ ↪ dble_n_S (dble_0_n _)
 with lenI_ctx_sctx (dbsucc $i) (SCI $sc) $dA $h ↪ dble_n_S (lenI_ctx_sctx $i $sc $dA (dble_S_n $h))
 with lenI_ctx_sctx $i (SCF $sc _) $dA $h ↪ lenI_ctx_sctx $i $sc $dA $h;
 
-symbol der_shift_n [Γ : Context] [sa s : tLev] [A t T : Term] (id : DBId)
+symbol der_shift_n [Γ : Context] [sa s : Sort] [A t T : Term] (id : DBId)
                    (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                    (d : der (sc_to_ctx sc) t T s)
                    : der (sc_to_sctx dA sc) (shift id t) (shift id T) s;
-symbol der_eq_shift_n [Γ : Context] [sa s : tLev] [A T t1 t2 : Term] (id : DBId)
+symbol der_eq_shift_n [Γ : Context] [sa s : Sort] [A T t1 t2 : Term] (id : DBId)
                       (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                       (deq : der_eq (sc_to_ctx sc) t1 t2 T s) :
   der_eq (sc_to_sctx dA sc) (shift id t1) (shift id t2) (shift id T) s;
-symbol der_I_shift_n [Γ : Context] [sa : tLev] [A : Term] [t : ITerm] (id : DBId)
+symbol der_I_shift_n [Γ : Context] [sa : Sort] [A : Term] [t : ITerm] (id : DBId)
                    (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                    (d : der_I (sc_to_ctx sc) t)
                    : der_I (sc_to_sctx dA sc) t;
-symbol der_eq_I_shift_n [Γ : Context] [sa : tLev] [A : Term] [t1 t2 : ITerm] (id : DBId)
+symbol der_eq_I_shift_n [Γ : Context] [sa : Sort] [A : Term] [t1 t2 : ITerm] (id : DBId)
                       (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                       (deq : der_eq_I (sc_to_ctx sc) t1 t2) :
   der_eq_I (sc_to_sctx dA sc) t1 t2;
-symbol der_F_shift_n [Γ : Context] [sa : tLev] [A : Term] [f : FTerm] (id : DBId)
+symbol der_F_shift_n [Γ : Context] [sa : Sort] [A : Term] [f : FTerm] (id : DBId)
                    (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                    (d : der_F (sc_to_ctx sc) f)
                    : der_F (sc_to_sctx dA sc) f;
-symbol der_eq_F_shift_n [Γ : Context] [sa : tLev] [A : Term] [t1 t2 : FTerm] (id : DBId)
+symbol der_eq_F_shift_n [Γ : Context] [sa : Sort] [A : Term] [t1 t2 : FTerm] (id : DBId)
                       (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                       (deq : der_eq_F (sc_to_ctx sc) t1 t2) :
   der_eq_F (sc_to_sctx dA sc) t1 t2;
-symbol der_isOne_shift_n [Γ : Context] [sa : tLev] [A : Term] [f : FTerm] (id : DBId)
+symbol der_isOne_shift_n [Γ : Context] [sa : Sort] [A : Term] [f : FTerm] (id : DBId)
                    (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa))
                    (d : der_isOne (sc_to_ctx sc) f)
                    : der_isOne (sc_to_sctx dA sc) f;

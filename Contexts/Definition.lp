@@ -1,12 +1,12 @@
 require open ctt.Contexts.DeBruijn;
 
 constant symbol Empty : Context;
-constant symbol Push : Term → tLev → Context → Context;
+constant symbol Push : Term → Sort → Context → Context;
 constant symbol PushI : Context → Context;
 constant symbol PushF : FTerm → Context → Context;
 
 symbol get : Context → DBId → Term;
-symbol getS : Context → DBId → tLev;
+symbol getS : Context → DBId → Sort;
 symbol getΓ : Context → DBId → Context;
 symbol IgetΓ : Context → DBId → Context;
 rule get (Push $t _ _) db0 ↪ $t

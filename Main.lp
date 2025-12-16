@@ -6,7 +6,7 @@ require ctt.Univ.Proofs;
 require open ctt.Var.Syntax;
 require open ctt.Contexts.DeBruijn;
 
-symbol l : tLev;
+symbol l : Sort;
 symbol A : T (τ_lev l);
 symbol a : eps A;
 

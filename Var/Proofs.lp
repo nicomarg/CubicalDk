@@ -19,7 +19,7 @@ with swap_shift_shift $i $j (tvar $n) $h ↪ dbcongT tvar (aux_teq_shift_shift_v
 require open ctt.Lemmas.Derivations.Shifting;
 require open ctt.Univ.Syntax;
 require open ctt.Contexts.Definition;
-symbol der_context_shift_n [Γ : Context] [sa : tLev] [A : Term] (id i : DBId)
+symbol der_context_shift_n [Γ : Context] [sa : Sort] [A : Term] (id i : DBId)
                            (sc : ShiftContext Γ id) (dA : der Γ A (tuniv sa) (tlsuc sa)) :
   DBLe (dbsucc i) (len (sc_to_ctx sc)) →
   der (sc_to_sctx dA sc) (tvar (dbshift id i)) (shift id (shiftgetΓ (sc_to_ctx sc) i)) (getS (sc_to_ctx sc) i) ≔

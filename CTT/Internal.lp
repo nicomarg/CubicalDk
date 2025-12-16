@@ -14,6 +14,7 @@ injective symbol eps [i] : T i → TYPE;
 
 constant symbol t (i:Lev) : T (lsuc i);
 rule eps (t $i) ↪ T $i;
+// unif_rule T $l ≡ eps $t ↪ [ $t ≡ t $l];
 
 constant symbol lUp [i] : T i → T (lsuc i);
 rule eps (lUp $a) ↪ eps $a;

@@ -11,15 +11,15 @@ constant symbol FTRefl (t : FTerm) : FTEq t t;
 // Elimination of term equality
 symbol teq_inv [t1 t2 : Term] : TEq t1 t2 → TEq t2 t1;
 symbol teq_trans [t1 t2 t3 : Term] : TEq t1 t2 → TEq t2 t3 → TEq t1 t3;
-symbol Jt [Γ : Context] [s : tLev] [t1 t2 T : Term]
+symbol Jt [Γ : Context] [s : Sort] [t1 t2 T : Term]
           : TEq t1 t2 → der Γ t1 T s → der Γ t2 T s;
-symbol JT [Γ : Context] [s : tLev] [t T1 T2 : Term]
+symbol JT [Γ : Context] [s : Sort] [t T1 T2 : Term]
           : TEq T1 T2 → der Γ t T1 s → der Γ t T2 s;
-symbol JtT [Γ : Context] [s : tLev] [t1 t2 T1 T2 : Term]
+symbol JtT [Γ : Context] [s : Sort] [t1 t2 T1 T2 : Term]
            : TEq t1 t2 → TEq T1 T2 → der Γ t1 T1 s → der Γ t2 T2 s;
 symbol Jcong [t1 t2 : Term] (f : Term → Term)
              : TEq t1 t2 → TEq (f t1) (f t2);
-symbol Jeq [Γ : Context] [s : tLev] [T T' t1 t1' t2 t2']
+symbol Jeq [Γ : Context] [s : Sort] [T T' t1 t1' t2 t2']
            : TEq T T'
            → TEq t1 t1'
            → TEq t2 t2'
@@ -106,17 +106,17 @@ symbol FJselect [eq1 eq2 gt1 gt2 lt1 lt2 : FTerm] (i j : DBId) :
 rule FJselect _ _ (FTRefl _) (FTRefl _) (FTRefl _) ↪ FTRefl _;
 
 // Universe level equality
-constant symbol LEq : tLev → tLev → TYPE;
-constant symbol LRefl (t : tLev) : LEq t t;
+constant symbol LEq : Sort → Sort → TYPE;
+constant symbol LRefl (t : Sort) : LEq t t;
 
 // Elimination of term equality
-symbol leq_inv [t1 t2 : tLev] : LEq t1 t2 → LEq t2 t1;
-symbol leq_trans [t1 t2 t3 : tLev] : LEq t1 t2 → LEq t2 t3 → LEq t1 t3;
-symbol Jl [Γ : Context] [s s' : tLev] [t T : Term]
+symbol leq_inv [t1 t2 : Sort] : LEq t1 t2 → LEq t2 t1;
+symbol leq_trans [t1 t2 t3 : Sort] : LEq t1 t2 → LEq t2 t3 → LEq t1 t3;
+symbol Jl [Γ : Context] [s s' : Sort] [t T : Term]
           : LEq s s' → der Γ t T s → der Γ t T s';
-symbol Jlcong [t1 t2 : tLev] (f : tLev → tLev)
+symbol Jlcong [t1 t2 : Sort] (f : Sort → Sort)
              : LEq t1 t2 → LEq (f t1) (f t2);
-symbol Jleq [Γ : Context] [s s' : tLev] [T t1 t2]
+symbol Jleq [Γ : Context] [s s' : Sort] [T t1 t2]
            : LEq s s'
            → der_eq Γ t1 t2 T s
            → der_eq Γ t1 t2 T s';

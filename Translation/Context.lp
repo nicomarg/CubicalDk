@@ -4,12 +4,26 @@ require open ctt.Contexts.Shift;
 require open ctt.Lemmas.Derivations;
 require open ctt.Univ.Subst;
 
+// Translation context constructors
+constant symbol TEmpty : TContext;
+constant symbol TPush
+  (Γ : TContext) (l : Sort) (A : Typ) (dA : der_type (τ_Γ Γ) A l)
+  : eps (τ_T Γ dA) → TContext;
+constant symbol TPushI (Γ : TContext) : tI → TContext;
+constant symbol TPushF (Γ : TContext) (f : FTerm) (df : der_F (τ_Γ Γ) f) : tisOne (τ_F Γ df) → TContext;
+
+// Translation of context
+rule τ_Γ TEmpty ↪ Empty
+with τ_Γ (TPush $t $s $A _ _) ↪ Push $A $s (τ_Γ $t)
+with τ_Γ (TPushI $t _) ↪ PushI (τ_Γ $t)
+with τ_Γ (TPushF $t $f _ _) ↪ PushF $f (τ_Γ $t);
+
 rule τ_dΓ (TPush $Γ _ _ $dA _) ↪ pushΓ $dA (τ_dΓ $Γ)
 with τ_dΓ TEmpty ↪ der_context_empty
 with τ_dΓ (TPushI $Γ _) ↪ pushΓI (τ_dΓ $Γ)
 with τ_dΓ (TPushF $Γ _ $df _) ↪ pushΓF $df (τ_dΓ $Γ);
 
-symbol tgetS (id : DBId) (Γ : TContext) : tLev ≔ getS (τ_Γ Γ) id;
+symbol tgetS (id : DBId) (Γ : TContext) : Sort ≔ getS (τ_Γ Γ) id;
 symbol tgetA (id : DBId) (Γ : TContext) : Term ≔ get (τ_Γ Γ) id;
 symbol tgetΓ : DBId → TContext → TContext;
 symbol tIgetΓ : DBId → TContext → TContext;
@@ -63,9 +77,12 @@ with tgetShift $id (TPushF $Γ _ $df $one) ↪
   τ_Fshift0T $Γ (der_shift $id (τ_dΓ $Γ) (tgetD $id $Γ)) $df $one (tgetShift $id $Γ);
 
 // Packed Context
+constant symbol PContext : TContext → TYPE;
+symbol projΓ1 [Γ : TContext] : PContext Γ → TContext;
+symbol projΓ2 [Γ : TContext] : PContext Γ → TContext;
 constant symbol PCEmpty (Γ : TContext) : PContext Γ;
 constant symbol PCPush
-  [Γ : TContext] [s : tLev] [A1 A2 : Term] (P : PContext Γ)
+  [Γ : TContext] [s : Sort] [A1 A2 : Term] (P : PContext Γ)
   (dA1 : der (τ_Γ (projΓ1 P)) A1 (tuniv s) (tlsuc s))
   (dA2 : der (τ_Γ (projΓ2 P)) A2 (tuniv s) (tlsuc s))
   [a1 : eps (τ_T (projΓ1 P) dA1)] [a2 : eps (τ_T (projΓ2 P) dA2)]
@@ -92,7 +109,7 @@ with projΓ2 (@PCPush _ $s _ $A2 $P _ $dA2 _ $a2 _) ↪ TPush (projΓ2 $P) $s $A
 with projΓ2 (@PCPushI _ $P _ $i2 _) ↪ TPushI (projΓ2 $P) $i2
 with projΓ2 (@PCPushF _ _ $f2 $P _ $df2 _ $one2) ↪ TPushF (projΓ2 $P) $f2 $df2 $one2;
 
-symbol pgetS [Γ : TContext] : DBId → PContext Γ → tLev;
+symbol pgetS [Γ : TContext] : DBId → PContext Γ → Sort;
 rule pgetS $id $P ↪ tgetS $id (projΓ1 $P)
 with pgetS $id $P ↪ tgetS $id (projΓ2 $P);
 symbol pgetA1 [Γ : TContext] : DBId → PContext Γ → Term;
