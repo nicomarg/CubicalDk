@@ -1,6 +1,7 @@
 require open ctt.CTT.HEq;
 require open ctt.CTT.IsOne;
-require open ctt.Lemmas.Inversions;
+require open ctt.Symbols;
+// require open ctt.Lemmas.Inversions;
 // require open ctt.Contexts.Definition;
 
 // Translation, levels first (which is trivial)
@@ -65,23 +66,30 @@ symbol τ_eq (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_�
 //   tconvtype (τ_T Γ d1) (τ_T Γ d2);
 
 // Translation of interval terms and equalities
-symbol τ_I (Γ : TContext) [i : ITerm] : der_I (τ_Γ Γ) i → tI;
+// symbol τ_I (Γ : TContext) [i : ITerm] : der_I (τ_Γ Γ) i → tI;
+symbol τ_I (Γ : TContext) : ITerm → tI;
 
-symbol τ_eq_I_t1 (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) : tI;
-symbol τ_eq_I_t2 (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) : tI;
-symbol τ_eq_I (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) :
-  xtEq (τ_eq_I_t1 Γ d) (τ_eq_I_t2 Γ d);
+// symbol τ_eq_I_t1 (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) : tI;
+// symbol τ_eq_I_t2 (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) : tI;
+// symbol τ_eq_I (Γ : TContext) [i j : ITerm] (d : der_eq_I (τ_Γ Γ) i j) :
+//   xtEq (τ_eq_I_t1 Γ d) (τ_eq_I_t2 Γ d);
+symbol τ_eq_I (Γ : TContext) [i j : ITerm] :
+  der_eq_I (τ_Γ Γ) i j → xtEq (τ_I Γ i) (τ_I Γ j);
 
 // Translation of face terms and equalities
-symbol τ_F (Γ : TContext) [i : FTerm] : der_F (τ_Γ Γ) i → tF;
-symbol τ_eq_F_t1 (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) : tF;
-symbol τ_eq_F_t2 (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) : tF;
-symbol τ_eq_F (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) :
-  xtEq (τ_eq_F_t1 Γ d) (τ_eq_F_t2 Γ d);
+// symbol τ_F (Γ : TContext) [i : FTerm] : der_F (τ_Γ Γ) i → tF;
+// symbol τ_eq_F_t1 (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) : tF;
+// symbol τ_eq_F_t2 (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) : tF;
+// symbol τ_eq_F (Γ : TContext) [i j : FTerm] (d : der_eq_F (τ_Γ Γ) i j) :
+//   xtEq (τ_eq_F_t1 Γ d) (τ_eq_F_t2 Γ d);
+symbol τ_F (Γ : TContext) : FTerm → tF;
+symbol τ_eq_F (Γ : TContext) [f g : FTerm] :
+  der_eq_F (τ_Γ Γ) f g → xtEq (τ_F Γ f) (τ_F Γ g);
 
 // Translation of isOne derivations
-symbol τ_isOne_t (Γ : TContext) [f : FTerm] (d : der_isOne (τ_Γ Γ) f) : tF;
-symbol τ_isOne (Γ : TContext) [f : FTerm] (d : der_isOne (τ_Γ Γ) f) : tisOne (τ_isOne_t Γ d);
+// symbol τ_isOne_t (Γ : TContext) [f : FTerm] (d : der_isOne (τ_Γ Γ) f) : tF;
+// symbol τ_isOne (Γ : TContext) [f : FTerm] (d : der_isOne (τ_Γ Γ) f) : tisOne (τ_isOne_t Γ d);
+symbol τ_isOne (Γ : TContext) [f : FTerm] (d : der_isOne (τ_Γ Γ) f) : tisOne (τ_F Γ f);
 
 // Translation of types is the same as the one for terms
 // rule τ_T $Γ $d ↪ τ $Γ $d;
