@@ -15,8 +15,10 @@ symbol τ_type_compat (Γ : TContext) [t : Term] [A : Typ] [l : Sort] (d : der (
 symbol τ_irrel (Γ : TContext) [t : Term] [A : Typ] [l : Sort] (d1 d2 : der (τ_Γ Γ) t A l) :
   tH (τ Γ d1) (τ Γ d2);
 
-symbol τ_eq_type_compat (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
-  tconvtype (τ_eq_type Γ d) (τ_T Γ (inv_eq_type (τ_dΓ Γ) d));
+symbol τ_eq_type1_compat (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
+  tconvtype (τ_eq_type1 Γ d) (τ_type Γ (inv_eq_t1 (τ_dΓ Γ) d));
+symbol τ_eq_type2_compat (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
+  tconvtype (τ_eq_type2 Γ d) (τ_type Γ (inv_eq_t2 (τ_dΓ Γ) d));
 symbol τ_eq_t1_compat (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
   tH (τ_eq_t1 Γ d) (τ Γ (inv_eq_t1 (τ_dΓ Γ) d));
 symbol τ_eq_t2_compat (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :

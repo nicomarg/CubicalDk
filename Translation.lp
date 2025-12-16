@@ -36,14 +36,16 @@ symbol τ (Γ : TContext) [t : Term] [A : Typ] [l : Sort] (d : der (τ_Γ Γ) t 
   eps (τ_type Γ d);
 
 // TODO one type for both sides or directly the heterogeneous one ?
-symbol τ_eq_type (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
+symbol τ_eq_type1 (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
+  T (τ_lev l);
+symbol τ_eq_type2 (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
   T (τ_lev l);
 symbol τ_eq_t1 (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
-  eps (τ_eq_type Γ d);
+  eps (τ_eq_type1 Γ d);
 symbol τ_eq_t2 (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
-  eps (τ_eq_type Γ d);
+  eps (τ_eq_type2 Γ d);
 symbol τ_eq (Γ : TContext) [t u : Term] [A : Typ] [l : Sort] (d : der_eq (τ_Γ Γ) t u A l) :
-  tconv (τ_eq_t1 Γ d) (τ_eq_t2 Γ d);
+  tH (τ_eq_t1 Γ d) (τ_eq_t2 Γ d);
 
 // For things to type, we need to know that the translation of a universe always is one
 // rule @τ_T _ (tuniv $s) (tlsuc $s) _ ↪ t (τ_lev $s);

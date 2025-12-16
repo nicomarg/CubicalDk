@@ -77,7 +77,7 @@
   * der_type : tau
   * der_eqT : t1 t2 tau
   * der : type t1 t2 tau
-  * der_eq : type (s?) t1 t2 tau
+  * der_eq : type1/2 t1 t2 tau
   * der_I : tau
   * der_eq_I : t1 t2 tau
   * der_F : tau
@@ -87,12 +87,7 @@
   * der_type : tau_T_irrel
   * der_eqT : tau_eqT_t1 t2 compat
   * der : tau_type_compat tau_irrel
-  * der_eq : tau_eq_type t1 t2 compat
-  * der_I : tau_I_irrel
-  * der_eq_I : tau_eq_I_t1 t2 compat
-  * der_F : tau_F_irrel
-  * der_eq_F : tau_eq_F_t1 t2 compat
-  * der_isOne : tau_isOne_t_compat
+  * der_eq : tau_eq_type1/2 t1 t2 compat
 
 * Term
   * shift
