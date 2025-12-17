@@ -83,7 +83,7 @@
   * der_F : tau
   * der_eq_F : t1 t2 tau
   * der_isOne : t
-* Translation/Irrel
+* Lemmas/Irrel
   * der_type : tau_T_irrel
   * der_eqT : tau_eqT_t1 t2 compat
   * der : tau_type_compat tau_irrel
