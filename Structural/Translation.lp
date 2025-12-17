@@ -62,6 +62,10 @@ rule τ_type $Γ (der_conv _ $deq) ↪ τ_eqT_t2 $Γ $deq;
 rule τ_type_compat $Γ (der_conv _ $deq) ↪ τ_eqT_t2_compat $Γ $deq;
 rule τ $Γ (der_conv $d $deq) ↪
      convtransp (xtransitivity (τ_type_t1_compat $Γ $d $deq) (τ_eqT $Γ $deq)) (τ $Γ $d);
+rule τ_irrel_rec $Γ (der_conv $d1 $deq1) (der_conv $d2 $deq2) ↪
+     heq_conj (τ_irrel_rec $Γ $d1 $d2)
+              (xtransitivity (τ_type_t1_compat (projΓ1 $Γ) $d1 $deq1) (τ_eqT (projΓ1 $Γ) $deq1))
+              (xtransitivity (τ_type_t1_compat (projΓ2 $Γ) $d2 $deq2) (τ_eqT (projΓ2 $Γ) $deq2));
 
 rule τ_eq_type1 $Γ (der_eq_conv _ $deq) ↪ τ_eqT_t2 $Γ $deq
 with τ_eq_type2 $Γ (der_eq_conv _ $deq) ↪ τ_eqT_t2 $Γ $deq;

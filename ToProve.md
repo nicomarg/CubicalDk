@@ -66,6 +66,7 @@
 
 # Lemmas to prove/define for each type
 
+For derivations, sorted first by the file the lemma is defined in
 * Inversions
   * der_eqT : inv_eqT_t1 & t2
   * der : inv_type
@@ -84,10 +85,18 @@
   * der_eq_F : t1 t2 tau
   * der_isOne : t
 * Lemmas/Irrel
-  * der_type : tau_T_irrel
+  * der_type : tau_T_irrel_rec
   * der_eqT : tau_eqT_t1 t2 compat
-  * der : tau_type_compat tau_irrel
+  * der : tau_type_compat tau_irrel_rec
   * der_eq : tau_eq_type1/2 t1 t2 compat
+
+For Terms
+For contexts, sorted by context type
+* TContext
+  * tau_Gamma
+  * tau_dGamma
+* PContext
+  * projGamma1 / 2
 
 * Term
   * shift
