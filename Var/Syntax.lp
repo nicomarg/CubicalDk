@@ -1,7 +1,4 @@
-require open ctt.Symbols;
-require open ctt.Contexts.DeBruijn;
-require open ctt.Contexts.Shift;
-require open ctt.Contexts.Definition;
+require open ctt.Var.Shift;
 
 constant symbol tvar : DBId → Term;
 
