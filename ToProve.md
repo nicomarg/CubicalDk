@@ -107,8 +107,8 @@ For derivations, sorted first by the file the lemma is defined in
   * der : tau_type_compat tau_irrel_rec
   * der_eq : tau_eq_type1/2 t1 t2 compat
 * Lemmas/Translation
-  * der_type : der_shiftT_n
-  * der : der_shift_n
+  * der_type : tau_shiftT_n
+  * der : tau_shift_n
 
 For contexts, sorted by context type
 * Context
